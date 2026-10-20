@@ -1,5 +1,19 @@
 # What If? — The Infinite Lives Engine
 
+[![CI](https://github.com/YOUR_USERNAME/what-if-infinite-lives-engine/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR_USERNAME/what-if-infinite-lives-engine/actions/workflows/ci.yml)
+[![Release](https://github.com/YOUR_USERNAME/what-if-infinite-lives-engine/actions/workflows/release.yml/badge.svg)](https://github.com/YOUR_USERNAME/what-if-infinite-lives-engine/actions/workflows/release.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-4fd8ff.svg)](LICENSE)
+[![Platform](https://img.shields.io/badge/platform-Windows%2010%2F11%20x64-7c5cff.svg)](#requirements)
+[![Electron](https://img.shields.io/badge/Electron-44-47848f?logo=electron&logoColor=white)](https://www.electronjs.org/)
+[![React](https://img.shields.io/badge/React-19-61dafb?logo=react&logoColor=white)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178c6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Tests](https://img.shields.io/badge/tests-146%20passing-b9f6a5.svg)](#testing)
+[![Local-first](https://img.shields.io/badge/local--first-offline%20by%20default-ffb74d.svg)](#privacy--security)
+
+<p align="center">
+  <img src="build/icon-256.png" alt="What If? app icon" width="160" />
+</p>
+
 A local-first Windows desktop application for exploring plausible alternative life paths through interactive branching timelines, decisions, counterfactuals, and deterministic simulations. It runs fully offline with a built-in rules engine and has an optional OpenAI-compatible provider for richer prose — without sending anything to the network unless you explicitly configure one.
 
 ## Features
@@ -9,27 +23,30 @@ A local-first Windows desktop application for exploring plausible alternative li
 - **Counterfactuals** — Change any assumption or choose a decision option to fork a new universe. Full lineage (parent/counterfactual metadata), snapshots, diffs, and stability analysis.
 - **Honest evidence model** — Every node carries evidence tags (`user-fact`, `research`, `assumption`, `speculation`) with provenance so you can tell stated facts from extrapolation.
 - **Local-first persistence** — Versioned JSON documents (`schemaVersion: 3`) with migrations, atomic writes, repair-on-import for recoverable issues (dangling edges/unreachable nodes are repaired with notes; structural failures are rejected), and a library index.
-- **Import/Export** — Self-contained `.whatif.json` envelope (`format: whatif.universe`) with checksum/hash, schema version, and app version for forward-compatible migration.
+- **Import/Export** — Self-contained `.whatif.json` envelope (`format: whatif.universe`) with checksum/hash, schema version, and app version for forward-compatible migration. Export any path as a **Markdown report**, and the graph canvas as a **PNG**.
+- **Timeline view** — Toggle between the graph and a chronological timeline sorted by elapsed time, with branch colours and per-node tradeoffs.
+- **Node notes** — Attach your own markdown notes to any node; they persist with the universe and appear in path exports.
+- **Guided onboarding** — A first-run tour (skippable, remembered) introduces the explorer, graph, and inspector.
 - **Privacy by design** — No telemetry, analytics, crash reporting, or accounts. Network access only if you configure an HTTP provider. API keys go through Electron `safeStorage` (DPAPI on Windows), never written to renderer storage, logs, or exports.
 - **Windows-native** — Electron app with menus, shortcuts, file dialogs, DPI awareness, NSIS installer + portable build.
 
 ## Tech Stack
 
-| Layer | Technology | Rationale |
-| --- | --- | --- |
-| Desktop shell | [Electron 44.9.0](https://www.electronjs.org/) | Ships a real Windows exe/installer with no C++/.NET/Rust toolchain required on this machine. |
-| UI | [React 19](https://react.dev/) + [TypeScript 5.9](https://www.typescriptlang.org/) (strict, `noUncheckedIndexedAccess`) | Type-safe, predictable rendering. |
-| Build | [Vite 7](https://vitejs.dev/) | Fast dev + correct file:// loading (`base: './'`). |
-| Packaging | [electron-builder 26](https://www.electron.build/) | NSIS installer + portable Windows builds. |
-| Core/simulation | Hand-written TypeScript | Deterministic, testable, no native modules (avoids build complexity). Canvas2D graph renderer hand-written for full control over motion/layout. |
-| Persistence | Versioned JSON + migration chain | Atomic writes, portable, auditable. |
+| Layer           | Technology                                                                                                              | Rationale                                                                                                                                       |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| Desktop shell   | [Electron 44.9.0](https://www.electronjs.org/)                                                                          | Ships a real Windows exe/installer with no C++/.NET/Rust toolchain required on this machine.                                                    |
+| UI              | [React 19](https://react.dev/) + [TypeScript 5.9](https://www.typescriptlang.org/) (strict, `noUncheckedIndexedAccess`) | Type-safe, predictable rendering.                                                                                                               |
+| Build           | [Vite 7](https://vitejs.dev/)                                                                                           | Fast dev + correct file:// loading (`base: './'`).                                                                                              |
+| Packaging       | [electron-builder 26](https://www.electron.build/)                                                                      | NSIS installer + portable Windows builds.                                                                                                       |
+| Core/simulation | Hand-written TypeScript                                                                                                 | Deterministic, testable, no native modules (avoids build complexity). Canvas2D graph renderer hand-written for full control over motion/layout. |
+| Persistence     | Versioned JSON + migration chain                                                                                        | Atomic writes, portable, auditable.                                                                                                             |
 
 Core modules have no Electron imports so the simulation/graph/AI logic runs in Node for unit tests.
 
 ## Requirements
 
 - Windows 10/11 x64
-- Node.js 18+ (tested with 26.8.1)
+- Node.js 22+ (see [`.nvmrc`](.nvmrc); tested with 26.8.1)
 - npm 11+ (tested with 11.19.0)
 
 ## Installation & Development
@@ -51,11 +68,21 @@ npm run typecheck
 # Lint
 npm run lint
 
+# Format (Prettier)
+npm run format
+npm run format:check
+
 # Run all tests
 npm test
 
 # Watch tests
 npm run test:watch
+
+# End-to-end smoke tests (Playwright; starts the dev server automatically)
+npm run test:e2e
+
+# Regenerate the app icon (build/icon.ico + build/icon-256.png)
+npm run icon
 ```
 
 ## Building for Windows
@@ -72,18 +99,25 @@ npm run dist:portable
 ```
 
 Outputs:
+
 - `release/win-unpacked/` — Unpacked portable app (`What If Infinite Lives Engine.exe`)
 - `release/what-if-infinite-lives-engine-1.0.0-x64.nsis.7z` — NSIS archive
 - `release/*.exe` — NSIS installer (when completed)
+
+Releases are published automatically by [`.github/workflows/release.yml`](.github/workflows/release.yml) when a `v*` tag is pushed.
 
 ## Project Structure
 
 ```
 thewhatifs/
+├── .github/                  # CI, release workflow, issue/PR templates
+├── build/                    # Icon source (icon.ico, icon-256.png)
 ├── docs/ARCHITECTURE.md      # Stack rationale
+├── e2e/                      # Playwright smoke tests
 ├── electron/                 # Main + preload (contextBridge API)
 │   ├── main.ts
 │   └── preload.ts
+├── scripts/                  # Build helpers (icon generator, electron pin)
 ├── src/
 │   ├── ai/                   # Provider interface, offline/HTTP adapters, orchestrator, schema
 │   ├── core/                 # Engine, graph, layout, rules, counterfactuals, migration/import/export
@@ -96,8 +130,7 @@ thewhatifs/
 │   │   └── theme.css
 │   ├── main.tsx
 │   └── ui/App.tsx
-├── tests/                    # 146 unit tests (engine, counterfactual, persistence, AI)
-└── scripts/                  # Build helpers
+└── tests/                    # 146 unit tests (engine, counterfactual, persistence, AI)
 ```
 
 ## Usage
@@ -112,18 +145,19 @@ thewhatifs/
 
 ## Keyboard Shortcuts
 
-| Shortcut | Action |
-| --- | --- |
-| `Ctrl+N` | New universe |
-| `Ctrl+O` | Import |
-| `Ctrl+S` | Export |
-| `Ctrl+Z` / `Ctrl+Shift+Z` | Undo / Redo |
-| `Ctrl+F` | Search nodes |
-| `E` | Expand selected node |
-| `F` | Fit to view |
-| `+` / `-` | Zoom in / out |
-| `↑/↓/←/→` | Navigate to parent/child |
-| `Esc` | Clear selection/close modal |
+| Shortcut                  | Action                      |
+| ------------------------- | --------------------------- |
+| `Ctrl+N`                  | New universe                |
+| `Ctrl+O`                  | Import                      |
+| `Ctrl+S`                  | Export                      |
+| `Ctrl+Z` / `Ctrl+Shift+Z` | Undo / Redo                 |
+| `Ctrl+F`                  | Fit to view                 |
+| `Ctrl+/`                  | Keyboard shortcuts          |
+| `E`                       | Expand selected node        |
+| `F`                       | Fit to view                 |
+| `+` / `-`                 | Zoom in / out               |
+| `↑/↓/←/→`                 | Navigate to parent/child    |
+| `Esc`                     | Clear selection/close modal |
 
 ## Testing
 
@@ -134,6 +168,20 @@ All core logic is covered by unit tests (146 passing):
 - **persistence.test.ts** — Export envelope round-trip, all typed import failures, v1→v3 migrations
 - **ai.test.ts** — JSON extraction/parse, HTTP provider (fallback/strict/redaction/cancellation), document coercion
 
+End-to-end smoke tests live in `e2e/` and run with Playwright:
+
+```powershell
+npm run test:e2e
+```
+
+### Quality tooling
+
+- **TypeScript** — `strict` and `noUncheckedIndexedAccess`; run `npm run typecheck`.
+- **ESLint** — flat config with `typescript-eslint`; run `npm run lint`.
+- **Prettier** — formatting via `npm run format` / `npm run format:check`.
+- **Commitlint + Husky** — conventional-commit messages and a pre-commit typecheck/lint hook.
+- **Error boundaries** — the app and its panels fail soft with a recoverable UI.
+
 ## Privacy & Security
 
 - **Offline by default** — No network calls unless a provider is configured.
@@ -143,6 +191,7 @@ All core logic is covered by unit tests (146 passing):
 - **Local data** — Universes live in `localStorage` and app data; fully user-controlled.
 
 ## License
+
 ```
 MIT License
 

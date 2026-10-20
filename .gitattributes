@@ -1,0 +1,12 @@
+# Normalize line endings across platforms.
+* text=auto eol=lf
+
+# Windows-only binaries must keep their bytes exactly.
+*.ico binary
+*.png binary
+*.exe binary
+*.7z binary
+*.dll binary
+
+# Keep lockfiles and generated artifacts out of language statistics.
+package-lock.json linguist-generated=true
