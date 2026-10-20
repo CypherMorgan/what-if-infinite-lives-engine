@@ -25,6 +25,28 @@ function resolveIndex(): string {
   return path.join(__dirname, '..', 'dist', 'index.html');
 }
 
+/**
+ * Locate the window icon.
+ *
+ * In development the source tree sits next to `dist-electron/`. In a packaged
+ * app the icon is shipped inside the asar under `build/` (see `build.files`),
+ * and `app.isPackaged` lets us prefer the extra-resources copy when present.
+ */
+function resolveIcon(): string | undefined {
+  const candidates = [
+    path.join(__dirname, '..', 'build', 'icon.ico'),
+    path.join(process.resourcesPath, 'build', 'icon.ico'),
+  ];
+  for (const candidate of candidates) {
+    try {
+      if (require('node:fs').existsSync(candidate)) return candidate;
+    } catch {
+      // ignore and try the next candidate
+    }
+  }
+  return undefined;
+}
+
 async function createWindow(): Promise<void> {
   mainWindow = new BrowserWindow({
     width: 1600,
@@ -35,7 +57,7 @@ async function createWindow(): Promise<void> {
     backgroundColor: '#05070d',
     autoHideMenuBar: false,
     title: 'What If? — The Infinite Lives Engine',
-    icon: path.join(__dirname, '..', 'build', 'icon.ico'),
+    icon: resolveIcon(),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -62,19 +84,24 @@ async function createWindow(): Promise<void> {
   });
 
   // Refuse permission requests outright — this app needs none.
-  mainWindow.webContents.session.setPermissionRequestHandler((_wc, _perm, callback) => callback(false));
+  mainWindow.webContents.session.setPermissionRequestHandler((_wc, _perm, callback) =>
+    callback(false)
+  );
   // Block any remote load attempt (CSP is the first line of defence).
-  mainWindow.webContents.session.webRequest.onBeforeRequest({ urls: ['*://*/'] }, (details, callback) => {
-    const url = details.url;
-    const localOk =
-      url.startsWith('file://') ||
-      url.startsWith('devtools://') ||
-      url.startsWith('blob:') ||
-      url.startsWith('data:') ||
-      url.startsWith('http://localhost') ||
-      url.startsWith('http://127.0.0.1');
-    callback({ cancel: !localOk });
-  });
+  mainWindow.webContents.session.webRequest.onBeforeRequest(
+    { urls: ['*://*/'] },
+    (details, callback) => {
+      const url = details.url;
+      const localOk =
+        url.startsWith('file://') ||
+        url.startsWith('devtools://') ||
+        url.startsWith('blob:') ||
+        url.startsWith('data:') ||
+        url.startsWith('http://localhost') ||
+        url.startsWith('http://127.0.0.1');
+      callback({ cancel: !localOk });
+    }
+  );
 
   if (isDev) {
     await mainWindow.loadURL(DEV_URL);
@@ -101,11 +128,27 @@ function installMenu(): void {
     {
       label: '&File',
       submenu: [
-        { label: 'New universe…', accelerator: 'CmdOrCtrl+N', click: () => send('menu', { kind: 'new' }) },
+        {
+          label: 'New universe…',
+          accelerator: 'CmdOrCtrl+N',
+          click: () => send('menu', { kind: 'new' }),
+        },
         { type: 'separator' },
-        { label: 'Open / Import…', accelerator: 'CmdOrCtrl+O', click: () => send('menu', { kind: 'import' }) },
-        { label: 'Save As…', accelerator: 'CmdOrCtrl+S', click: () => send('menu', { kind: 'export' }) },
-        { label: 'Library', accelerator: 'CmdOrCtrl+L', click: () => send('menu', { kind: 'library' }) },
+        {
+          label: 'Open / Import…',
+          accelerator: 'CmdOrCtrl+O',
+          click: () => send('menu', { kind: 'import' }),
+        },
+        {
+          label: 'Save As…',
+          accelerator: 'CmdOrCtrl+S',
+          click: () => send('menu', { kind: 'export' }),
+        },
+        {
+          label: 'Library',
+          accelerator: 'CmdOrCtrl+L',
+          click: () => send('menu', { kind: 'library' }),
+        },
         { type: 'separator' },
         { label: 'Quit', accelerator: 'Alt+F4', role: 'quit' },
       ],
@@ -114,23 +157,55 @@ function installMenu(): void {
       label: '&Edit',
       submenu: [
         { label: 'Undo', accelerator: 'CmdOrCtrl+Z', click: () => send('menu', { kind: 'undo' }) },
-        { label: 'Redo', accelerator: 'CmdOrCtrl+Shift+Z', click: () => send('menu', { kind: 'redo' }) },
+        {
+          label: 'Redo',
+          accelerator: 'CmdOrCtrl+Shift+Z',
+          click: () => send('menu', { kind: 'redo' }),
+        },
         { type: 'separator' },
-        { label: 'Find node', accelerator: 'CmdOrCtrl+F', click: () => send('menu', { kind: 'search' }) },
+        {
+          label: 'Find node',
+          accelerator: 'CmdOrCtrl+F',
+          click: () => send('menu', { kind: 'search' }),
+        },
         { type: 'separator' },
-        { label: 'Settings…', accelerator: 'CmdOrCtrl+,', click: () => send('menu', { kind: 'settings' }) },
+        {
+          label: 'Settings…',
+          accelerator: 'CmdOrCtrl+,',
+          click: () => send('menu', { kind: 'settings' }),
+        },
       ],
     },
     {
       label: '&Universe',
       submenu: [
-        { label: 'Expand selected node', accelerator: 'E', click: () => send('menu', { kind: 'expand' }) },
-        { label: 'Reroll simulation', accelerator: 'CmdOrCtrl+R', click: () => send('menu', { kind: 'reroll' }) },
-        { label: 'Auto-layout', accelerator: 'CmdOrCtrl+Shift+L', click: () => send('menu', { kind: 'layout' }) },
+        {
+          label: 'Expand selected node',
+          accelerator: 'E',
+          click: () => send('menu', { kind: 'expand' }),
+        },
+        {
+          label: 'Reroll simulation',
+          accelerator: 'CmdOrCtrl+R',
+          click: () => send('menu', { kind: 'reroll' }),
+        },
+        {
+          label: 'Auto-layout',
+          accelerator: 'CmdOrCtrl+Shift+L',
+          click: () => send('menu', { kind: 'layout' }),
+        },
         { type: 'separator' },
         { label: 'Fit to view', accelerator: 'F', click: () => send('menu', { kind: 'fit' }) },
-        { label: 'Zoom in', accelerator: 'CmdOrCtrl+=', click: () => send('menu', { kind: 'zoom-in' }) },
-        { label: 'Zoom out', accelerator: 'CmdOrCtrl+-', click: () => send('menu', { kind: 'zoom-out' }) },
+        {
+          label: 'Zoom in',
+          accelerator: 'CmdOrCtrl+=',
+          click: () => send('menu', { kind: 'zoom-in' }),
+        },
+        {
+          label: 'Zoom out',
+          accelerator: 'CmdOrCtrl+-',
+          click: () => send('menu', { kind: 'zoom-out' }),
+        },
       ],
     },
     {
@@ -167,7 +242,8 @@ function installMenu(): void {
 /* ------------------------------------------------------------------ */
 
 function filterArgs(filters?: { name: string; extensions: string[] }[]): Electron.FileFilter[] {
-  if (!filters || filters.length === 0) return [{ name: 'What If? universe', extensions: ['json'] }];
+  if (!filters || filters.length === 0)
+    return [{ name: 'What If? universe', extensions: ['json'] }];
   return filters;
 }
 
@@ -187,16 +263,24 @@ ipcMain.handle('file:open', async (_e, filters?: { name: string; extensions: str
   return { path: filePath, text };
 });
 
-ipcMain.handle('file:save', async (_e, defaultName: string, text: string, filters?: { name: string; extensions: string[] }[]) => {
-  const result = await dialog.showSaveDialog(mainWindow ?? undefined!, {
-    title: 'Export universe',
-    defaultPath: path.join(app.getPath('documents'), defaultName),
-    filters: filterArgs(filters),
-  });
-  if (result.canceled || !result.filePath) return null;
-  await writeAtomic(result.filePath, text);
-  return result.filePath;
-});
+ipcMain.handle(
+  'file:save',
+  async (
+    _e,
+    defaultName: string,
+    text: string,
+    filters?: { name: string; extensions: string[] }[]
+  ) => {
+    const result = await dialog.showSaveDialog(mainWindow ?? undefined!, {
+      title: 'Export universe',
+      defaultPath: path.join(app.getPath('documents'), defaultName),
+      filters: filterArgs(filters),
+    });
+    if (result.canceled || !result.filePath) return null;
+    await writeAtomic(result.filePath, text);
+    return result.filePath;
+  }
+);
 
 /** Write via a temporary file + rename so a crash never leaves a half-written save. */
 async function writeAtomic(target: string, text: string): Promise<void> {

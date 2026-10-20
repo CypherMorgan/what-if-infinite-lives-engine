@@ -36,6 +36,7 @@
     "dev:desktop": "npm run build:electron && electron .",
     "build": "npm run typecheck && vite build && npm run build:electron",
     "build:electron": "tsc -p tsconfig.electron.json",
+    "icon": "node scripts/make-icon.cjs",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -43,8 +44,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test:e2e": "playwright test",
-    "dist": "npm run build && electron-builder --win",
-    "dist:portable": "npm run build && electron-builder --win portable",
+    "dist": "npm run build && node scripts/make-icon.cjs && electron-builder --win",
+    "dist:portable": "npm run build && node scripts/make-icon.cjs && electron-builder --win portable",
     "postinstall": "node scripts/ensure-electron.cjs && electron-builder install-app-deps",
     "prepare": "husky"
   },
@@ -84,6 +85,7 @@
     "files": [
       "dist/**/*",
       "dist-electron/**/*",
+      "build/icon.ico",
       "!**/*.map",
       "!**/*.ts"
     ],
