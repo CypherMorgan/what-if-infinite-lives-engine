@@ -1,7 +1,7 @@
 # What If? — The Infinite Lives Engine
 
-[![CI](https://github.com/YOUR_USERNAME/what-if-infinite-lives-engine/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR_USERNAME/what-if-infinite-lives-engine/actions/workflows/ci.yml)
-[![Release](https://github.com/YOUR_USERNAME/what-if-infinite-lives-engine/actions/workflows/release.yml/badge.svg)](https://github.com/YOUR_USERNAME/what-if-infinite-lives-engine/actions/workflows/release.yml)
+[![CI](https://github.com/CypherMorgan/what-if-infinite-lives-engine/actions/workflows/ci.yml/badge.svg)](https://github.com/CypherMorgan/what-if-infinite-lives-engine/actions/workflows/ci.yml)
+[![Release](https://github.com/CypherMorgan/what-if-infinite-lives-engine/actions/workflows/release.yml/badge.svg)](https://github.com/CypherMorgan/what-if-infinite-lives-engine/actions/workflows/release.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-4fd8ff.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Windows%2010%2F11%20x64-7c5cff.svg)](#requirements)
 [![Electron](https://img.shields.io/badge/Electron-44-47848f?logo=electron&logoColor=white)](https://www.electronjs.org/)
