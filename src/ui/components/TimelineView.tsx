@@ -101,7 +101,9 @@ export function TimelineView({ store }: { store: Store }) {
                     padding: '12px 16px',
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 6 }}>
+                  <div
+                    style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 6 }}
+                  >
                     <span
                       style={{
                         fontFamily: 'var(--font-mono)',
@@ -150,12 +152,14 @@ export function TimelineView({ store }: { store: Store }) {
                     >
                       {node.tradeoffs.gains.length > 0 && (
                         <div style={{ color: 'var(--green)' }}>
-                          +{node.tradeoffs.gains.length} gain{node.tradeoffs.gains.length === 1 ? '' : 's'}
+                          +{node.tradeoffs.gains.length} gain
+                          {node.tradeoffs.gains.length === 1 ? '' : 's'}
                         </div>
                       )}
                       {node.tradeoffs.costs.length > 0 && (
                         <div style={{ color: 'var(--amber)' }}>
-                          −{node.tradeoffs.costs.length} cost{node.tradeoffs.costs.length === 1 ? '' : 's'}
+                          −{node.tradeoffs.costs.length} cost
+                          {node.tradeoffs.costs.length === 1 ? '' : 's'}
                         </div>
                       )}
                     </div>

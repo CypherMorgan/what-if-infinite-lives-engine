@@ -49,22 +49,10 @@ export type StateVector = Record<string, number>;
 
 export type VarUnit = 'currency' | 'months' | 'percent' | 'count' | 'level' | 'index';
 export type VarKind =
-  | 'resource'
-  | 'capacity'
-  | 'skill'
-  | 'risk'
-  | 'progress'
-  | 'relationship'
-  | 'market';
+  'resource' | 'capacity' | 'skill' | 'risk' | 'progress' | 'relationship' | 'market';
 export type VarDirection = 'up' | 'down' | 'neutral';
 export type VarDomain =
-  | 'financial'
-  | 'career'
-  | 'personal'
-  | 'health'
-  | 'social'
-  | 'project'
-  | 'learning';
+  'financial' | 'career' | 'personal' | 'health' | 'social' | 'project' | 'learning';
 
 export interface VarDef {
   key: string;

@@ -52,7 +52,8 @@ export function LeftPanel({ store }: { store: Store }) {
           <div className="note" style={{ marginBottom: 10 }}>
             <strong>{state.doc.prompt.decision || state.doc.title}</strong>
             <div style={{ marginTop: 4, color: 'var(--text-faint)', fontSize: 11 }}>
-              Horizon {prompt.horizon} months · {prompt.branchCount} branches · imagination {Math.round(prompt.imagination * 100)}%
+              Horizon {prompt.horizon} months · {prompt.branchCount} branches · imagination{' '}
+              {Math.round(prompt.imagination * 100)}%
             </div>
           </div>
 
@@ -63,7 +64,9 @@ export function LeftPanel({ store }: { store: Store }) {
               placeholder="Search nodes, evidence, uncertainties…"
               value={state.query}
               onChange={(e) => store.setQuery(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Escape') store.setQuery(''); }}
+              onKeyDown={(e) => {
+                if (e.key === 'Escape') store.setQuery('');
+              }}
               aria-label="Search the universe"
             />
           </div>
@@ -74,14 +77,18 @@ export function LeftPanel({ store }: { store: Store }) {
           <div className="node-list">
             {branches.map((b) => {
               const collapsed = state.doc.collapsed.includes(b.id);
-              const rootSelected = state.selected && state.doc.nodes[state.selected]?.branch === b.id;
+              const rootSelected =
+                state.selected && state.doc.nodes[state.selected]?.branch === b.id;
               return (
                 <button
                   key={b.id}
                   className={`node-item ${rootSelected ? 'selected' : ''}`}
                   onClick={() => {
                     const root = state.doc.nodes[b.root];
-                    if (root) { store.select(b.root); store.centerOn?.(b.root); }
+                    if (root) {
+                      store.select(b.root);
+                      store.centerOn?.(b.root);
+                    }
                   }}
                   title={`${b.description}\n(click to focus · use the chevron to collapse)`}
                 >
@@ -92,11 +99,24 @@ export function LeftPanel({ store }: { store: Store }) {
                     role="button"
                     tabIndex={0}
                     aria-label={collapsed ? 'Show branch' : 'Collapse branch'}
-                    onClick={(e) => { e.stopPropagation(); store.toggleBranchCollapse(b.id); }}
-                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.stopPropagation(); store.toggleBranchCollapse(b.id); } }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      store.toggleBranchCollapse(b.id);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.stopPropagation();
+                        store.toggleBranchCollapse(b.id);
+                      }
+                    }}
                     style={{
-                      width: 18, height: 18, display: 'grid', placeItems: 'center',
-                      borderRadius: 4, fontSize: 10, color: 'var(--text-faint)',
+                      width: 18,
+                      height: 18,
+                      display: 'grid',
+                      placeItems: 'center',
+                      borderRadius: 4,
+                      fontSize: 10,
+                      color: 'var(--text-faint)',
                       background: 'rgba(255,255,255,0.04)',
                     }}
                   >
@@ -121,11 +141,19 @@ export function LeftPanel({ store }: { store: Store }) {
                 <button
                   key={n.id}
                   className={`node-item ${state.selected === n.id ? 'selected' : ''}`}
-                  onClick={() => { store.select(n.id); store.centerOn?.(n.id); }}
+                  onClick={() => {
+                    store.select(n.id);
+                    store.centerOn?.(n.id);
+                  }}
                 >
-                  <span className="dot" style={{ background: HUE_DOT(state.doc.branches[n.branch]?.hue ?? 200) }} />
+                  <span
+                    className="dot"
+                    style={{ background: HUE_DOT(state.doc.branches[n.branch]?.hue ?? 200) }}
+                  />
                   <span className="label">{n.title}</span>
-                  <span className="kind">{NODE_TYPE_LABEL[n.type].split(' ')[0]?.toLowerCase() ?? n.type}</span>
+                  <span className="kind">
+                    {NODE_TYPE_LABEL[n.type].split(' ')[0]?.toLowerCase() ?? n.type}
+                  </span>
                 </button>
               ))}
             </div>

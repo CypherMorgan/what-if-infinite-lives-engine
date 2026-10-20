@@ -17,7 +17,12 @@ import {
   type ProviderSettings,
 } from '../src/ai/provider';
 import { composeScenario, offlineProvider } from '../src/ai/offline';
-import { documentFromResponse, generateUniverse, offlineUniverse, selectProvider } from '../src/ai/orchestrator';
+import {
+  documentFromResponse,
+  generateUniverse,
+  offlineUniverse,
+  selectProvider,
+} from '../src/ai/orchestrator';
 import { validateGraph } from '../src/core/graph';
 import { validateDocument } from '../src/core/validate';
 import { ALL_VARS } from '../src/core/packs/vars';
@@ -83,8 +88,20 @@ const VALID_CONTENT = JSON.stringify({
     { ref: 'b', type: 'milestone', title: 'First portfolio piece', summary: 'Shipped.', t: 9 },
   ],
   edges: [
-    { from: 'start', to: 'a', kind: 'choice', hypothesis: 'You choose to enrol.', confidence: 'high' },
-    { from: 'a', to: 'b', kind: 'causal', hypothesis: 'The course produces work.', confidence: 'medium' },
+    {
+      from: 'start',
+      to: 'a',
+      kind: 'choice',
+      hypothesis: 'You choose to enrol.',
+      confidence: 'high',
+    },
+    {
+      from: 'a',
+      to: 'b',
+      kind: 'causal',
+      hypothesis: 'The course produces work.',
+      confidence: 'medium',
+    },
   ],
 });
 
@@ -106,7 +123,9 @@ describe('extractJson', () => {
   });
 
   it('finds an object buried in prose', () => {
-    const out = extractJson('Sure! Here is the JSON you asked for:\n{"a": {"b": 2}}\nHope that helps.');
+    const out = extractJson(
+      'Sure! Here is the JSON you asked for:\n{"a": {"b": 2}}\nHope that helps.'
+    );
     expect(out).toBe('{"a": {"b": 2}}');
   });
 
@@ -191,18 +210,20 @@ describe('parseScenarioResponse', () => {
   });
 
   it('drops malformed nodes but keeps the good ones', () => {
-    const parsed = parseScenarioResponse(JSON.stringify({
-      nodes: [
-        { ref: 'start', type: 'start', title: 'Now', summary: 'ok', t: 0 },
-        'not an object',
-        { ref: '', title: 'no ref' },
-        { ref: 'noTitle', summary: 'no title at all' },
-        { ref: 'good', type: 'event', title: 'Still here', summary: 'ok', t: 6 },
-      ],
-      edges: [
-        { from: 'start', to: 'good', kind: 'causal', hypothesis: 'h', confidence: 'medium' },
-      ],
-    }));
+    const parsed = parseScenarioResponse(
+      JSON.stringify({
+        nodes: [
+          { ref: 'start', type: 'start', title: 'Now', summary: 'ok', t: 0 },
+          'not an object',
+          { ref: '', title: 'no ref' },
+          { ref: 'noTitle', summary: 'no title at all' },
+          { ref: 'good', type: 'event', title: 'Still here', summary: 'ok', t: 6 },
+        ],
+        edges: [
+          { from: 'start', to: 'good', kind: 'causal', hypothesis: 'h', confidence: 'medium' },
+        ],
+      })
+    );
     expect(parsed.ok).toBe(true);
     expect(parsed.data?.nodes.map((n) => n.ref)).toEqual(['start', 'good']);
     expect(parsed.dropped).toBe(3);
@@ -210,26 +231,32 @@ describe('parseScenarioResponse', () => {
   });
 
   it('drops a duplicate node reference', () => {
-    const parsed = parseScenarioResponse(JSON.stringify({
-      nodes: [
-        { ref: 'start', type: 'start', title: 'Now', summary: 'ok', t: 0 },
-        { ref: 'start', type: 'event', title: 'Duplicate', summary: 'ok', t: 3 },
-      ],
-      edges: [],
-    }));
+    const parsed = parseScenarioResponse(
+      JSON.stringify({
+        nodes: [
+          { ref: 'start', type: 'start', title: 'Now', summary: 'ok', t: 0 },
+          { ref: 'start', type: 'event', title: 'Duplicate', summary: 'ok', t: 3 },
+        ],
+        edges: [],
+      })
+    );
     expect(parsed.ok).toBe(true);
     expect(parsed.data?.nodes).toHaveLength(1);
     expect(parsed.dropped).toBe(1);
   });
 
   it('coerces an unknown node type rather than rejecting the node', () => {
-    const parsed = parseScenarioResponse(JSON.stringify({
-      nodes: [
-        { ref: 'start', type: 'start', title: 'Now', summary: 'ok', t: 0 },
-        { ref: 'weird', type: 'wormhole', title: 'Odd', summary: 'ok', t: 3 },
-      ],
-      edges: [{ from: 'start', to: 'weird', kind: 'causal', hypothesis: 'h', confidence: 'medium' }],
-    }));
+    const parsed = parseScenarioResponse(
+      JSON.stringify({
+        nodes: [
+          { ref: 'start', type: 'start', title: 'Now', summary: 'ok', t: 0 },
+          { ref: 'weird', type: 'wormhole', title: 'Odd', summary: 'ok', t: 3 },
+        ],
+        edges: [
+          { from: 'start', to: 'weird', kind: 'causal', hypothesis: 'h', confidence: 'medium' },
+        ],
+      })
+    );
     expect(parsed.ok).toBe(true);
     expect(parsed.data?.nodes[1]?.type).toBe('event');
     expect(parsed.issues.some((i) => i.message.includes('wormhole'))).toBe(true);
@@ -237,10 +264,18 @@ describe('parseScenarioResponse', () => {
 
   it('truncates a response with too many nodes and says so', () => {
     const nodes = Array.from({ length: AI_LIMITS.maxNodes + 5 }, (_, i) => ({
-      ref: `n${i}`, type: 'event', title: `Node ${i}`, summary: 'ok', t: i,
+      ref: `n${i}`,
+      type: 'event',
+      title: `Node ${i}`,
+      summary: 'ok',
+      t: i,
     }));
     const edges = nodes.slice(0, -1).map((n, i) => ({
-      from: n.ref, to: nodes[i + 1]!.ref, kind: 'causal', hypothesis: 'h', confidence: 'medium' as const,
+      from: n.ref,
+      to: nodes[i + 1]!.ref,
+      kind: 'causal',
+      hypothesis: 'h',
+      confidence: 'medium' as const,
     }));
     const parsed = parseScenarioResponse(JSON.stringify({ nodes, edges }));
     expect(parsed.ok).toBe(true);
@@ -249,51 +284,61 @@ describe('parseScenarioResponse', () => {
   });
 
   it('drops edges that reference missing nodes, self-loops and duplicates', () => {
-    const parsed = parseScenarioResponse(JSON.stringify({
-      nodes: [
-        { ref: 'start', type: 'start', title: 'Now', summary: 'ok', t: 0 },
-        { ref: 'a', type: 'event', title: 'A', summary: 'ok', t: 3 },
-      ],
-      edges: [
-        { from: 'start', to: 'a', kind: 'causal', hypothesis: 'h', confidence: 'medium' },
-        { from: 'start', to: 'a', kind: 'causal', hypothesis: 'h', confidence: 'medium' },
-        { from: 'start', to: 'ghost', kind: 'causal', hypothesis: 'h', confidence: 'medium' },
-        { from: 'a', to: 'a', kind: 'causal', hypothesis: 'h', confidence: 'medium' },
-      ],
-    }));
+    const parsed = parseScenarioResponse(
+      JSON.stringify({
+        nodes: [
+          { ref: 'start', type: 'start', title: 'Now', summary: 'ok', t: 0 },
+          { ref: 'a', type: 'event', title: 'A', summary: 'ok', t: 3 },
+        ],
+        edges: [
+          { from: 'start', to: 'a', kind: 'causal', hypothesis: 'h', confidence: 'medium' },
+          { from: 'start', to: 'a', kind: 'causal', hypothesis: 'h', confidence: 'medium' },
+          { from: 'start', to: 'ghost', kind: 'causal', hypothesis: 'h', confidence: 'medium' },
+          { from: 'a', to: 'a', kind: 'causal', hypothesis: 'h', confidence: 'medium' },
+        ],
+      })
+    );
     expect(parsed.ok).toBe(true);
     expect(parsed.data?.edges).toHaveLength(1);
     expect(parsed.dropped).toBe(3);
   });
 
   it('rejects a multi-node response whose edges are all unusable', () => {
-    const parsed = parseScenarioResponse(JSON.stringify({
-      nodes: [
-        { ref: 'start', type: 'start', title: 'Now', summary: 'ok', t: 0 },
-        { ref: 'a', type: 'event', title: 'A', summary: 'ok', t: 3 },
-      ],
-      edges: [{ from: 'x', to: 'y', kind: 'causal', hypothesis: 'h', confidence: 'medium' }],
-    }));
+    const parsed = parseScenarioResponse(
+      JSON.stringify({
+        nodes: [
+          { ref: 'start', type: 'start', title: 'Now', summary: 'ok', t: 0 },
+          { ref: 'a', type: 'event', title: 'A', summary: 'ok', t: 3 },
+        ],
+        edges: [{ from: 'x', to: 'y', kind: 'causal', hypothesis: 'h', confidence: 'medium' }],
+      })
+    );
     expect(parsed.ok).toBe(false);
     expect(parsed.issues.some((i) => i.fatal && i.path === 'edges')).toBe(true);
   });
 
   it('drops effects with no reason or an unknown operation', () => {
-    const parsed = parseScenarioResponse(JSON.stringify({
-      nodes: [
-        { ref: 'start', type: 'start', title: 'Now', summary: 'ok', t: 0 },
-        {
-          ref: 'a', type: 'event', title: 'A', summary: 'ok', t: 3,
-          effects: [
-            { key: 'money', op: 'add', value: 100, reason: 'a real reason' },
-            { key: 'money', op: 'add', value: 100 },
-            { key: 'money', op: 'teleport', value: 1, reason: 'nope' },
-            { key: 'money', op: 'add', value: 'not a number', reason: 'nope' },
-          ],
-        },
-      ],
-      edges: [{ from: 'start', to: 'a', kind: 'causal', hypothesis: 'h', confidence: 'medium' }],
-    }));
+    const parsed = parseScenarioResponse(
+      JSON.stringify({
+        nodes: [
+          { ref: 'start', type: 'start', title: 'Now', summary: 'ok', t: 0 },
+          {
+            ref: 'a',
+            type: 'event',
+            title: 'A',
+            summary: 'ok',
+            t: 3,
+            effects: [
+              { key: 'money', op: 'add', value: 100, reason: 'a real reason' },
+              { key: 'money', op: 'add', value: 100 },
+              { key: 'money', op: 'teleport', value: 1, reason: 'nope' },
+              { key: 'money', op: 'add', value: 'not a number', reason: 'nope' },
+            ],
+          },
+        ],
+        edges: [{ from: 'start', to: 'a', kind: 'causal', hypothesis: 'h', confidence: 'medium' }],
+      })
+    );
     expect(parsed.ok).toBe(true);
     expect(parsed.data?.nodes[1]?.effects).toHaveLength(1);
     expect(parsed.data?.nodes[1]?.effects?.[0]?.op).toBe('add');
@@ -307,10 +352,21 @@ describe('parseScenarioResponse', () => {
   });
 
   it('coerces unlabelled evidence to the cautious class instead of dropping it', () => {
-    const parsed = parseScenarioResponse(JSON.stringify({
-      nodes: [{ ref: 'start', type: 'start', title: 'Now', summary: 'ok', t: 0, evidence: [{ text: 'unlabelled' }] }],
-      edges: [],
-    }));
+    const parsed = parseScenarioResponse(
+      JSON.stringify({
+        nodes: [
+          {
+            ref: 'start',
+            type: 'start',
+            title: 'Now',
+            summary: 'ok',
+            t: 0,
+            evidence: [{ text: 'unlabelled' }],
+          },
+        ],
+        edges: [],
+      })
+    );
     expect(parsed.ok).toBe(true);
     // An unrecognised class is never trusted as-is: it is downgraded, not promoted.
     expect(parsed.data?.nodes[0]?.evidence[0]?.cls).toBe('assumption');
@@ -318,10 +374,12 @@ describe('parseScenarioResponse', () => {
   });
 
   it('marks a node with no evidence at all as speculative', () => {
-    const parsed = parseScenarioResponse(JSON.stringify({
-      nodes: [{ ref: 'start', type: 'start', title: 'Now', summary: 'ok', t: 0, evidence: [] }],
-      edges: [],
-    }));
+    const parsed = parseScenarioResponse(
+      JSON.stringify({
+        nodes: [{ ref: 'start', type: 'start', title: 'Now', summary: 'ok', t: 0, evidence: [] }],
+        edges: [],
+      })
+    );
     expect(parsed.ok).toBe(true);
     expect(parsed.data?.nodes[0]?.evidence[0]?.cls).toBe('speculation');
   });
@@ -350,14 +408,21 @@ describe('provider helpers', () => {
     if (!parsed.data) return;
     const withUnknown = {
       ...parsed.data,
-      nodes: [{ ...parsed.data.nodes[0]!, effects: [{ key: 'imaginary', op: 'add' as const, value: 1, reason: 'r' }] }],
+      nodes: [
+        {
+          ...parsed.data.nodes[0]!,
+          effects: [{ key: 'imaginary', op: 'add' as const, value: 1, reason: 'r' }],
+        },
+      ],
     };
     const normalised = normaliseEffects(withUnknown, ALL_VARS);
     expect(normalised.nodes[0]?.effects).toEqual([]);
   });
 
   it('redacts an API key from anything printable', () => {
-    expect(redact('error at https://x?k=sk-abc123secret', 'sk-abc123secret')).not.toContain('sk-abc123secret');
+    expect(redact('error at https://x?k=sk-abc123secret', 'sk-abc123secret')).not.toContain(
+      'sk-abc123secret'
+    );
     expect(redact('no key here', undefined)).toBe('no key here');
     // Too short to be worth redacting (would mangle ordinary text).
     expect(redact('abc', 'abc')).toBe('abc');
@@ -428,7 +493,8 @@ describe('HTTP provider', () => {
 
   it('falls back to the built-in engine on a 401, without leaking the key', async () => {
     const provider = createHttpProvider(settings({ apiKey: 'sk-bad-key-000', keyless: false }), {
-      fetchImpl: () => Promise.resolve(response('{"error":"bad key sk-bad-key-000"}', { ok: false, status: 401 })),
+      fetchImpl: () =>
+        Promise.resolve(response('{"error":"bad key sk-bad-key-000"}', { ok: false, status: 401 })),
     });
     const result = await provider.generate(request());
     expect(result.ok).toBe(true);
@@ -537,7 +603,10 @@ describe('selectProvider', () => {
 
   it('prefers an injected main-process transport over in-renderer fetch', () => {
     const provider = selectProvider(settings(), {
-      remoteGenerate: () => Promise.resolve(toResult(parseScenarioResponse(VALID_CONTENT), 'openai-compatible', 'remote', 1)),
+      remoteGenerate: () =>
+        Promise.resolve(
+          toResult(parseScenarioResponse(VALID_CONTENT), 'openai-compatible', 'remote', 1)
+        ),
     });
     expect(provider.label).toContain('remote');
   });
@@ -563,18 +632,51 @@ describe('documentFromResponse', () => {
   });
 
   it('coerces a non-root node the model labelled "start" into an event', () => {
-    const doc = documentFromResponse({
-      ...baseResponse,
-      nodes: [
-        { ref: 'root', type: 'event', title: 'Root', summary: 'ok', t: 0, assumptions: [], uncertainties: [], evidence: [{ cls: 'speculation', text: 'x' }] },
-        { ref: 'wrong', type: 'start', title: 'Not the start', summary: 'ok', t: 4, assumptions: [], uncertainties: [], evidence: [{ cls: 'speculation', text: 'x' }] },
-        { ref: 'tail', type: 'event', title: 'Tail', summary: 'ok', t: 8, assumptions: [], uncertainties: [], evidence: [{ cls: 'speculation', text: 'x' }] },
-      ],
-      edges: [
-        { from: 'root', to: 'wrong', kind: 'causal', hypothesis: 'h', confidence: 'medium' },
-        { from: 'wrong', to: 'tail', kind: 'causal', hypothesis: 'h', confidence: 'medium' },
-      ],
-    }, prompt, 1, 'sim-2', meta);
+    const doc = documentFromResponse(
+      {
+        ...baseResponse,
+        nodes: [
+          {
+            ref: 'root',
+            type: 'event',
+            title: 'Root',
+            summary: 'ok',
+            t: 0,
+            assumptions: [],
+            uncertainties: [],
+            evidence: [{ cls: 'speculation', text: 'x' }],
+          },
+          {
+            ref: 'wrong',
+            type: 'start',
+            title: 'Not the start',
+            summary: 'ok',
+            t: 4,
+            assumptions: [],
+            uncertainties: [],
+            evidence: [{ cls: 'speculation', text: 'x' }],
+          },
+          {
+            ref: 'tail',
+            type: 'event',
+            title: 'Tail',
+            summary: 'ok',
+            t: 8,
+            assumptions: [],
+            uncertainties: [],
+            evidence: [{ cls: 'speculation', text: 'x' }],
+          },
+        ],
+        edges: [
+          { from: 'root', to: 'wrong', kind: 'causal', hypothesis: 'h', confidence: 'medium' },
+          { from: 'wrong', to: 'tail', kind: 'causal', hypothesis: 'h', confidence: 'medium' },
+        ],
+      },
+      prompt,
+      1,
+      'sim-2',
+      meta
+    );
 
     const starts = Object.values(doc.nodes).filter((n) => n.type === 'start');
     expect(starts).toHaveLength(1);
@@ -608,7 +710,12 @@ describe('documentFromResponse', () => {
 
 describe('generateUniverse', () => {
   it('builds a valid universe with the offline engine and no provider configured', async () => {
-    const outcome = await generateUniverse({ prompt, settings: DEFAULT_SETTINGS, seed: 42, id: 'sim-offline' });
+    const outcome = await generateUniverse({
+      prompt,
+      settings: DEFAULT_SETTINGS,
+      seed: 42,
+      id: 'sim-offline',
+    });
     expect(outcome.ok).toBe(true);
     if (!outcome.ok) return;
     expect(outcome.doc.meta.generator).toBe('offline');
@@ -624,7 +731,10 @@ describe('generateUniverse', () => {
       seed: 7,
       id: 'sim-remote',
       deps: {
-        remoteGenerate: () => Promise.resolve(toResult(parseScenarioResponse(VALID_CONTENT), 'openai-compatible', 'remote-test', 3)),
+        remoteGenerate: () =>
+          Promise.resolve(
+            toResult(parseScenarioResponse(VALID_CONTENT), 'openai-compatible', 'remote-test', 3)
+          ),
       },
     });
     expect(outcome.ok).toBe(true);
@@ -642,10 +752,15 @@ describe('generateUniverse', () => {
       seed: 7,
       id: 'sim-degraded',
       deps: {
-        remoteGenerate: () => Promise.resolve({
-          ok: false, provider: 'openai-compatible', providerLabel: 'remote', notes: [], elapsedMs: 2,
-          error: { code: 'provider_error', message: 'server exploded' },
-        }),
+        remoteGenerate: () =>
+          Promise.resolve({
+            ok: false,
+            provider: 'openai-compatible',
+            providerLabel: 'remote',
+            notes: [],
+            elapsedMs: 2,
+            error: { code: 'provider_error', message: 'server exploded' },
+          }),
       },
     });
     expect(outcome.ok).toBe(true);
@@ -671,7 +786,10 @@ describe('generateUniverse', () => {
 
   it('detects archetypes the prompt did not declare', async () => {
     const outcome = await generateUniverse({
-      prompt: { ...prompt, archetypes: [] }, settings: DEFAULT_SETTINGS, seed: 1, id: 'sim-arch',
+      prompt: { ...prompt, archetypes: [] },
+      settings: DEFAULT_SETTINGS,
+      seed: 1,
+      id: 'sim-arch',
     });
     expect(outcome.ok).toBe(true);
     if (!outcome.ok) return;
@@ -681,7 +799,11 @@ describe('generateUniverse', () => {
   it('reports progress while generating', async () => {
     const notes: string[] = [];
     await generateUniverse({
-      prompt, settings: DEFAULT_SETTINGS, seed: 1, id: 'sim-progress', onProgress: (n) => notes.push(n),
+      prompt,
+      settings: DEFAULT_SETTINGS,
+      seed: 1,
+      id: 'sim-progress',
+      onProgress: (n) => notes.push(n),
     });
     expect(notes.length).toBeGreaterThan(0);
   });

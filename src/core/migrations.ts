@@ -32,16 +32,19 @@ function v1_to_v2(doc: AnyDoc): AnyDoc {
     }
   }
 
-  const declared = new Set(
-    (next['vars'] as { key?: string }[]).map((v) => v?.key).filter(Boolean),
-  );
+  const declared = new Set((next['vars'] as { key?: string }[]).map((v) => v?.key).filter(Boolean));
   const extra = [...keys].filter((k) => !declared.has(k)).slice(0, 120);
   next['vars'] = [
     ...(next['vars'] as unknown[]),
     ...extra.map((key) => ({
       key,
       label: key.startsWith('skill:') ? key.slice(6).replace(/-/g, ' ') : key,
-      unit: key === 'money' || key === 'income' || key === 'expenses' ? 'currency' : key === 'runway' ? 'months' : 'level',
+      unit:
+        key === 'money' || key === 'income' || key === 'expenses'
+          ? 'currency'
+          : key === 'runway'
+            ? 'months'
+            : 'level',
       kind: key.startsWith('skill:') ? 'skill' : 'resource',
       direction: 'up',
       domain: 'personal',
@@ -79,7 +82,7 @@ function v2_to_v3(doc: AnyDoc): AnyDoc {
   const assumptions = next['assumptions'];
   if (Array.isArray(assumptions)) {
     next['assumptions'] = assumptions.map((a) =>
-      typeof a === 'object' && a !== null ? { editable: true, sensitivity: 0, ...a } : a,
+      typeof a === 'object' && a !== null ? { editable: true, sensitivity: 0, ...a } : a
     );
   }
 
@@ -116,7 +119,7 @@ export function migrate(input: unknown): MigrationResult {
 
   if (version > SCHEMA_VERSION) {
     notes.push(
-      `This file was written by a newer version of the application (schema ${version}; this build understands ${SCHEMA_VERSION}). It was loaded with best effort.`,
+      `This file was written by a newer version of the application (schema ${version}; this build understands ${SCHEMA_VERSION}). It was loaded with best effort.`
     );
   }
 
@@ -129,7 +132,8 @@ export function migrate(input: unknown): MigrationResult {
       break;
     }
     doc = step(doc);
-    const next = typeof doc['schemaVersion'] === 'number' ? (doc['schemaVersion'] as number) : version + 1;
+    const next =
+      typeof doc['schemaVersion'] === 'number' ? (doc['schemaVersion'] as number) : version + 1;
     notes.push(`Migrated schema ${version} -> ${next}.`);
     version = next;
   }

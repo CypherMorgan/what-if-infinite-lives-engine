@@ -116,11 +116,7 @@ const FAVOURABLE = new Set(['opportunity', 'milestone']);
  * by the risk profile of the branch. This is what makes "grounded analysis" and "creative
  * exploration" produce genuinely different universes instead of different labels.
  */
-export function ruleWeight(
-  rule: Rule,
-  imagination: number,
-  riskBias: number,
-): number {
+export function ruleWeight(rule: Rule, imagination: number, riskBias: number): number {
   const imag = rule.imagination ?? 0;
   const fit = Math.max(0.08, 1 - Math.abs(imag - imagination) * 1.5);
   let bias = 1;
@@ -153,7 +149,7 @@ export function pickRule(
   t: number,
   imagination: number,
   riskBias: number,
-  usage: Usage,
+  usage: Usage
 ): Rule | null {
   const scored: Rule[] = [];
   const weights: number[] = [];
@@ -188,17 +184,66 @@ export function pickRule(
  * of those. Which variables feed it is exposed to the user in the UI.
  */
 const GOAL_WEIGHTS: Record<string, { key: string; w: number }[]> = {
-  education: [{ key: 'credential', w: 0.4 }, { key: 'skill:structured-theory', w: 0.25 }, { key: 'portfolio', w: 0.2 }, { key: 'skill:craft', w: 0.15 }],
-  learning: [{ key: 'skill:craft', w: 0.4 }, { key: 'portfolio', w: 0.35 }, { key: 'reputation', w: 0.15 }, { key: 'information', w: 0.1 }],
-  career: [{ key: 'skill:professional-practice', w: 0.3 }, { key: 'reputation', w: 0.25 }, { key: 'portfolio', w: 0.2 }, { key: 'stability', w: 0.25 }],
-  business: [{ key: 'projectHealth', w: 0.3 }, { key: 'marketFit', w: 0.3 }, { key: 'income', w: 0.2 }, { key: 'skill:business-building', w: 0.2 }],
-  relocation: [{ key: 'belonging', w: 0.25 }, { key: 'visaSecurity', w: 0.2 }, { key: 'skill:independence', w: 0.35 }, { key: 'network', w: 0.2 }],
-  creative: [{ key: 'portfolio', w: 0.35 }, { key: 'audience', w: 0.3 }, { key: 'skill:craft', w: 0.35 }],
-  finance: [{ key: 'runway', w: 0.45 }, { key: 'money', w: 0.35 }, { key: 'optionality', w: 0.2 }],
-  health: [{ key: 'wellbeing', w: 0.4 }, { key: 'healthBuffer', w: 0.35 }, { key: 'energy', w: 0.25 }],
-  relationships: [{ key: 'relationships', w: 0.5 }, { key: 'network', w: 0.25 }, { key: 'belonging', w: 0.25 }],
-  time: [{ key: 'focus', w: 0.45 }, { key: 'energy', w: 0.3 }, { key: 'skill:craft', w: 0.25 }],
-  uncertainty: [{ key: 'information', w: 0.45 }, { key: 'decisionConfidence', w: 0.35 }, { key: 'optionality', w: 0.2 }],
+  education: [
+    { key: 'credential', w: 0.4 },
+    { key: 'skill:structured-theory', w: 0.25 },
+    { key: 'portfolio', w: 0.2 },
+    { key: 'skill:craft', w: 0.15 },
+  ],
+  learning: [
+    { key: 'skill:craft', w: 0.4 },
+    { key: 'portfolio', w: 0.35 },
+    { key: 'reputation', w: 0.15 },
+    { key: 'information', w: 0.1 },
+  ],
+  career: [
+    { key: 'skill:professional-practice', w: 0.3 },
+    { key: 'reputation', w: 0.25 },
+    { key: 'portfolio', w: 0.2 },
+    { key: 'stability', w: 0.25 },
+  ],
+  business: [
+    { key: 'projectHealth', w: 0.3 },
+    { key: 'marketFit', w: 0.3 },
+    { key: 'income', w: 0.2 },
+    { key: 'skill:business-building', w: 0.2 },
+  ],
+  relocation: [
+    { key: 'belonging', w: 0.25 },
+    { key: 'visaSecurity', w: 0.2 },
+    { key: 'skill:independence', w: 0.35 },
+    { key: 'network', w: 0.2 },
+  ],
+  creative: [
+    { key: 'portfolio', w: 0.35 },
+    { key: 'audience', w: 0.3 },
+    { key: 'skill:craft', w: 0.35 },
+  ],
+  finance: [
+    { key: 'runway', w: 0.45 },
+    { key: 'money', w: 0.35 },
+    { key: 'optionality', w: 0.2 },
+  ],
+  health: [
+    { key: 'wellbeing', w: 0.4 },
+    { key: 'healthBuffer', w: 0.35 },
+    { key: 'energy', w: 0.25 },
+  ],
+  relationships: [
+    { key: 'relationships', w: 0.5 },
+    { key: 'network', w: 0.25 },
+    { key: 'belonging', w: 0.25 },
+  ],
+  time: [
+    { key: 'focus', w: 0.45 },
+    { key: 'energy', w: 0.3 },
+    { key: 'skill:craft', w: 0.25 },
+  ],
+  uncertainty: [
+    { key: 'information', w: 0.45 },
+    { key: 'decisionConfidence', w: 0.35 },
+    { key: 'optionality', w: 0.2 },
+  ],
 };
 
 const GOAL_FALLBACK = [
@@ -209,9 +254,7 @@ const GOAL_FALLBACK = [
 ];
 
 /** The variables that currently feed "progress to goals", and how much each counts. */
-export function goalContributions(
-  archetypes: readonly string[],
-): { key: string; w: number }[] {
+export function goalContributions(archetypes: readonly string[]): { key: string; w: number }[] {
   const byKey = new Map<string, number>();
   const lists = archetypes
     .map((a) => GOAL_WEIGHTS[a])
@@ -394,7 +437,7 @@ function makeBranch(
   name: string,
   hue: number,
   root: NodeId,
-  description: string,
+  description: string
 ): Branch {
   return { id, name, hue, root, description };
 }
@@ -415,7 +458,7 @@ function link(
   kind: SimEdge['kind'],
   label: string | undefined,
   hypothesis: string,
-  confidence: SimEdge['confidence'],
+  confidence: SimEdge['confidence']
 ): void {
   const id = makeId();
   edges[id] = { id, from, to, kind, ...(label ? { label } : {}), hypothesis, confidence };
@@ -532,7 +575,7 @@ function simulateSegment(params: {
       runState.t,
       prompt.imagination,
       riskBias,
-      runState.usage,
+      runState.usage
     );
     if (!rule) break;
 
@@ -541,12 +584,15 @@ function simulateSegment(params: {
     const applied = applyEffects(timePassed.state, rule.effects, catalogue.vars, rng);
     const state = derive(applied.state, prompt.archetypes);
 
-    const delta: StateDelta[] = [...timePassed.delta, ...applied.applied.map((a) => ({
-      key: a.key,
-      before: a.before,
-      after: a.after,
-      reason: a.reason,
-    }))].filter((d) => Math.abs(d.after - d.before) > 1e-9);
+    const delta: StateDelta[] = [
+      ...timePassed.delta,
+      ...applied.applied.map((a) => ({
+        key: a.key,
+        before: a.before,
+        after: a.after,
+        reason: a.reason,
+      })),
+    ].filter((d) => Math.abs(d.after - d.before) > 1e-9);
 
     runState.t += months;
     runState.usage.last.set(rule.id, runState.t);
@@ -583,7 +629,7 @@ function simulateSegment(params: {
       rule.type === 'consequence' ? 'consequence' : 'causal',
       undefined,
       `The engine believes this follows from the state reached at ${nodeHorizon(runState.t - months, prompt.horizon)}.`,
-      rule.imagination && rule.imagination > 0.4 ? 'low' : 'medium',
+      rule.imagination && rule.imagination > 0.4 ? 'low' : 'medium'
     );
 
     parentIdCur = id;
@@ -613,11 +659,13 @@ export interface CreateOptions {
 export function buildAssumptions(
   prompt: ScenarioPrompt,
   _seed: number,
-  overrides: Record<string, number> = {},
+  overrides: Record<string, number> = {}
 ): Assumption[] {
-  const funds = parseMoney(prompt.resources, ['save', 'savings', 'fund', 'buffer', 'money']) ?? 6000;
+  const funds =
+    parseMoney(prompt.resources, ['save', 'savings', 'fund', 'buffer', 'money']) ?? 6000;
   const income = parseMoney(prompt.resources, ['income', 'earn', 'salary', 'monthly']) ?? 2200;
-  const costs = parseMoney(prompt.resources, ['cost', 'spend', 'expenses', 'rent', 'bills']) ?? 1700;
+  const costs =
+    parseMoney(prompt.resources, ['cost', 'spend', 'expenses', 'rent', 'bills']) ?? 1700;
 
   const base: Omit<Assumption, 'value'>[] = [
     {
@@ -676,16 +724,15 @@ export function buildAssumptions(
  *
  * Deterministic for a given (prompt, seed) pair.
  */
-export function createUniverse(
-  config: EngineConfig,
-  options: CreateOptions = {},
-): SimulationDoc {
+export function createUniverse(config: EngineConfig, options: CreateOptions = {}): SimulationDoc {
   const prompt: ScenarioPrompt = {
     ...config.prompt,
     archetypes:
       config.prompt.archetypes.length > 0
         ? config.prompt.archetypes
-        : detectArchetypes(`${config.prompt.situation} ${config.prompt.decision} ${config.prompt.goals.join(' ')}`),
+        : detectArchetypes(
+            `${config.prompt.situation} ${config.prompt.decision} ${config.prompt.goals.join(' ')}`
+          ),
   };
 
   const vars: VarDef[] = [...(config.vars ?? ALL_VARS)];
@@ -719,7 +766,7 @@ export function createUniverse(
     'Where you are now',
     0,
     startId,
-    'The state everything else branches from.',
+    'The state everything else branches from.'
   );
 
   nodes[startId] = buildNode({
@@ -736,7 +783,10 @@ export function createUniverse(
     state: derived0,
     delta: [],
     evidence: [
-      { cls: 'user-fact', text: 'This is the situation as you described it. Everything downstream is conditional on it.' },
+      {
+        cls: 'user-fact',
+        text: 'This is the situation as you described it. Everything downstream is conditional on it.',
+      },
       ...(prompt.goals.length > 0
         ? [{ cls: 'user-fact' as const, text: `Stated goal: ${prompt.goals[0]}` }]
         : []),
@@ -767,13 +817,7 @@ export function createUniverse(
       reason: a.reason,
     }));
 
-    branches[branchId] = makeBranch(
-      branchId,
-      option.name,
-      option.hue,
-      decisionId,
-      option.intent,
-    );
+    branches[branchId] = makeBranch(branchId, option.name, option.hue, decisionId, option.intent);
 
     nodes[decisionId] = buildNode({
       id: decisionId,
@@ -781,7 +825,7 @@ export function createUniverse(
       title: option.label,
       summary: resolveText(
         `${option.intent} Against the situation you described — ${ctx.situationShort} — this is the route where ${option.label.toLowerCase()} is the organising choice.`,
-        ctx,
+        ctx
       ),
       detail: option.intent,
       t: 0,
@@ -793,7 +837,10 @@ export function createUniverse(
       delta,
       evidence: [
         { cls: 'user-fact', text: `This branch assumes you commit to: ${option.label}.` },
-        { cls: 'assumption', text: `Initial effects are modelled from a rules catalogue for "${option.name}", not measured from your real life.` },
+        {
+          cls: 'assumption',
+          text: `Initial effects are modelled from a rules catalogue for "${option.name}", not measured from your real life.`,
+        },
       ],
       question: prompt.decision || 'What do you do next?',
       options: optionsList
@@ -813,7 +860,7 @@ export function createUniverse(
       'choice',
       option.label,
       'Choosing this option commits to a different set of consequences than the others. The others are preserved as separate branches.',
-      'high',
+      'high'
     );
 
     // Remember which option produced this decision node, so explanations can name it.
@@ -899,14 +946,17 @@ export interface ExpandResult {
 export function expandNode(
   doc: SimulationDoc,
   nodeId: NodeId,
-  packs: readonly RulePack[],
+  packs: readonly RulePack[]
 ): ExpandResult {
   const node = doc.nodes[nodeId];
   if (!node || !node.expandable) return { doc, added: [] };
 
   const rng = new Rng((doc.seed ^ hashString(nodeId)) >>> 0);
   const ctx = buildTextContext(doc.prompt);
-  const catalogue: RuleCatalogue = { rules: activeRules(packs, doc.prompt.archetypes), vars: doc.vars };
+  const catalogue: RuleCatalogue = {
+    rules: activeRules(packs, doc.prompt.archetypes),
+    vars: doc.vars,
+  };
 
   const nextNodeId = counterFactory('n', new Set(Object.keys(doc.nodes)));
   const nextEdgeId = counterFactory('e', new Set(Object.keys(doc.edges)));
@@ -937,7 +987,8 @@ export function expandNode(
       'When the next opening appears, do you push or do you consolidate?',
       'Do you trade certainty for upside, or the reverse?',
     ];
-    const question = questionBank[rng.int(0, questionBank.length - 1)] ?? questionBank[0] as string;
+    const question =
+      questionBank[rng.int(0, questionBank.length - 1)] ?? (questionBank[0] as string);
 
     const variants = rng.shuffle([
       { id: 'push', label: 'Push for the upside', bias: 0.16 },
@@ -958,7 +1009,10 @@ export function expandNode(
       state: runState.state,
       delta: [],
       evidence: [
-        { cls: 'assumption', text: 'Generated by the model as a plausible next decision point. You may know of a better one.' },
+        {
+          cls: 'assumption',
+          text: 'Generated by the model as a plausible next decision point. You may know of a better one.',
+        },
       ],
       question,
       options: variants.map((v) => ({ id: v.id, label: v.label })),
@@ -967,7 +1021,7 @@ export function expandNode(
     });
 
     // Mark the node the user expanded as consumed; `link` below adopts the new child.
-    const parentNode = { ...nodes[nodeId] as SimNode };
+    const parentNode = { ...(nodes[nodeId] as SimNode) };
     parentNode.expanded = true;
     nodes[nodeId] = parentNode;
 
@@ -980,7 +1034,7 @@ export function expandNode(
       'choice',
       question,
       'The model represents this as an explicit fork rather than a single deterministic continuation, because at this point both directions are genuinely available.',
-      'low',
+      'low'
     );
     added.push(decisionId);
 
@@ -1013,7 +1067,7 @@ export function expandNode(
         `${parentBranch?.name ?? 'Path'} — ${variant.label.toLowerCase()}`,
         (baseHue + (i === 0 ? 14 : -14) + 360) % 360,
         created[0] ?? decisionId,
-        `${variant.label}, following: ${node.title}`,
+        `${variant.label}, following: ${node.title}`
       );
 
       // Re-parent whatever the segment produced onto the new branch id.
@@ -1103,7 +1157,7 @@ export function outcomeSpread(
   nodeId: NodeId,
   packs: readonly RulePack[],
   metricKey: string,
-  samples = 24,
+  samples = 24
 ): Spread | null {
   const node = doc.nodes[nodeId];
   if (!node) return null;
@@ -1124,7 +1178,7 @@ export function outcomeSpread(
         t,
         doc.prompt.imagination,
         0,
-        usage,
+        usage
       );
       if (!rule) break;
       const months = Math.max(1, Math.min(rule.durationMonths, doc.prompt.horizon - t));
@@ -1211,10 +1265,10 @@ export function subtreeOf(doc: SimulationDoc, nodeId: NodeId): Set<NodeId> {
  */
 export function updateAssumptions(
   doc: SimulationDoc,
-  overrides: Record<string, number>,
+  overrides: Record<string, number>
 ): SimulationDoc {
   const assumptions = doc.assumptions.map((a) =>
-    overrides[a.id] !== undefined ? { ...a, value: overrides[a.id] as number } : a,
+    overrides[a.id] !== undefined ? { ...a, value: overrides[a.id] as number } : a
   );
 
   const patch: StateVector = {};
@@ -1254,7 +1308,7 @@ export function forecastFrom(
   doc: SimulationDoc,
   nodeId: NodeId,
   packs: readonly RulePack[],
-  extraMonths: number,
+  extraMonths: number
 ): StateVector | null {
   const node = doc.nodes[nodeId];
   if (!node) return null;
@@ -1282,4 +1336,3 @@ export function forecastFrom(
   }
   return state;
 }
-

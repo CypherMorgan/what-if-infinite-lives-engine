@@ -32,7 +32,12 @@ import type {
 import { SCHEMA_VERSION } from '../core/types';
 import { Rng } from '../core/rng';
 import type { AiScenarioResponse } from './schema';
-import type { GenerationResult, GenerationRequest, ProviderSettings, ScenarioProvider } from './provider';
+import type {
+  GenerationResult,
+  GenerationRequest,
+  ProviderSettings,
+  ScenarioProvider,
+} from './provider';
 import { offlineProvider } from './offline';
 import { createHttpProvider, type HttpProviderDeps } from './http';
 import { composeScenario } from './offline';
@@ -40,15 +45,23 @@ import { composeScenario } from './offline';
 export interface OrchestratorDeps {
   http?: HttpProviderDeps;
   /** Injected by the desktop shell so HTTP runs in the main process. */
-  remoteGenerate?: (request: GenerationRequest, settings: ProviderSettings) => Promise<GenerationResult>;
+  remoteGenerate?: (
+    request: GenerationRequest,
+    settings: ProviderSettings
+  ) => Promise<GenerationResult>;
 }
 
 /** Which provider to use for a given settings object. */
 export function selectProvider(
   settings: ProviderSettings,
-  deps: OrchestratorDeps = {},
+  deps: OrchestratorDeps = {}
 ): ScenarioProvider {
-  if (settings.id === 'openai-compatible' && settings.baseUrl && settings.model && !deps.remoteGenerate) {
+  if (
+    settings.id === 'openai-compatible' &&
+    settings.baseUrl &&
+    settings.model &&
+    !deps.remoteGenerate
+  ) {
     return createHttpProvider(settings, deps.http ?? {});
   }
   if (settings.id === 'openai-compatible' && deps.remoteGenerate) {
@@ -68,10 +81,12 @@ export function documentFromResponse(
   prompt: ScenarioPrompt,
   seed: number,
   id: string,
-  meta: SimulationDoc['meta'],
+  meta: SimulationDoc['meta']
 ): SimulationDoc {
   const archetypes =
-    prompt.archetypes.length > 0 ? prompt.archetypes : detectArchetypes(`${prompt.situation} ${prompt.decision}`);
+    prompt.archetypes.length > 0
+      ? prompt.archetypes
+      : detectArchetypes(`${prompt.situation} ${prompt.decision}`);
   const effectivePrompt: ScenarioPrompt = { ...prompt, archetypes };
 
   const nodes: Record<NodeId, SimNode> = {};
@@ -164,9 +179,10 @@ export function documentFromResponse(
     if (!docId) continue;
 
     const effects = (node.effects ?? []).filter((e) => e.op !== undefined);
-    const applied = effects.length > 0
-      ? applyEffects(states.get(docId) ?? baseState, effects, ALL_VARS, rng)
-      : { state: states.get(docId) ?? baseState, applied: [] };
+    const applied =
+      effects.length > 0
+        ? applyEffects(states.get(docId) ?? baseState, effects, ALL_VARS, rng)
+        : { state: states.get(docId) ?? baseState, applied: [] };
 
     const delta: StateDelta[] = applied.applied.map((a) => ({
       key: a.key,
@@ -248,7 +264,8 @@ export function documentFromResponse(
   }
 
   for (const node of Object.values(nodes)) {
-    node.expandable = node.children.length === 0 && node.depth < 8 && node.t < effectivePrompt.horizon;
+    node.expandable =
+      node.children.length === 0 && node.depth < 8 && node.t < effectivePrompt.horizon;
   }
 
   const assumptions = buildAssumptions(effectivePrompt, seed);

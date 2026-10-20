@@ -177,7 +177,7 @@ export function applyEffects(
   state: Record<string, number>,
   effects: readonly Effect[],
   vars: readonly VarDef[],
-  rng: Rng,
+  rng: Rng
 ): ApplyResult {
   const next: Record<string, number> = { ...state };
   const applied: AppliedEffect[] = [];

@@ -6,7 +6,17 @@ import tseslint from 'typescript-eslint';
 import prettier from 'eslint-config-prettier';
 
 export default tseslint.config(
-  { ignores: ['dist/**', 'dist-electron/**', 'release/**', 'node_modules/**', 'build/**', '*.cjs', 'commitlint.config.js'] },
+  {
+    ignores: [
+      'dist/**',
+      'dist-electron/**',
+      'release/**',
+      'node_modules/**',
+      'build/**',
+      '*.cjs',
+      'commitlint.config.js',
+    ],
+  },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   prettier,
@@ -25,8 +35,18 @@ export default tseslint.config(
     // scripts are CommonJS Node files that run outside the browser.
     files: ['electron/**/*.ts', 'scripts/**/*.cjs'],
     languageOptions: {
-      globals: { console: 'readonly', process: 'readonly', require: 'readonly', __dirname: 'readonly', module: 'readonly' },
+      globals: {
+        console: 'readonly',
+        process: 'readonly',
+        require: 'readonly',
+        __dirname: 'readonly',
+        module: 'readonly',
+      },
     },
-    rules: { 'no-console': 'off', '@typescript-eslint/no-require-imports': 'off', 'no-undef': 'off' },
-  },
+    rules: {
+      'no-console': 'off',
+      '@typescript-eslint/no-require-imports': 'off',
+      'no-undef': 'off',
+    },
+  }
 );

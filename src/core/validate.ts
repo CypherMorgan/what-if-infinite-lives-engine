@@ -69,7 +69,10 @@ function num(v: unknown, fallback = 0): number {
 
 function strArray(v: unknown, max: number = IMPORT_LIMITS.maxArrayLength): string[] {
   if (!Array.isArray(v)) return [];
-  return v.slice(0, max).map((x) => str(x)).filter((s) => s.trim().length > 0);
+  return v
+    .slice(0, max)
+    .map((x) => str(x))
+    .filter((s) => s.trim().length > 0);
 }
 
 function normalizeState(v: unknown): Record<string, number> {
@@ -107,7 +110,11 @@ function normalizeNode(id: string, raw: unknown, issues: ValidationIssue[]): Sim
 
   const type = str(raw['type']);
   if (!NODE_TYPES.has(type)) {
-    issues.push({ path: `nodes.${id}.type`, message: `Unknown node type "${type}".`, fatal: false });
+    issues.push({
+      path: `nodes.${id}.type`,
+      message: `Unknown node type "${type}".`,
+      fatal: false,
+    });
   }
   const title = str(raw['title']).trim();
   if (!title) {
@@ -160,15 +167,19 @@ function normalizeNode(id: string, raw: unknown, issues: ValidationIssue[]): Sim
   if (isObject(raw['decision'])) {
     const question = str(raw['decision']['question']).trim();
     const options = Array.isArray(raw['decision']['options'])
-      ? raw['decision']['options'].slice(0, 8).filter(isObject).map((o) => {
-          const option: { id: string; label: string; leadsTo?: string } = {
-            id: str(o['id']),
-            label: str(o['label']),
-          };
-          const leadsTo = str(o['leadsTo']).trim();
-          if (leadsTo) option.leadsTo = leadsTo;
-          return option;
-        }).filter((o) => o.label.length > 0)
+      ? raw['decision']['options']
+          .slice(0, 8)
+          .filter(isObject)
+          .map((o) => {
+            const option: { id: string; label: string; leadsTo?: string } = {
+              id: str(o['id']),
+              label: str(o['label']),
+            };
+            const leadsTo = str(o['leadsTo']).trim();
+            if (leadsTo) option.leadsTo = leadsTo;
+            return option;
+          })
+          .filter((o) => o.label.length > 0)
       : [];
     if (question) node.decision = { question: question.slice(0, 500), options };
   }
@@ -201,7 +212,10 @@ function normalizeEdge(id: string, raw: unknown): SimEdge | null {
     to,
     kind: EDGE_KINDS.has(kind) ? (kind as SimEdge['kind']) : 'causal',
     confidence: confidence === 'high' || confidence === 'low' ? confidence : 'medium',
-    hypothesis: str(raw['hypothesis'], 'The model treats this as a plausible transition.').slice(0, 600),
+    hypothesis: str(raw['hypothesis'], 'The model treats this as a plausible transition.').slice(
+      0,
+      600
+    ),
   };
   const label = str(raw['label']).trim();
   if (label) edge.label = label.slice(0, 240);
@@ -217,7 +231,10 @@ export function validateDocument(input: unknown): ValidationResult {
   const issues: ValidationIssue[] = [];
 
   if (!isObject(input)) {
-    return { ok: false, issues: [{ path: '', message: 'The file does not contain a JSON object.', fatal: true }] };
+    return {
+      ok: false,
+      issues: [{ path: '', message: 'The file does not contain a JSON object.', fatal: true }],
+    };
   }
 
   const id = str(input['id']).trim();
@@ -240,13 +257,25 @@ export function validateDocument(input: unknown): ValidationResult {
   if (nodeEntries.length > MAX_NODES) {
     return {
       ok: false,
-      issues: [{ path: 'nodes', message: `Contains ${nodeEntries.length} nodes, exceeding the limit of ${MAX_NODES}.`, fatal: true }],
+      issues: [
+        {
+          path: 'nodes',
+          message: `Contains ${nodeEntries.length} nodes, exceeding the limit of ${MAX_NODES}.`,
+          fatal: true,
+        },
+      ],
     };
   }
   if (edgeEntries.length > MAX_EDGES) {
     return {
       ok: false,
-      issues: [{ path: 'edges', message: `Contains ${edgeEntries.length} edges, exceeding the limit of ${MAX_EDGES}.`, fatal: true }],
+      issues: [
+        {
+          path: 'edges',
+          message: `Contains ${edgeEntries.length} edges, exceeding the limit of ${MAX_EDGES}.`,
+          fatal: true,
+        },
+      ],
     };
   }
 
@@ -279,7 +308,11 @@ export function validateDocument(input: unknown): ValidationResult {
   }
 
   if (Object.keys(branches).length === 0) {
-    issues.push({ path: 'branches', message: 'No valid branches found; derived from nodes instead.', fatal: false });
+    issues.push({
+      path: 'branches',
+      message: 'No valid branches found; derived from nodes instead.',
+      fatal: false,
+    });
     for (const node of Object.values(nodes)) {
       if (!branches[node.branch]) {
         branches[node.branch] = {
@@ -302,29 +335,45 @@ export function validateDocument(input: unknown): ValidationResult {
   }
 
   const vars = Array.isArray(input['vars'])
-    ? input['vars'].slice(0, 300).filter(isObject).map((v) => ({
-        key: str(v['key']),
-        label: str(v['label'], str(v['key'])),
-        unit: VAR_UNITS.has(str(v['unit'])) ? (str(v['unit']) as (typeof ALL_VARS)[number]['unit']) : 'index',
-        kind: str(v['kind'], 'resource') as (typeof ALL_VARS)[number]['kind'],
-        direction: (str(v['direction']) === 'down' ? 'down' : str(v['direction']) === 'neutral' ? 'neutral' : 'up') as (typeof ALL_VARS)[number]['direction'],
-        domain: str(v['domain'], 'personal') as (typeof ALL_VARS)[number]['domain'],
-        ...(v['primary'] === true ? { primary: true } : {}),
-      })).filter((v) => v.key.length > 0)
+    ? input['vars']
+        .slice(0, 300)
+        .filter(isObject)
+        .map((v) => ({
+          key: str(v['key']),
+          label: str(v['label'], str(v['key'])),
+          unit: VAR_UNITS.has(str(v['unit']))
+            ? (str(v['unit']) as (typeof ALL_VARS)[number]['unit'])
+            : 'index',
+          kind: str(v['kind'], 'resource') as (typeof ALL_VARS)[number]['kind'],
+          direction: (str(v['direction']) === 'down'
+            ? 'down'
+            : str(v['direction']) === 'neutral'
+              ? 'neutral'
+              : 'up') as (typeof ALL_VARS)[number]['direction'],
+          domain: str(v['domain'], 'personal') as (typeof ALL_VARS)[number]['domain'],
+          ...(v['primary'] === true ? { primary: true } : {}),
+        }))
+        .filter((v) => v.key.length > 0)
     : [];
 
   const assumptions = Array.isArray(input['assumptions'])
-    ? input['assumptions'].slice(0, 60).filter(isObject).map((a) => ({
-        id: str(a['id']),
-        label: str(a['label'], 'Unnamed assumption'),
-        varKey: str(a['varKey']),
-        unit: VAR_UNITS.has(str(a['unit'])) ? (str(a['unit']) as (typeof ALL_VARS)[number]['unit']) : 'index',
-        baseValue: num(a['baseValue']),
-        value: num(a['value']),
-        rationale: str(a['rationale']),
-        sensitivity: Math.min(Math.max(num(a['sensitivity']), 0), 1),
-        editable: a['editable'] !== false,
-      })).filter((a) => a.id.length > 0)
+    ? input['assumptions']
+        .slice(0, 60)
+        .filter(isObject)
+        .map((a) => ({
+          id: str(a['id']),
+          label: str(a['label'], 'Unnamed assumption'),
+          varKey: str(a['varKey']),
+          unit: VAR_UNITS.has(str(a['unit']))
+            ? (str(a['unit']) as (typeof ALL_VARS)[number]['unit'])
+            : 'index',
+          baseValue: num(a['baseValue']),
+          value: num(a['value']),
+          rationale: str(a['rationale']),
+          sensitivity: Math.min(Math.max(num(a['sensitivity']), 0), 1),
+          editable: a['editable'] !== false,
+        }))
+        .filter((a) => a.id.length > 0)
     : [];
 
   const rawPrompt = isObject(input['prompt']) ? input['prompt'] : {};

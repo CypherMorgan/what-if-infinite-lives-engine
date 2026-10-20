@@ -18,8 +18,22 @@ export function Stage({ store }: { store: Store }) {
   const rendererRef = useRef<GraphRenderer | null>(null);
   const [hover, setHover] = useState<string | null>(null);
   const [pointerMode, setPointerMode] = useState<'idle' | 'pan' | 'drag'>('idle');
-  const dragRef = useRef<{ id: string | null; startX: number; startY: number; origX: number; origY: number; moved: boolean; snapshotDoc: typeof state.doc } | null>(null);
-  const panRef = useRef<{ sx: number; sy: number; camX: number; camY: number; moved: boolean } | null>(null);
+  const dragRef = useRef<{
+    id: string | null;
+    startX: number;
+    startY: number;
+    origX: number;
+    origY: number;
+    moved: boolean;
+    snapshotDoc: typeof state.doc;
+  } | null>(null);
+  const panRef = useRef<{
+    sx: number;
+    sy: number;
+    camX: number;
+    camY: number;
+    moved: boolean;
+  } | null>(null);
 
   /* -------- create renderer -------- */
   useEffect(() => {
@@ -139,9 +153,13 @@ export function Stage({ store }: { store: Store }) {
       store.select(hit);
       const point = state.doc.layout[hit];
       dragRef.current = {
-        id: hit, startX: sx, startY: sy,
-        origX: point?.x ?? 0, origY: point?.y ?? 0,
-        moved: false, snapshotDoc: state.doc,
+        id: hit,
+        startX: sx,
+        startY: sy,
+        origX: point?.x ?? 0,
+        origY: point?.y ?? 0,
+        moved: false,
+        snapshotDoc: state.doc,
       };
       setPointerMode('drag');
     } else {
@@ -176,7 +194,10 @@ export function Stage({ store }: { store: Store }) {
       if (Math.abs(dx) + Math.abs(dy) > 2) d.moved = true;
       if (!d.id || !d.moved) return;
       const doc = { ...d.snapshotDoc };
-      doc.layout = { ...doc.layout, [d.id]: { x: Math.round(d.origX + dx), y: Math.round(d.origY + dy) } };
+      doc.layout = {
+        ...doc.layout,
+        [d.id]: { x: Math.round(d.origX + dx), y: Math.round(d.origY + dy) },
+      };
       store.transientDoc(doc);
       return;
     }
@@ -214,10 +235,13 @@ export function Stage({ store }: { store: Store }) {
   };
 
   /* -------- zoom controls -------- */
-  const zoomBy = useCallback((factor: number) => {
-    const c = store.getState().camera;
-    store.setCamera({ scale: Math.min(2.4, Math.max(0.1, c.scale * factor)) });
-  }, [store]);
+  const zoomBy = useCallback(
+    (factor: number) => {
+      const c = store.getState().camera;
+      store.setCamera({ scale: Math.min(2.4, Math.max(0.1, c.scale * factor)) });
+    },
+    [store]
+  );
 
   const fit = useCallback(() => {
     const r = rendererRef.current;
@@ -283,7 +307,8 @@ export function Stage({ store }: { store: Store }) {
       const p = doc.layout[n.id];
       if (!p) continue;
       const shown = visible.has(n.id);
-      ctx.fillStyle = n.id === sel ? '#4fd8ff' : shown ? 'rgba(154, 166, 196, 0.72)' : 'rgba(98, 112, 154, 0.26)';
+      ctx.fillStyle =
+        n.id === sel ? '#4fd8ff' : shown ? 'rgba(154, 166, 196, 0.72)' : 'rgba(98, 112, 154, 0.26)';
       const size = n.id === sel ? 5 : 3.2;
       ctx.fillRect(p.x * k + ox - size / 2, p.y * k + oy - size / 2, size, size);
     }
@@ -298,7 +323,7 @@ export function Stage({ store }: { store: Store }) {
       worldLeft * k + ox,
       worldTop * k + oy,
       (rContentW(r) / cam.scale) * k,
-      (rContentH(r) / cam.scale) * k,
+      (rContentH(r) / cam.scale) * k
     );
   }, [store]);
 
@@ -325,12 +350,14 @@ export function Stage({ store }: { store: Store }) {
     store.setCamera({ x: (mx - ox) / k, y: (my - oy) / k });
   };
 
-  const matchCount = state.query.trim().length >= 2
-    ? visibleNodes(state.doc).filter((n) =>
-        n.title.toLowerCase().includes(state.query.trim().toLowerCase()) ||
-        n.summary.toLowerCase().includes(state.query.trim().toLowerCase()),
-      ).length
-    : 0;
+  const matchCount =
+    state.query.trim().length >= 2
+      ? visibleNodes(state.doc).filter(
+          (n) =>
+            n.title.toLowerCase().includes(state.query.trim().toLowerCase()) ||
+            n.summary.toLowerCase().includes(state.query.trim().toLowerCase())
+        ).length
+      : 0;
 
   return (
     <div className="stage">
@@ -350,11 +377,19 @@ export function Stage({ store }: { store: Store }) {
       <div className="stage-overlay">
         <div className="stage-top-left">
           <div className="zoom-pill">
-            <button className="btn" onClick={() => zoomBy(1 / 1.25)} aria-label="Zoom out">−</button>
+            <button className="btn" onClick={() => zoomBy(1 / 1.25)} aria-label="Zoom out">
+              −
+            </button>
             <span className="zoom-level">{Math.round(state.camera.scale * 100)}%</span>
-            <button className="btn" onClick={() => zoomBy(1.25)} aria-label="Zoom in">+</button>
-            <button className="btn" onClick={fit} aria-label="Fit to view">Fit</button>
-            <button className="btn" onClick={focusSelected} aria-label="Center selection">◎</button>
+            <button className="btn" onClick={() => zoomBy(1.25)} aria-label="Zoom in">
+              +
+            </button>
+            <button className="btn" onClick={fit} aria-label="Fit to view">
+              Fit
+            </button>
+            <button className="btn" onClick={focusSelected} aria-label="Center selection">
+              ◎
+            </button>
             <button
               className="btn"
               onClick={() => {
@@ -375,30 +410,60 @@ export function Stage({ store }: { store: Store }) {
             </button>
           </div>
           {matchCount > 0 && (
-            <span className="chip chip-cyan" style={{ marginTop: 6 }}>{matchCount} match{matchCount === 1 ? '' : 'es'}</span>
+            <span className="chip chip-cyan" style={{ marginTop: 6 }}>
+              {matchCount} match{matchCount === 1 ? '' : 'es'}
+            </span>
           )}
         </div>
 
         <div className="stage-bottom-left">
           <div className="legend">
-            <span className="legend-item"><span className="legend-dot" style={{ background: '#4fd8ff' }} />start</span>
-            <span className="legend-item"><span className="legend-dot" style={{ background: '#ffb74d' }} />decision</span>
-            <span className="legend-item"><span className="legend-dot" style={{ background: '#b18cff' }} />event</span>
-            <span className="legend-item"><span className="legend-dot" style={{ background: '#5ce6a8' }} />opportunity</span>
-            <span className="legend-item"><span className="legend-dot" style={{ background: '#ff7d9c' }} />setback</span>
-            <span className="legend-item"><span className="legend-dot" style={{ background: '#e8edf9' }} />future state</span>
+            <span className="legend-item">
+              <span className="legend-dot" style={{ background: '#4fd8ff' }} />
+              start
+            </span>
+            <span className="legend-item">
+              <span className="legend-dot" style={{ background: '#ffb74d' }} />
+              decision
+            </span>
+            <span className="legend-item">
+              <span className="legend-dot" style={{ background: '#b18cff' }} />
+              event
+            </span>
+            <span className="legend-item">
+              <span className="legend-dot" style={{ background: '#5ce6a8' }} />
+              opportunity
+            </span>
+            <span className="legend-item">
+              <span className="legend-dot" style={{ background: '#ff7d9c' }} />
+              setback
+            </span>
+            <span className="legend-item">
+              <span className="legend-dot" style={{ background: '#e8edf9' }} />
+              future state
+            </span>
           </div>
         </div>
       </div>
 
       {state.settings.showMinimap && (
         <div className="minimap">
-          <canvas ref={miniRef} onPointerDown={onMiniPointer} onPointerMove={(e) => { if (e.buttons === 1) onMiniPointer(e); }} />
+          <canvas
+            ref={miniRef}
+            onPointerDown={onMiniPointer}
+            onPointerMove={(e) => {
+              if (e.buttons === 1) onMiniPointer(e);
+            }}
+          />
         </div>
       )}
     </div>
   );
 }
 
-function rContentW(r: GraphRenderer): number { return r.width; }
-function rContentH(r: GraphRenderer): number { return r.height; }
+function rContentW(r: GraphRenderer): number {
+  return r.width;
+}
+function rContentH(r: GraphRenderer): number {
+  return r.height;
+}

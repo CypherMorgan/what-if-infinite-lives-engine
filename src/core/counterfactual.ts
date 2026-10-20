@@ -20,7 +20,15 @@ import { applyEffects, type RulePack } from './rulePack';
 import { createUniverse, derive, forecastFrom, hashString } from './engine';
 import { optionById } from './archetypes';
 import { ALL_VARS } from './packs/vars';
-import { edgeList, type Assumption, type Counterfactual, type NodeId, type SimNode, type SimulationDoc, type StateVector } from './types';
+import {
+  edgeList,
+  type Assumption,
+  type Counterfactual,
+  type NodeId,
+  type SimNode,
+  type SimulationDoc,
+  type StateVector,
+} from './types';
 import { formatValue, getState } from './vars';
 
 export interface DiffEntry {
@@ -55,13 +63,14 @@ export function applyAssumptionChange(
   assumptionId: string,
   newValue: number,
   packs: readonly RulePack[],
-  note = '',
+  note = ''
 ): CounterfactualResult | { error: string } {
   const assumption = doc.assumptions.find((a) => a.id === assumptionId);
   if (!assumption) return { error: `Assumption "${assumptionId}" does not exist.` };
   if (!assumption.editable) return { error: `Assumption "${assumption.label}" cannot be edited.` };
   if (!Number.isFinite(newValue)) return { error: 'The new value must be a finite number.' };
-  if (newValue === assumption.value) return { error: 'The new value is identical to the current value.' };
+  if (newValue === assumption.value)
+    return { error: 'The new value is identical to the current value.' };
 
   const overrides: Record<string, number> = {};
   for (const a of doc.assumptions) overrides[a.id] = a.value;
@@ -74,7 +83,7 @@ export function applyAssumptionChange(
       branchCount: doc.prompt.branchCount,
       assumptionOverrides: overrides,
       title: `${doc.title} — ${assumption.label.toLowerCase()} changed`,
-    },
+    }
   );
 
   const counterfactual: Counterfactual = {
@@ -108,7 +117,7 @@ export function applyAssumptionChange(
 export function applyDecisionChange(
   doc: SimulationDoc,
   optionId: string,
-  packs: readonly RulePack[],
+  packs: readonly RulePack[]
 ): CounterfactualResult | { error: string } {
   const option = optionById(optionId);
   if (!option) return { error: `Unknown decision "${optionId}".` };
@@ -131,7 +140,7 @@ export function applyDecisionChange(
       onlyOptionId: optionId,
       assumptionOverrides: overrides,
       title: `${doc.title} — if you had chosen ${option.label.toLowerCase()}`,
-    },
+    }
   );
 
   const counterfactual: Counterfactual = {
@@ -184,7 +193,7 @@ export function withSensitivity(doc: SimulationDoc, packs: readonly RulePack[]):
     const perturbed: SimulationDoc = {
       ...doc,
       assumptions: doc.assumptions.map((x) =>
-        x.id === a.id ? { ...x, value: x.value + spread } : x,
+        x.id === a.id ? { ...x, value: x.value + spread } : x
       ),
     };
 
@@ -275,13 +284,17 @@ export function diffSnapshots(a: BranchSnapshot, b: BranchSnapshot): DiffEntry[]
       to,
       delta,
       unit: def.unit,
-      divergesAtMonths: a.divergedAtMonths !== b.divergedAtMonths ? Math.min(a.divergedAtMonths ?? 0, b.divergedAtMonths ?? 0) : null,
+      divergesAtMonths:
+        a.divergedAtMonths !== b.divergedAtMonths
+          ? Math.min(a.divergedAtMonths ?? 0, b.divergedAtMonths ?? 0)
+          : null,
     });
   }
 
   // Largest absolute movement first, so the consequential differences lead.
   out.sort((x, y) => {
-    const xn = normalise(x), yn = normalise(y);
+    const xn = normalise(x),
+      yn = normalise(y);
     return yn - xn;
   });
   return out;
@@ -307,7 +320,7 @@ export interface StabilityReport {
 export function stabilityBetween(
   a: BranchSnapshot,
   b: BranchSnapshot,
-  noisyKeys: readonly string[],
+  noisyKeys: readonly string[]
 ): StabilityReport {
   const noisy = new Set(noisyKeys);
   const diffs = diffSnapshots(a, b);
@@ -389,7 +402,9 @@ export function whyThisPath(doc: SimulationDoc, nodeId: NodeId): string[] {
     const node = doc.nodes[id];
     if (!node) continue;
     if (node.type === 'start') {
-      reasons.push(`Started from: ${node.title}. The model treats this as given, because you said it.`);
+      reasons.push(
+        `Started from: ${node.title}. The model treats this as given, because you said it.`
+      );
       continue;
     }
     const incoming = edgeList(doc).find((e) => e.to === id);
@@ -397,7 +412,9 @@ export function whyThisPath(doc: SimulationDoc, nodeId: NodeId): string[] {
       reasons.push(`A deliberate choice at ${node.horizon}: ${node.title}.`);
     } else if (incoming) {
       const rule = node.ruleId ? ` (rule ${node.ruleId})` : '';
-      reasons.push(`At ${node.horizon}: ${node.title}, triggered by the state reached earlier${rule}.`);
+      reasons.push(
+        `At ${node.horizon}: ${node.title}, triggered by the state reached earlier${rule}.`
+      );
     }
     if (node.assumptions.length > 0) {
       reasons.push(`That step assumed: ${node.assumptions[0]}`);
@@ -421,7 +438,7 @@ export function whyThisPath(doc: SimulationDoc, nodeId: NodeId): string[] {
 export function reroll(
   doc: SimulationDoc,
   packs: readonly RulePack[],
-  seed: number,
+  seed: number
 ): SimulationDoc {
   const rebuilt = createUniverse(
     { packs, seed, prompt: doc.prompt },
@@ -430,7 +447,7 @@ export function reroll(
       branchCount: doc.prompt.branchCount,
       assumptionOverrides: Object.fromEntries(doc.assumptions.map((a) => [a.id, a.value])),
       title: doc.title,
-    },
+    }
   );
   return {
     ...rebuilt,
@@ -456,21 +473,23 @@ export function previewAssumption(
   state: StateVector,
   assumption: Assumption,
   value: number,
-  archetypes: readonly string[],
+  archetypes: readonly string[]
 ): StateVector {
   const next: StateVector = { ...state, [assumption.varKey]: value };
   return derive(next, archetypes);
 }
 
 /** Small helper for tests and diagnostics: the initial state of a single option. */
-export function singleBranchState(
-  doc: SimulationDoc,
-  optionId: string,
-): StateVector | null {
+export function singleBranchState(doc: SimulationDoc, optionId: string): StateVector | null {
   const option = optionById(optionId);
   if (!option) return null;
   const rng = new Rng((doc.seed ^ hashString(optionId)) >>> 0);
   const base = derive({}, doc.prompt.archetypes);
-  const applied = applyEffects(base, option.effects, doc.vars.length > 0 ? doc.vars : ALL_VARS, rng);
+  const applied = applyEffects(
+    base,
+    option.effects,
+    doc.vars.length > 0 ? doc.vars : ALL_VARS,
+    rng
+  );
   return derive(applied.state, doc.prompt.archetypes);
 }

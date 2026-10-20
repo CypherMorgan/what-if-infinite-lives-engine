@@ -25,17 +25,43 @@ const rules: Rule[] = [
     durationMonths: 6,
     cooldown: 12,
     effects: [
-      { key: 'visaSecurity', op: 'add', value: 16, reason: 'applications processed and status advanced' },
-      { key: 'money', op: 'add', value: -1600, noise: 0.6, reason: 'fees, translations and legal advice' },
+      {
+        key: 'visaSecurity',
+        op: 'add',
+        value: 16,
+        reason: 'applications processed and status advanced',
+      },
+      {
+        key: 'money',
+        op: 'add',
+        value: -1600,
+        noise: 0.6,
+        reason: 'fees, translations and legal advice',
+      },
       { key: 'stress', op: 'add', value: 10, reason: 'deadlines controlled by somebody else' },
       { key: 'focus', op: 'add', value: -8, reason: 'attention consumed by administration' },
-      { key: 'optionality', op: 'add', value: -5, reason: 'major decisions paused until status settles' },
-      { key: 'information', op: 'add', value: 7, reason: 'a precise map of what the system requires' },
+      {
+        key: 'optionality',
+        op: 'add',
+        value: -5,
+        reason: 'major decisions paused until status settles',
+      },
+      {
+        key: 'information',
+        op: 'add',
+        value: 7,
+        reason: 'a precise map of what the system requires',
+      },
     ],
     assumptions: ['Status is granted in stages and each stage gates a different set of rights.'],
-    uncertainties: ['Processing time, which is the least controllable variable anywhere on this path.'],
+    uncertainties: [
+      'Processing time, which is the least controllable variable anywhere on this path.',
+    ],
     evidence: [
-      { cls: 'assumption', text: 'Modelled as a generic staged process; no specific country rules are represented.' },
+      {
+        cls: 'assumption',
+        text: 'Modelled as a generic staged process; no specific country rules are represented.',
+      },
     ],
     tradeoffs: {
       gains: ['Once settled, the constraint disappears entirely for years at a time.'],
@@ -59,23 +85,59 @@ const rules: Rule[] = [
     durationMonths: 2,
     once: true,
     effects: [
-      { key: 'money', op: 'add', value: -5200, noise: 0.6, reason: 'deposits, travel and setup in the first month' },
-      { key: 'expenses', op: 'add', value: 420, noise: 0.5, reason: 'a higher baseline cost of living' },
-      { key: 'optionality', op: 'add', value: -8, reason: 'the buffer that funded the move is now spent' },
+      {
+        key: 'money',
+        op: 'add',
+        value: -5200,
+        noise: 0.6,
+        reason: 'deposits, travel and setup in the first month',
+      },
+      {
+        key: 'expenses',
+        op: 'add',
+        value: 420,
+        noise: 0.5,
+        reason: 'a higher baseline cost of living',
+      },
+      {
+        key: 'optionality',
+        op: 'add',
+        value: -8,
+        reason: 'the buffer that funded the move is now spent',
+      },
       { key: 'stress', op: 'add', value: 9, reason: 'settling in while paying premium prices' },
-      { key: 'relationships', op: 'add', value: -7, reason: 'everyone you know is in another time zone' },
-      { key: 'belonging', op: 'add', value: 4, reason: 'a place that is finally yours, even if unfamiliar' },
+      {
+        key: 'relationships',
+        op: 'add',
+        value: -7,
+        reason: 'everyone you know is in another time zone',
+      },
+      {
+        key: 'belonging',
+        op: 'add',
+        value: 4,
+        reason: 'a place that is finally yours, even if unfamiliar',
+      },
     ],
-    assumptions: ['Relocation carries a large one-off cost and a higher recurring baseline than was assumed before arrival.'],
-    uncertainties: ['How much of the buffer survives the first month; it varies enormously by city and by support network.'],
+    assumptions: [
+      'Relocation carries a large one-off cost and a higher recurring baseline than was assumed before arrival.',
+    ],
+    uncertainties: [
+      'How much of the buffer survives the first month; it varies enormously by city and by support network.',
+    ],
     evidence: [
-      { cls: 'assumption', text: 'Setup is modelled as a single large hit rather than as a gradual ramp.' },
+      {
+        cls: 'assumption',
+        text: 'Setup is modelled as a single large hit rather than as a gradual ramp.',
+      },
     ],
     tradeoffs: {
       gains: ['The one-off cost is front-loaded and then stops recurring.'],
       costs: ['Every month hereafter costs more than the month before it did.'],
     },
-    nextSteps: ['Rent furnished for the first three months; buying early is the classic way to overpay.'],
+    nextSteps: [
+      'Rent furnished for the first three months; buying early is the classic way to overpay.',
+    ],
     imagination: 0,
   },
   {
@@ -87,7 +149,12 @@ const rules: Rule[] = [
       'Proximity and repetition do most of the work here. Effort matters far less than showing up to the same thing several weeks running.',
     type: 'opportunity',
     requires: ['relocation'],
-    when: { all: [{ key: 'network', op: '>=', value: 25 }, { key: 'belonging', op: '<', value: 65 }] },
+    when: {
+      all: [
+        { key: 'network', op: '>=', value: 25 },
+        { key: 'belonging', op: '<', value: 65 },
+      ],
+    },
     weight: 8,
     monthsMin: 4,
     monthsMax: 72,
@@ -95,14 +162,38 @@ const rules: Rule[] = [
     cooldown: 16,
     effects: [
       { key: 'belonging', op: 'add', value: 13, reason: 'repeated contact with the same people' },
-      { key: 'relationships', op: 'add', value: 10, reason: 'relationships that exist in this place' },
-      { key: 'network', op: 'add', value: 9, reason: 'local ties, entirely separate from the ones left behind' },
+      {
+        key: 'relationships',
+        op: 'add',
+        value: 10,
+        reason: 'relationships that exist in this place',
+      },
+      {
+        key: 'network',
+        op: 'add',
+        value: 9,
+        reason: 'local ties, entirely separate from the ones left behind',
+      },
       { key: 'wellbeing', op: 'add', value: 9, reason: 'social contact stops being effortful' },
-      { key: 'optionality', op: 'add', value: 6, reason: 'local knowledge arrives through people rather than research' },
-      { key: 'stress', op: 'add', value: -6, reason: 'less of the low-grade load of being a stranger' },
+      {
+        key: 'optionality',
+        op: 'add',
+        value: 6,
+        reason: 'local knowledge arrives through people rather than research',
+      },
+      {
+        key: 'stress',
+        op: 'add',
+        value: -6,
+        reason: 'less of the low-grade load of being a stranger',
+      },
     ],
-    assumptions: ['Repeated unstructured contact in the same setting is the ordinary route to local ties.'],
-    uncertainties: ['Whether the people available are the right ones; proximity produces ties, not necessarily good ones.'],
+    assumptions: [
+      'Repeated unstructured contact in the same setting is the ordinary route to local ties.',
+    ],
+    uncertainties: [
+      'Whether the people available are the right ones; proximity produces ties, not necessarily good ones.',
+    ],
     evidence: [
       {
         cls: 'research',
@@ -133,24 +224,66 @@ const rules: Rule[] = [
     durationMonths: 6,
     cooldown: 26,
     effects: [
-      { key: 'credential', op: 'add', value: -10, reason: 'qualification discounted by the local market' },
-      { key: 'income', op: 'add', value: -520, noise: 0.6, reason: 'a role below the one previously held' },
-      { key: 'stress', op: 'add', value: 11, reason: 're-proving competence already proven elsewhere' },
-      { key: 'optionality', op: 'add', value: -9, reason: 'roles closed until local recognition arrives' },
-      { key: 'goalProgress', op: 'add', value: -7, reason: 'the professional timeline resets by a step' },
-      { key: 'information', op: 'add', value: 10, reason: 'a clear view of how this market reads credentials' },
+      {
+        key: 'credential',
+        op: 'add',
+        value: -10,
+        reason: 'qualification discounted by the local market',
+      },
+      {
+        key: 'income',
+        op: 'add',
+        value: -520,
+        noise: 0.6,
+        reason: 'a role below the one previously held',
+      },
+      {
+        key: 'stress',
+        op: 'add',
+        value: 11,
+        reason: 're-proving competence already proven elsewhere',
+      },
+      {
+        key: 'optionality',
+        op: 'add',
+        value: -9,
+        reason: 'roles closed until local recognition arrives',
+      },
+      {
+        key: 'goalProgress',
+        op: 'add',
+        value: -7,
+        reason: 'the professional timeline resets by a step',
+      },
+      {
+        key: 'information',
+        op: 'add',
+        value: 10,
+        reason: 'a clear view of how this market reads credentials',
+      },
     ],
-    assumptions: ['Credentials are interpreted through a local frame rather than on their intrinsic content.'],
-    uncertainties: ['Whether recognition needs exams, supervised hours, or only a certified translation.'],
+    assumptions: [
+      'Credentials are interpreted through a local frame rather than on their intrinsic content.',
+    ],
+    uncertainties: [
+      'Whether recognition needs exams, supervised hours, or only a certified translation.',
+    ],
     evidence: [
-      { cls: 'assumption', text: 'Treated as a translation and recognition problem rather than as a judgement about the qualification.' },
+      {
+        cls: 'assumption',
+        text: 'Treated as a translation and recognition problem rather than as a judgement about the qualification.',
+      },
     ],
     tradeoffs: {
       gains: ['A defined route back to the right level once recognition is secured.'],
       costs: ['Months of underemployment that feel like a personal failure but are neither.'],
     },
-    failurePoints: ['Underemployment that runs long enough quietly becomes the new baseline and stops being a phase.'],
-    nextSteps: ['Find the exact recognition route and its total cost before applying for anything.'],
+    failurePoints: [
+      'Underemployment that runs long enough quietly becomes the new baseline and stops being a phase.',
+    ],
+    nextSteps: [
+      'Find the exact recognition route and its total cost before applying for anything.',
+    ],
     imagination: 0,
   },
   {
@@ -160,7 +293,12 @@ const rules: Rule[] = [
       'Visits get planned around flight prices and annual leave, and the important moments happen without you: a birthday, an illness, a funeral. The relationship does not erode through conflict, it erodes through absence, and each trip home makes the next departure noticeably harder than the last.',
     type: 'setback',
     requires: ['relocation'],
-    when: { any: [{ key: 'relationships', op: '>=', value: 45 }, { key: 'belonging', op: '>=', value: 40 }] },
+    when: {
+      any: [
+        { key: 'relationships', op: '>=', value: 45 },
+        { key: 'belonging', op: '>=', value: 40 },
+      ],
+    },
     weight: 9,
     monthsMin: 6,
     monthsMax: 96,
@@ -169,21 +307,46 @@ const rules: Rule[] = [
     effects: [
       { key: 'relationships', op: 'add', value: -9, reason: 'absent at the moments that mattered' },
       { key: 'wellbeing', op: 'add', value: -8, reason: 'grief with no event to attach itself to' },
-      { key: 'money', op: 'add', value: -1800, noise: 0.6, reason: 'flights home bought to hold the relationship together' },
-      { key: 'focus', op: 'add', value: -6, reason: 'attention permanently split between two places' },
+      {
+        key: 'money',
+        op: 'add',
+        value: -1800,
+        noise: 0.6,
+        reason: 'flights home bought to hold the relationship together',
+      },
+      {
+        key: 'focus',
+        op: 'add',
+        value: -6,
+        reason: 'attention permanently split between two places',
+      },
       { key: 'stress', op: 'add', value: 6, reason: 'guilt that recurs with every missed event' },
-      { key: 'decisionConfidence', op: 'add', value: -7, reason: 'the decision to stay reopens every time you leave' },
+      {
+        key: 'decisionConfidence',
+        op: 'add',
+        value: -7,
+        reason: 'the decision to stay reopens every time you leave',
+      },
     ],
-    assumptions: ['Time zones and travel cost make presence a scheduled and expensive act rather than a spontaneous one.'],
-    uncertainties: ['Whether the relationship absorbs it; some do, some do not, and there is no way to test it in advance.'],
+    assumptions: [
+      'Time zones and travel cost make presence a scheduled and expensive act rather than a spontaneous one.',
+    ],
+    uncertainties: [
+      'Whether the relationship absorbs it; some do, some do not, and there is no way to test it in advance.',
+    ],
     evidence: [
-      { cls: 'assumption', text: 'Modelled as a slow structural load rather than as a single dramatic event.' },
+      {
+        cls: 'assumption',
+        text: 'Modelled as a slow structural load rather than as a single dramatic event.',
+      },
     ],
     tradeoffs: {
       gains: ['The new life becomes possible at all; this is the price, not a side effect of it.'],
       costs: ['Money, attention, and not being there when it counted.'],
     },
-    failurePoints: ['Deciding to go back soon, for years, is how this becomes permanent on both sides at once.'],
+    failurePoints: [
+      'Deciding to go back soon, for years, is how this becomes permanent on both sides at once.',
+    ],
     nextSteps: ['Book the next visit before leaving the current one.'],
     imagination: 0,
   },
@@ -203,15 +366,44 @@ const rules: Rule[] = [
     durationMonths: 4,
     once: true,
     effects: [
-      { key: 'belonging', op: 'add', value: 14, reason: 'the place is familiar rather than foreign' },
+      {
+        key: 'belonging',
+        op: 'add',
+        value: 14,
+        reason: 'the place is familiar rather than foreign',
+      },
       { key: 'stress', op: 'add', value: -10, reason: 'the cost of being a stranger is gone' },
-      { key: 'wellbeing', op: 'add', value: 10, reason: 'daily life no longer requires translation' },
-      { key: 'optionality', op: 'add', value: 9, reason: 'rooted here, with local standing to build on' },
-      { key: 'goalProgress', op: 'add', value: 10, reason: 'the move has produced what it was meant to' },
-      { key: 'visaSecurity', op: 'add', value: 6, reason: 'status typically strengthened by time settled' },
+      {
+        key: 'wellbeing',
+        op: 'add',
+        value: 10,
+        reason: 'daily life no longer requires translation',
+      },
+      {
+        key: 'optionality',
+        op: 'add',
+        value: 9,
+        reason: 'rooted here, with local standing to build on',
+      },
+      {
+        key: 'goalProgress',
+        op: 'add',
+        value: 10,
+        reason: 'the move has produced what it was meant to',
+      },
+      {
+        key: 'visaSecurity',
+        op: 'add',
+        value: 6,
+        reason: 'status typically strengthened by time settled',
+      },
     ],
-    assumptions: ['Belonging accumulates through residence and repeated contact rather than through decision.'],
-    uncertainties: ['Whether acceptance follows; feeling at home and being treated as local are different things.'],
+    assumptions: [
+      'Belonging accumulates through residence and repeated contact rather than through decision.',
+    ],
+    uncertainties: [
+      'Whether acceptance follows; feeling at home and being treated as local are different things.',
+    ],
     evidence: [
       {
         cls: 'research',
@@ -223,7 +415,9 @@ const rules: Rule[] = [
       gains: ['Everything that took effort becomes automatic.'],
       costs: ['The identity built around being the person who moved starts to fade.'],
     },
-    nextSteps: ['Notice it while it is happening; this stage is almost never marked by anything external.'],
+    nextSteps: [
+      'Notice it while it is happening; this stage is almost never marked by anything external.',
+    ],
     imagination: 0.1,
   },
 ];

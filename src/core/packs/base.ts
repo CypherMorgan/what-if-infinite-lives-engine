@@ -168,15 +168,31 @@ export const BASE_RULES: Rule[] = [
     durationMonths: 4,
     cooldown: 8,
     effects: [
-      { key: 'skill:craft', op: 'add', value: 5, noise: 0.4, reason: 'repeated deliberate practice' },
+      {
+        key: 'skill:craft',
+        op: 'add',
+        value: 5,
+        noise: 0.4,
+        reason: 'repeated deliberate practice',
+      },
       { key: 'reputation', op: 'add', value: 4, reason: 'visible consistency' },
-      { key: 'goalProgress', op: 'add', value: 6, reason: 'sustained progress, not a single burst' },
+      {
+        key: 'goalProgress',
+        op: 'add',
+        value: 6,
+        reason: 'sustained progress, not a single burst',
+      },
       { key: 'stress', op: 'add', value: -3, reason: 'reduced friction from a settled routine' },
     ],
     assumptions: ['The routine survives contact with ordinary life for at least four months.'],
-    uncertainties: ['Illness, care duties or a change of job can break any routine regardless of intent.'],
+    uncertainties: [
+      'Illness, care duties or a change of job can break any routine regardless of intent.',
+    ],
     evidence: [
-      { cls: 'assumption', text: 'Sustained deliberate practice improves skill; the rate is not modelled precisely.' },
+      {
+        cls: 'assumption',
+        text: 'Sustained deliberate practice improves skill; the rate is not modelled precisely.',
+      },
     ],
     tradeoffs: {
       gains: ['Skill and reputation accumulate without a single lucky break.'],
@@ -201,18 +217,30 @@ export const BASE_RULES: Rule[] = [
       { key: 'money', op: 'add', value: -1400, noise: 0.7, reason: 'unplanned one-off cost' },
       { key: 'stress', op: 'add', value: 8, reason: 'financial unpredictability' },
       { key: 'optionality', op: 'add', value: -3, reason: 'buffer reduced' },
-      { key: 'information', op: 'add', value: 2, reason: 'a clearer picture of the true cost base' },
+      {
+        key: 'information',
+        op: 'add',
+        value: 2,
+        reason: 'a clearer picture of the true cost base',
+      },
     ],
-    assumptions: ['Some unplanned cost occurs over a multi-year horizon. This is near-universal, not pessimistic.'],
+    assumptions: [
+      'Some unplanned cost occurs over a multi-year horizon. This is near-universal, not pessimistic.',
+    ],
     uncertainties: ['The size, timing and whether insurance or savings absorb it.'],
     evidence: [
-      { cls: 'assumption', text: 'A multi-year period contains at least one significant unplanned expense.' },
+      {
+        cls: 'assumption',
+        text: 'A multi-year period contains at least one significant unplanned expense.',
+      },
     ],
     tradeoffs: {
       gains: ['A more honest picture of the real cost base.'],
       costs: ['Buffer shrinks, so fewer risks are affordable afterwards.'],
     },
-    failurePoints: ['If the buffer is thin, this can force a decision you would not otherwise have made.'],
+    failurePoints: [
+      'If the buffer is thin, this can force a decision you would not otherwise have made.',
+    ],
     imagination: 0,
   },
   {
@@ -221,7 +249,12 @@ export const BASE_RULES: Rule[] = [
     summary:
       'A person with real standing in the field spends unearned time on you. What they actually give you is calibration: which of your instincts are good and which are noise.',
     type: 'opportunity',
-    when: { any: [{ key: 'network', op: '>=', value: 25 }, { key: 'reputation', op: '>=', value: 25 }] },
+    when: {
+      any: [
+        { key: 'network', op: '>=', value: 25 },
+        { key: 'reputation', op: '>=', value: 25 },
+      ],
+    },
     weight: 9,
     monthsMin: 2,
     monthsMax: 60,
@@ -230,14 +263,31 @@ export const BASE_RULES: Rule[] = [
     once: true,
     effects: [
       { key: 'network', op: 'add', value: 14, reason: 'a durable professional relationship' },
-      { key: 'skill:craft', op: 'add', value: 6, reason: 'compressed learning from direct feedback' },
+      {
+        key: 'skill:craft',
+        op: 'add',
+        value: 6,
+        reason: 'compressed learning from direct feedback',
+      },
       { key: 'information', op: 'add', value: 14, reason: 'honest outside view of your work' },
-      { key: 'optionality', op: 'add', value: 7, reason: 'access to opportunities you cannot reach alone' },
+      {
+        key: 'optionality',
+        op: 'add',
+        value: 7,
+        reason: 'access to opportunities you cannot reach alone',
+      },
     ],
-    assumptions: ['People with standing will help if the work is visible and specific questions are asked.'],
-    uncertainties: ['Whether such a person appears at all; this is the least controllable input on any path.'],
+    assumptions: [
+      'People with standing will help if the work is visible and specific questions are asked.',
+    ],
+    uncertainties: [
+      'Whether such a person appears at all; this is the least controllable input on any path.',
+    ],
     evidence: [
-      { cls: 'speculation', text: 'Mentorship quality varies enormously; the benefit here is deliberately modest.' },
+      {
+        cls: 'speculation',
+        text: 'Mentorship quality varies enormously; the benefit here is deliberately modest.',
+      },
     ],
     tradeoffs: {
       gains: ['Faster calibration and access.'],
@@ -252,7 +302,12 @@ export const BASE_RULES: Rule[] = [
     summary:
       'Nothing catastrophic happens. The work simply does not fit in the available hours, so sleep and recovery pay for it. Output holds for a while because reserves are being spent.',
     type: 'setback',
-    when: { all: [{ key: 'stress', op: '>=', value: 45 }, { key: 'energy', op: '<=', value: 55 }] },
+    when: {
+      all: [
+        { key: 'stress', op: '>=', value: 45 },
+        { key: 'energy', op: '<=', value: 55 },
+      ],
+    },
     weight: 13,
     monthsMin: 3,
     monthsMax: 60,
@@ -262,19 +317,30 @@ export const BASE_RULES: Rule[] = [
       { key: 'wellbeing', op: 'add', value: -12, reason: 'sustained load without recovery' },
       { key: 'energy', op: 'add', value: -10, reason: 'depleted reserves' },
       { key: 'skill:craft', op: 'add', value: -3, reason: 'quality of practice falls' },
-      { key: 'goalProgress', op: 'add', value: -4, reason: 'slower real progress despite more hours' },
+      {
+        key: 'goalProgress',
+        op: 'add',
+        value: -4,
+        reason: 'slower real progress despite more hours',
+      },
       { key: 'stress', op: 'add', value: 4, reason: 'the gap between effort and results' },
     ],
     assumptions: ['Sustained load above capacity degrades both health and output.'],
     uncertainties: ['Individual tolerance varies widely and is not modelled per person.'],
     evidence: [
-      { cls: 'research', text: 'Sustained sleep restriction reliably degrades cognitive performance.', source: 'Sleep and cognition literature (general finding)' },
+      {
+        cls: 'research',
+        text: 'Sustained sleep restriction reliably degrades cognitive performance.',
+        source: 'Sleep and cognition literature (general finding)',
+      },
     ],
     tradeoffs: {
       gains: ['Short-term output is maintained.'],
       costs: ['Paid for out of reserves, making the next setback more expensive.'],
     },
-    failurePoints: ['This is a leading indicator. Nothing else on this path gets easier while it is true.'],
+    failurePoints: [
+      'This is a leading indicator. Nothing else on this path gets easier while it is true.',
+    ],
     nextSteps: ['Cut something from the schedule before the reserve is fully spent.'],
     imagination: 0,
   },
@@ -291,21 +357,36 @@ export const BASE_RULES: Rule[] = [
     durationMonths: 4,
     cooldown: 15,
     effects: [
-      { key: 'skill:craft', op: 'add', value: -2, reason: 'comfortable repetition instead of hard practice' },
+      {
+        key: 'skill:craft',
+        op: 'add',
+        value: -2,
+        reason: 'comfortable repetition instead of hard practice',
+      },
       { key: 'goalProgress', op: 'add', value: -5, reason: 'the curve has flattened' },
       { key: 'wellbeing', op: 'add', value: -5, reason: 'effort without visible return' },
-      { key: 'information', op: 'add', value: 8, reason: 'learning where the current approach stops working' },
+      {
+        key: 'information',
+        op: 'add',
+        value: 8,
+        reason: 'learning where the current approach stops working',
+      },
     ],
     assumptions: ['Skill acquisition plateaus under unchanged practice methods.'],
     uncertainties: ['How long the plateau lasts depends on whether the method is changed.'],
     evidence: [
-      { cls: 'assumption', text: 'Progressive difficulty is required to keep improving; unmeasured here.' },
+      {
+        cls: 'assumption',
+        text: 'Progressive difficulty is required to keep improving; unmeasured here.',
+      },
     ],
     tradeoffs: {
       gains: ['An honest signal that the method, not the effort, is the problem.'],
       costs: ['Motivation is tested exactly when output looks worst.'],
     },
-    failurePoints: ['The common response is to work longer at the same thing, which does not help.'],
+    failurePoints: [
+      'The common response is to work longer at the same thing, which does not help.',
+    ],
     nextSteps: ['Change the difficulty or the feedback source, not the number of hours.'],
     imagination: 0,
   },
@@ -329,7 +410,13 @@ export const BASE_RULES: Rule[] = [
     ],
     assumptions: ['A meaningful share of good work arrives through people, not applications.'],
     uncertainties: ['Whether the timing suits you when it arrives.'],
-    evidence: [{ cls: 'research', text: 'Weak ties carry disproportionate job and client information.', source: 'Granovetter, "The Strength of Weak Ties" (1973)' }],
+    evidence: [
+      {
+        cls: 'research',
+        text: 'Weak ties carry disproportionate job and client information.',
+        source: 'Granovetter, "The Strength of Weak Ties" (1973)',
+      },
+    ],
     tradeoffs: {
       gains: ['Income and trust compound together.'],
       costs: ['Referral work is often shaped by the referrer’s needs, not your plan.'],
@@ -349,13 +436,31 @@ export const BASE_RULES: Rule[] = [
     durationMonths: 5,
     cooldown: 18,
     effects: [
-      { key: 'income', op: 'mul', value: 0.88, noise: 0.25, reason: 'demand moves against the plan' },
+      {
+        key: 'income',
+        op: 'mul',
+        value: 0.88,
+        noise: 0.25,
+        reason: 'demand moves against the plan',
+      },
       { key: 'risk', op: 'add', value: 12, reason: 'external factor now dominates' },
-      { key: 'information', op: 'add', value: 10, reason: 'evidence about how exposed you really are' },
-      { key: 'optionality', op: 'add', value: -5, reason: 'fewer buyers for the same skill, temporarily' },
+      {
+        key: 'information',
+        op: 'add',
+        value: 10,
+        reason: 'evidence about how exposed you really are',
+      },
+      {
+        key: 'optionality',
+        op: 'add',
+        value: -5,
+        reason: 'fewer buyers for the same skill, temporarily',
+      },
     ],
     assumptions: ['Any multi-year plan meets at least one external shift.'],
-    uncertainties: ['Direction, size and duration. These are unknowable in advance, not merely uncertain.'],
+    uncertainties: [
+      'Direction, size and duration. These are unknowable in advance, not merely uncertain.',
+    ],
     evidence: [
       {
         cls: 'speculation',
@@ -410,13 +515,29 @@ export const BASE_RULES: Rule[] = [
     durationMonths: 2,
     cooldown: 14,
     effects: [
-      { key: 'wellbeing', op: 'add', value: -7, reason: 'measuring against an edited highlight reel' },
+      {
+        key: 'wellbeing',
+        op: 'add',
+        value: -7,
+        reason: 'measuring against an edited highlight reel',
+      },
       { key: 'focus', op: 'add', value: -8, reason: 'attention spent on other people’s timelines' },
-      { key: 'goalProgress', op: 'add', value: -3, reason: 'direction changes made for the wrong reason' },
+      {
+        key: 'goalProgress',
+        op: 'add',
+        value: -3,
+        reason: 'direction changes made for the wrong reason',
+      },
     ],
     assumptions: ['Comparison affects behaviour regardless of actual progress.'],
     uncertainties: ['How much this person is affected; not modelled individually.'],
-    evidence: [{ cls: 'research', text: 'Social comparison reliably affects wellbeing via relative rather than absolute standing.', source: 'Social comparison theory (Festinger, 1954)' }],
+    evidence: [
+      {
+        cls: 'research',
+        text: 'Social comparison reliably affects wellbeing via relative rather than absolute standing.',
+        source: 'Social comparison theory (Festinger, 1954)',
+      },
+    ],
     tradeoffs: {
       gains: ['Useful information about what is achievable.'],
       costs: ['Attention and confidence, both non-renewable in the short term.'],
@@ -429,7 +550,12 @@ export const BASE_RULES: Rule[] = [
     summary:
       'The work begins reaching people without asking permission. Small numbers, but they compound and they are not dependent on a single gatekeeper.',
     type: 'opportunity',
-    when: { any: [{ key: 'reputation', op: '>=', value: 35 }, { key: 'skill:craft', op: '>=', value: 50 }] },
+    when: {
+      any: [
+        { key: 'reputation', op: '>=', value: 35 },
+        { key: 'skill:craft', op: '>=', value: 50 },
+      ],
+    },
     weight: 7,
     monthsMin: 6,
     monthsMax: 84,
@@ -437,13 +563,24 @@ export const BASE_RULES: Rule[] = [
     cooldown: 16,
     effects: [
       { key: 'optionality', op: 'add', value: 11, reason: 'you no longer need one specific buyer' },
-      { key: 'income', op: 'add', value: 320, noise: 0.5, reason: 'small direct income from an audience' },
+      {
+        key: 'income',
+        op: 'add',
+        value: 320,
+        noise: 0.5,
+        reason: 'small direct income from an audience',
+      },
       { key: 'reputation', op: 'add', value: 8, reason: 'public proof of capability' },
       { key: 'stress', op: 'add', value: 6, reason: 'public output is relentless' },
     ],
     assumptions: ['Public work can reach people directly without institutional permission.'],
     uncertainties: ['Whether it happens at all; most attempts do not reach this threshold.'],
-    evidence: [{ cls: 'speculation', text: 'Direct distribution works for some fields and barely at all for others.' }],
+    evidence: [
+      {
+        cls: 'speculation',
+        text: 'Direct distribution works for some fields and barely at all for others.',
+      },
+    ],
     tradeoffs: {
       gains: ['Independence from gatekeepers.'],
       costs: ['A permanent obligation to keep publishing.'],
@@ -484,14 +621,31 @@ export const BASE_RULES: Rule[] = [
     durationMonths: 2,
     cooldown: 12,
     effects: [
-      { key: 'expenses', op: 'add', value: 180, noise: 0.6, reason: 'rework and replacement costs' },
-      { key: 'money', op: 'add', value: -900, noise: 0.5, reason: 'paying twice for the same thing' },
+      {
+        key: 'expenses',
+        op: 'add',
+        value: 180,
+        noise: 0.6,
+        reason: 'rework and replacement costs',
+      },
+      {
+        key: 'money',
+        op: 'add',
+        value: -900,
+        noise: 0.5,
+        reason: 'paying twice for the same thing',
+      },
       { key: 'information', op: 'add', value: 9, reason: 'a lasting lesson about trade-offs' },
       { key: 'goalProgress', op: 'add', value: -4, reason: 'time lost to rework' },
     ],
     assumptions: ['Short-term savings sometimes create larger later costs.'],
     uncertainties: ['Which specific decisions will do this; unknowable in advance.'],
-    evidence: [{ cls: 'assumption', text: 'Modelled as a general tendency, not a rule about any particular purchase.' }],
+    evidence: [
+      {
+        cls: 'assumption',
+        text: 'Modelled as a general tendency, not a rule about any particular purchase.',
+      },
+    ],
     tradeoffs: {
       gains: ['A sharper instinct for which corners are safe to cut.'],
       costs: ['Money and time, in that order.'],
@@ -513,22 +667,38 @@ export const BASE_RULES: Rule[] = [
     cooldown: 24,
     once: true,
     effects: [
-      { key: 'money', op: 'add', value: -3200, noise: 0.6, reason: 'the direct cost of the reversal' },
+      {
+        key: 'money',
+        op: 'add',
+        value: -3200,
+        noise: 0.6,
+        reason: 'the direct cost of the reversal',
+      },
       { key: 'wellbeing', op: 'add', value: -18, reason: 'a serious setback' },
       { key: 'goalProgress', op: 'add', value: -14, reason: 'the plan needs rebuilding' },
       { key: 'optionality', op: 'add', value: -6, reason: 'options are narrower than they were' },
-      { key: 'information', op: 'add', value: 16, reason: 'the clearest information you will ever get about your own tolerance' },
+      {
+        key: 'information',
+        op: 'add',
+        value: 16,
+        reason: 'the clearest information you will ever get about your own tolerance',
+      },
     ],
     assumptions: ['Over a long enough horizon, most people meet at least one serious setback.'],
     uncertainties: ['Type, timing and severity are all unmodelled.'],
     evidence: [
-      { cls: 'assumption', text: 'Modelled as a low-weight, high-impact event because recovery from setbacks is a real part of every long path.' },
+      {
+        cls: 'assumption',
+        text: 'Modelled as a low-weight, high-impact event because recovery from setbacks is a real part of every long path.',
+      },
     ],
     tradeoffs: {
       gains: ['A much more accurate reading of what you can actually absorb.'],
       costs: ['Money, time, health and confidence, simultaneously.'],
     },
-    failurePoints: ['Decisions made in the first weeks of a serious setback are usually the most expensive ones.'],
+    failurePoints: [
+      'Decisions made in the first weeks of a serious setback are usually the most expensive ones.',
+    ],
     nextSteps: ['Change nothing irreversible for one month.'],
     imagination: 0.05,
   },
@@ -546,14 +716,22 @@ export const BASE_RULES: Rule[] = [
     once: true,
     effects: [
       { key: 'income', op: 'add', value: 900, noise: 0.6, reason: 'a step-change in opportunity' },
-      { key: 'optionality', op: 'add', value: 18, reason: 'doors that were not previously available' },
+      {
+        key: 'optionality',
+        op: 'add',
+        value: 18,
+        reason: 'doors that were not previously available',
+      },
       { key: 'reputation', op: 'add', value: 14, reason: 'sudden visibility' },
       { key: 'risk', op: 'add', value: 8, reason: 'a bigger position, with more to lose' },
     ],
     assumptions: ['Luck plays a real role in outcomes and cannot be planned for.'],
     uncertainties: ['Entirely unmodellable, which is the point of showing it.'],
     evidence: [
-      { cls: 'speculation', text: 'Included at low weight because omitting luck produces a misleadingly controllable picture.' },
+      {
+        cls: 'speculation',
+        text: 'Included at low weight because omitting luck produces a misleadingly controllable picture.',
+      },
     ],
     tradeoffs: {
       gains: ['A step-change that no amount of planning could have produced.'],

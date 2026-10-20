@@ -65,7 +65,7 @@ function buildRanks(nodes: readonly SimNode[]): Map<number, RankEntry[]> {
 function barycenterSweep(
   ranks: Map<number, RankEntry[]>,
   neighbours: Map<NodeId, NodeId[]>,
-  forward: boolean,
+  forward: boolean
 ): void {
   const keys = [...ranks.keys()].sort((a, b) => (forward ? a - b : b - a));
   const positions = new Map<NodeId, number>();
@@ -90,7 +90,7 @@ function barycenterSweep(
     scored.sort((a, b) => a.score - b.score);
     ranks.set(
       depth,
-      scored.map((s) => s.entry),
+      scored.map((s) => s.entry)
     );
   }
 }
@@ -194,7 +194,7 @@ export function runLayout(doc: SimulationDoc): SimulationDoc {
  */
 export function layoutAdded(
   doc: SimulationDoc,
-  added: readonly NodeId[],
+  added: readonly NodeId[]
 ): Record<NodeId, LayoutPoint> {
   const out: Record<NodeId, LayoutPoint> = {};
   const addedSet = new Set(added);

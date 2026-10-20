@@ -45,7 +45,8 @@ function demoUniverse(): SimulationDoc {
   const situation =
     'I have been in the same operations role for six years, have some savings put aside, and I keep ' +
     'getting asked to take on more responsibility without a change in title or pay.';
-  const decision = 'Should I push for the promotion, move to a different employer, or build something of my own?';
+  const decision =
+    'Should I push for the promotion, move to a different employer, or build something of my own?';
   const text = `${situation} ${decision} career job promotion business savings`;
   const archetypes = detectArchetypes(text);
   const prompt: ScenarioPrompt = {
@@ -77,7 +78,7 @@ createRoot(container).render(
     <ErrorBoundary>
       <App store={store} />
     </ErrorBoundary>
-  </StrictMode>,
+  </StrictMode>
 );
 
 // persist the camera when the window closes

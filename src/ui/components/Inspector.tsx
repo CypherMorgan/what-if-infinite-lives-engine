@@ -25,18 +25,20 @@ export function Inspector({ store }: { store: Store }) {
 
   const primaryVars = useMemo(
     () => state.doc.vars.filter((v) => v.primary).slice(0, 8),
-    [state.doc.vars],
+    [state.doc.vars]
   );
 
   if (!node) {
     return (
       <aside className="panel panel-right">
-        <div className="panel-head"><span className="panel-title">Inspector</span></div>
+        <div className="panel-head">
+          <span className="panel-title">Inspector</span>
+        </div>
         <div className="panel-body">
           <div className="empty">
             <div className="empty-title">No node selected</div>
-            Click a node on the canvas — or search for one on the left — to inspect
-            its state, evidence and consequences.
+            Click a node on the canvas — or search for one on the left — to inspect its state,
+            evidence and consequences.
           </div>
         </div>
       </aside>
@@ -45,22 +47,28 @@ export function Inspector({ store }: { store: Store }) {
 
   const branch = state.doc.branches[node.branch];
   const typeChip =
-    node.type === 'start' ? 'chip-cyan'
-      : node.type === 'decision' ? 'chip-amber'
-        : node.type === 'setback' ? 'chip-rose'
-          : node.type === 'opportunity' || node.type === 'milestone' ? 'chip-green'
-            : node.type === 'ending' ? 'chip-violet'
+    node.type === 'start'
+      ? 'chip-cyan'
+      : node.type === 'decision'
+        ? 'chip-amber'
+        : node.type === 'setback'
+          ? 'chip-rose'
+          : node.type === 'opportunity' || node.type === 'milestone'
+            ? 'chip-green'
+            : node.type === 'ending'
+              ? 'chip-violet'
               : 'chip-violet';
 
   const spreadVar = state.doc.vars.find((v) => node.state && v.key in node.state);
   const spread = spreadKey || spreadVar?.key || null;
   const spreadResult = spread ? store.spreadFor(node.id, spread) : null;
   const why = showPath ? store.explainPath() : [];
-  const forecastVars = forecast && node.state
-    ? Object.entries(forecast)
-        .filter(([k]) => k in (node.state ?? {}))
-        .slice(0, 6)
-    : [];
+  const forecastVars =
+    forecast && node.state
+      ? Object.entries(forecast)
+          .filter(([k]) => k in (node.state ?? {}))
+          .slice(0, 6)
+      : [];
 
   return (
     <aside className="panel panel-right">
@@ -73,11 +81,24 @@ export function Inspector({ store }: { store: Store }) {
       <div className="panel-body">
         {/* ---------- identity ---------- */}
         <div className="section">
-          <div style={{ fontFamily: 'var(--font-display)', fontSize: 15, fontWeight: 700, lineHeight: 1.3 }}>
+          <div
+            style={{
+              fontFamily: 'var(--font-display)',
+              fontSize: 15,
+              fontWeight: 700,
+              lineHeight: 1.3,
+            }}
+          >
             {node.title}
           </div>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 7 }}>
-            <span className="chip" style={{ borderColor: `hsl(${branch?.hue ?? 200} 70% 55%)`, color: `hsl(${branch?.hue ?? 200} 70% 70%)` }}>
+            <span
+              className="chip"
+              style={{
+                borderColor: `hsl(${branch?.hue ?? 200} 70% 55%)`,
+                color: `hsl(${branch?.hue ?? 200} 70% 70%)`,
+              }}
+            >
               {branch?.name ?? node.branch}
             </span>
             <span className="chip">{node.horizon}</span>
@@ -117,7 +138,13 @@ export function Inspector({ store }: { store: Store }) {
               className="btn btn-primary"
               onClick={() => store.expandNode(node.id)}
               disabled={!node.expandable || node.expanded}
-              title={node.expanded ? 'Already expanded' : node.expandable ? 'Generate the next steps on this branch' : 'No further steps from a future state'}
+              title={
+                node.expanded
+                  ? 'Already expanded'
+                  : node.expandable
+                    ? 'Generate the next steps on this branch'
+                    : 'No further steps from a future state'
+              }
             >
               ⤢ Expand
             </button>
@@ -131,7 +158,8 @@ export function Inspector({ store }: { store: Store }) {
               className="btn btn-ghost"
               onClick={async () => {
                 try {
-                  const { exportPathAsMarkdown, downloadMarkdown } = await import('../utils/exportPath');
+                  const { exportPathAsMarkdown, downloadMarkdown } =
+                    await import('../utils/exportPath');
                   const md = exportPathAsMarkdown(state.doc, node.id);
                   downloadMarkdown(md, state.doc.title);
                   store.toast('Path exported as Markdown', 'success');
@@ -156,12 +184,18 @@ export function Inspector({ store }: { store: Store }) {
               {Object.values(state.doc.nodes)
                 .filter((n) => n.id !== node.id && n.state)
                 .sort((a, b) => a.depth - b.depth || a.t - b.t)
-                .map((n) => <option key={n.id} value={n.id}>{n.title}</option>)}
+                .map((n) => (
+                  <option key={n.id} value={n.id}>
+                    {n.title}
+                  </option>
+                ))}
             </select>
             <button
               className="btn btn-amber"
               disabled={!comparePick}
-              onClick={() => { if (comparePick) store.compareWith(comparePick); }}
+              onClick={() => {
+                if (comparePick) store.compareWith(comparePick);
+              }}
             >
               ⇄ Compare
             </button>
@@ -173,9 +207,15 @@ export function Inspector({ store }: { store: Store }) {
           <div className="section">
             <h3 className="section-title">Why this path</h3>
             <div className="note note-violet">
-              {why.length === 0 ? 'No causal chain recorded for this node.' : (
+              {why.length === 0 ? (
+                'No causal chain recorded for this node.'
+              ) : (
                 <ol style={{ margin: 0, paddingLeft: 18 }}>
-                  {why.map((r, i) => <li key={i} style={{ marginBottom: 3 }}>{r}</li>)}
+                  {why.map((r, i) => (
+                    <li key={i} style={{ marginBottom: 3 }}>
+                      {r}
+                    </li>
+                  ))}
                 </ol>
               )}
             </div>
@@ -198,7 +238,9 @@ export function Inspector({ store }: { store: Store }) {
                     <div className="metric-label">{v.label}</div>
                     <div className="metric-value">{formatValue(value, v.unit)}</div>
                     {deltaEntry && Math.abs(delta) > 1e-9 && (
-                      <div className={`metric-sub ${good === null ? '' : good ? 'delta-up' : 'delta-down'}`}>
+                      <div
+                        className={`metric-sub ${good === null ? '' : good ? 'delta-up' : 'delta-down'}`}
+                      >
                         {formatDelta(delta, v.unit)} · {deltaEntry.reason}
                       </div>
                     )}
@@ -214,53 +256,85 @@ export function Inspector({ store }: { store: Store }) {
           <div className="section">
             <h3 className="section-title">Model outlook</h3>
             <div className="btn-row">
-              <button className="btn btn-sm" onClick={() => setForecast(store.forecastFor(node.id, 12))}>
+              <button
+                className="btn btn-sm"
+                onClick={() => setForecast(store.forecastFor(node.id, 12))}
+              >
                 Forecast +12 mo
               </button>
-              <button className="btn btn-sm" onClick={() => setForecast(store.forecastFor(node.id, 36))}>
+              <button
+                className="btn btn-sm"
+                onClick={() => setForecast(store.forecastFor(node.id, 36))}
+              >
                 Forecast +36 mo
               </button>
-              {forecast && <button className="btn btn-sm btn-ghost" onClick={() => setForecast(null)}>clear</button>}
+              {forecast && (
+                <button className="btn btn-sm btn-ghost" onClick={() => setForecast(null)}>
+                  clear
+                </button>
+              )}
             </div>
 
             {forecast && (
               <div style={{ marginTop: 8 }}>
                 {forecastVars.length === 0 ? (
                   <div className="note">No forecastable state on this node.</div>
-                ) : forecastVars.map(([k, v]) => {
-                  const def = state.doc.vars.find((x) => x.key === k);
-                  const now = node.state?.[k] ?? 0;
-                  const diff = v - now;
-                  if (!def) return null;
-                  return (
-                    <div className="bar-row" key={k}>
-                      <span className="bar-label">{def.label}</span>
-                      <span className="bar-track" style={{ background: 'transparent' }}>
-                        <span
-                          className={`bar-fill ${Math.abs(diff) < 1e-6 ? 'delta-flat' : isBetter(diff, def) ? 'delta-up' : 'delta-down'}`}
-                          style={{ width: '100%', background: 'transparent', fontSize: 10.5, fontFamily: 'var(--font-mono)' }}
-                        >
-                          {formatValue(v, def.unit)} ({formatDelta(diff, def.unit)})
+                ) : (
+                  forecastVars.map(([k, v]) => {
+                    const def = state.doc.vars.find((x) => x.key === k);
+                    const now = node.state?.[k] ?? 0;
+                    const diff = v - now;
+                    if (!def) return null;
+                    return (
+                      <div className="bar-row" key={k}>
+                        <span className="bar-label">{def.label}</span>
+                        <span className="bar-track" style={{ background: 'transparent' }}>
+                          <span
+                            className={`bar-fill ${Math.abs(diff) < 1e-6 ? 'delta-flat' : isBetter(diff, def) ? 'delta-up' : 'delta-down'}`}
+                            style={{
+                              width: '100%',
+                              background: 'transparent',
+                              fontSize: 10.5,
+                              fontFamily: 'var(--font-mono)',
+                            }}
+                          >
+                            {formatValue(v, def.unit)} ({formatDelta(diff, def.unit)})
+                          </span>
                         </span>
-                      </span>
-                    </div>
-                  );
-                })}
+                      </div>
+                    );
+                  })
+                )}
               </div>
             )}
 
             {spreadVar && (
               <div style={{ marginTop: 8 }}>
-                <select className="select" value={spread ?? ''} onChange={(e) => setSpreadKey(e.target.value)} aria-label="Metric for model spread">
-                  {state.doc.vars.filter((v) => node.state && v.key in node.state).map((v) => (
-                    <option key={v.key} value={v.key}>Spread: {v.label}</option>
-                  ))}
+                <select
+                  className="select"
+                  value={spread ?? ''}
+                  onChange={(e) => setSpreadKey(e.target.value)}
+                  aria-label="Metric for model spread"
+                >
+                  {state.doc.vars
+                    .filter((v) => node.state && v.key in node.state)
+                    .map((v) => (
+                      <option key={v.key} value={v.key}>
+                        Spread: {v.label}
+                      </option>
+                    ))}
                 </select>
                 {spreadResult ? (
                   <div style={{ marginTop: 8 }}>
                     <div className="bar-row">
                       <span className="bar-label">p10 · p50 · p90</span>
-                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--cyan)' }}>
+                      <span
+                        style={{
+                          fontFamily: 'var(--font-mono)',
+                          fontSize: 11,
+                          color: 'var(--cyan)',
+                        }}
+                      >
                         {spreadResult.p10} · {spreadResult.p50} · {spreadResult.p90}
                       </span>
                     </div>
@@ -270,7 +344,9 @@ export function Inspector({ store }: { store: Store }) {
                     </div>
                   </div>
                 ) : (
-                  <div className="note" style={{ marginTop: 6 }}>Not enough downstream rules to estimate spread.</div>
+                  <div className="note" style={{ marginTop: 6 }}>
+                    Not enough downstream rules to estimate spread.
+                  </div>
                 )}
               </div>
             )}
@@ -281,7 +357,9 @@ export function Inspector({ store }: { store: Store }) {
         {node.decision && (
           <div className="section">
             <h3 className="section-title">Decision here</h3>
-            <div className="note note-amber"><strong>{node.decision.question}</strong></div>
+            <div className="note note-amber">
+              <strong>{node.decision.question}</strong>
+            </div>
             <div style={{ marginTop: 8 }}>
               {node.decision.options.map((o) => (
                 <button
@@ -310,13 +388,17 @@ export function Inspector({ store }: { store: Store }) {
               <div className="note" style={{ borderLeftColor: 'rgba(92,230,168,0.6)' }}>
                 <strong>Gains</strong>
                 <ul style={{ margin: '4px 0 0', paddingLeft: 16 }}>
-                  {node.tradeoffs.gains.map((g, i) => <li key={i}>{g}</li>)}
+                  {node.tradeoffs.gains.map((g, i) => (
+                    <li key={i}>{g}</li>
+                  ))}
                 </ul>
               </div>
               <div className="note note-amber">
                 <strong>Costs</strong>
                 <ul style={{ margin: '4px 0 0', paddingLeft: 16 }}>
-                  {node.tradeoffs.costs.map((c, i) => <li key={i}>{c}</li>)}
+                  {node.tradeoffs.costs.map((c, i) => (
+                    <li key={i}>{c}</li>
+                  ))}
                 </ul>
               </div>
             </div>
@@ -329,7 +411,11 @@ export function Inspector({ store }: { store: Store }) {
             <h3 className="section-title">Evidence</h3>
             <div className="tag-row">
               {node.evidence.map((t, i) => (
-                <span key={i} className={`chip ${EVIDENCE_CHIP[t.cls]}`} title={t.source ?? EVIDENCE_LABEL[t.cls]}>
+                <span
+                  key={i}
+                  className={`chip ${EVIDENCE_CHIP[t.cls]}`}
+                  title={t.source ?? EVIDENCE_LABEL[t.cls]}
+                >
                   {EVIDENCE_LABEL[t.cls]}: {t.text}
                 </span>
               ))}
@@ -344,7 +430,11 @@ export function Inspector({ store }: { store: Store }) {
               <>
                 <h3 className="section-title">Rests on</h3>
                 <div className="tag-row" style={{ marginBottom: 8 }}>
-                  {node.assumptions.map((a, i) => <span key={i} className="chip chip-amber">{a}</span>)}
+                  {node.assumptions.map((a, i) => (
+                    <span key={i} className="chip chip-amber">
+                      {a}
+                    </span>
+                  ))}
                 </div>
               </>
             )}
@@ -352,7 +442,11 @@ export function Inspector({ store }: { store: Store }) {
               <>
                 <h3 className="section-title">Uncertain because</h3>
                 <div className="tag-row">
-                  {node.uncertainties.map((u, i) => <span key={i} className="chip chip-rose">{u}</span>)}
+                  {node.uncertainties.map((u, i) => (
+                    <span key={i} className="chip chip-rose">
+                      {u}
+                    </span>
+                  ))}
                 </div>
               </>
             )}
@@ -360,13 +454,19 @@ export function Inspector({ store }: { store: Store }) {
         )}
 
         {/* ---------- failure points / next steps / resources ---------- */}
-        {((node.failurePoints?.length ?? 0) > 0 || (node.nextSteps?.length ?? 0) > 0 || (node.resources?.length ?? 0) > 0) && (
+        {((node.failurePoints?.length ?? 0) > 0 ||
+          (node.nextSteps?.length ?? 0) > 0 ||
+          (node.resources?.length ?? 0) > 0) && (
           <div className="section">
             {node.failurePoints && node.failurePoints.length > 0 && (
               <>
                 <h3 className="section-title">Failure points</h3>
                 <div className="note note-amber" style={{ marginBottom: 8 }}>
-                  <ul style={{ margin: 0, paddingLeft: 16 }}>{node.failurePoints.map((f, i) => <li key={i}>{f}</li>)}</ul>
+                  <ul style={{ margin: 0, paddingLeft: 16 }}>
+                    {node.failurePoints.map((f, i) => (
+                      <li key={i}>{f}</li>
+                    ))}
+                  </ul>
                 </div>
               </>
             )}
@@ -374,7 +474,11 @@ export function Inspector({ store }: { store: Store }) {
               <>
                 <h3 className="section-title">Next steps</h3>
                 <div className="note" style={{ marginBottom: 8 }}>
-                  <ul style={{ margin: 0, paddingLeft: 16 }}>{node.nextSteps.map((f, i) => <li key={i}>{f}</li>)}</ul>
+                  <ul style={{ margin: 0, paddingLeft: 16 }}>
+                    {node.nextSteps.map((f, i) => (
+                      <li key={i}>{f}</li>
+                    ))}
+                  </ul>
                 </div>
               </>
             )}
@@ -382,7 +486,11 @@ export function Inspector({ store }: { store: Store }) {
               <>
                 <h3 className="section-title">Resources involved</h3>
                 <div className="tag-row">
-                  {node.resources.map((f, i) => <span key={i} className="chip">{f}</span>)}
+                  {node.resources.map((f, i) => (
+                    <span key={i} className="chip">
+                      {f}
+                    </span>
+                  ))}
                 </div>
               </>
             )}
@@ -418,22 +526,52 @@ function AssumptionRow({
   onCommit,
   onWhatIf,
 }: {
-  assumption: { id: string; label: string; varKey: string; unit: import('../../core/types').VarUnit; baseValue: number; value: number; rationale: string; sensitivity: number; editable: boolean };
+  assumption: {
+    id: string;
+    label: string;
+    varKey: string;
+    unit: import('../../core/types').VarUnit;
+    baseValue: number;
+    value: number;
+    rationale: string;
+    sensitivity: number;
+    editable: boolean;
+  };
   onPreview: (v: number) => void;
   onCommit: (v: number) => void;
   onWhatIf: () => void;
 }) {
   const [local, setLocal] = useState(assumption.value);
-  const step = assumption.unit === 'percent' ? 5 : assumption.unit === 'currency' ? 500 : assumption.unit === 'months' ? 1 : 1;
+  const step =
+    assumption.unit === 'percent'
+      ? 5
+      : assumption.unit === 'currency'
+        ? 500
+        : assumption.unit === 'months'
+          ? 1
+          : 1;
   const changed = Math.abs(local - assumption.baseValue) > 1e-9;
 
   return (
     <div style={{ marginBottom: 12, paddingBottom: 10, borderBottom: '1px dashed var(--line)' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'baseline' }}>
+      <div
+        style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'baseline' }}
+      >
         <span style={{ fontSize: 12, fontWeight: 600 }}>{assumption.label}</span>
-        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: changed ? 'var(--amber)' : 'var(--text-faint)' }}>
+        <span
+          style={{
+            fontFamily: 'var(--font-mono)',
+            fontSize: 11,
+            color: changed ? 'var(--amber)' : 'var(--text-faint)',
+          }}
+        >
           {formatValue(assumption.value, assumption.unit)}
-          {changed && <span style={{ color: 'var(--text-faint)' }}> (base {formatValue(assumption.baseValue, assumption.unit)})</span>}
+          {changed && (
+            <span style={{ color: 'var(--text-faint)' }}>
+              {' '}
+              (base {formatValue(assumption.baseValue, assumption.unit)})
+            </span>
+          )}
         </span>
       </div>
       <div className="range-row" style={{ marginTop: 5 }}>
@@ -445,18 +583,32 @@ function AssumptionRow({
           step={step}
           value={local}
           disabled={!assumption.editable}
-          onChange={(e) => { const v = Number(e.target.value); setLocal(v); onPreview(v); }}
+          onChange={(e) => {
+            const v = Number(e.target.value);
+            setLocal(v);
+            onPreview(v);
+          }}
           onPointerUp={() => onCommit(local)}
           onKeyUp={() => onCommit(local)}
           aria-label={assumption.label}
         />
-        <button className="btn btn-sm btn-violet" onClick={onWhatIf} title="Fork this universe with this assumption changed">
+        <button
+          className="btn btn-sm btn-violet"
+          onClick={onWhatIf}
+          title="Fork this universe with this assumption changed"
+        >
           What if…
         </button>
       </div>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, marginTop: 4 }}>
-        <span style={{ fontSize: 10.5, color: 'var(--text-faint)', lineHeight: 1.45 }}>{assumption.rationale}</span>
-        <span className="chip chip-cyan" style={{ flex: '0 0 auto' }} title="Model-derived influence on headline outcomes">
+        <span style={{ fontSize: 10.5, color: 'var(--text-faint)', lineHeight: 1.45 }}>
+          {assumption.rationale}
+        </span>
+        <span
+          className="chip chip-cyan"
+          style={{ flex: '0 0 auto' }}
+          title="Model-derived influence on headline outcomes"
+        >
           sens {Math.round(assumption.sensitivity * 100)}%
         </span>
       </div>
@@ -473,22 +625,40 @@ function Comparison({ store }: { store: Store }) {
 
   const vars = state.doc.vars;
   const stat = (keys: string[], label: string, cls: string): string | null =>
-    keys.length === 0 ? null : `${label}: ${keys.length} ${cls} (${keys.slice(0, 3).join(', ')}${keys.length > 3 ? '…' : ''})`;
+    keys.length === 0
+      ? null
+      : `${label}: ${keys.length} ${cls} (${keys.slice(0, 3).join(', ')}${keys.length > 3 ? '…' : ''})`;
 
   return (
-    <div className="section" style={{ border: '1px solid var(--amber-dim)', borderRadius: 'var(--r)', padding: 10 }}>
-      <h3 className="section-title" style={{ color: 'var(--amber)' }}>Comparison</h3>
+    <div
+      className="section"
+      style={{ border: '1px solid var(--amber-dim)', borderRadius: 'var(--r)', padding: 10 }}
+    >
+      <h3 className="section-title" style={{ color: 'var(--amber)' }}>
+        Comparison
+      </h3>
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>
-        <span className="chip chip-cyan" title={cmp.a.title}>{cmp.a.title}</span>
+        <span className="chip chip-cyan" title={cmp.a.title}>
+          {cmp.a.title}
+        </span>
         <span style={{ color: 'var(--text-faint)' }}>→</span>
-        <span className="chip chip-amber" title={cmp.b.title}>{cmp.b.title}</span>
+        <span className="chip chip-amber" title={cmp.b.title}>
+          {cmp.b.title}
+        </span>
         <span className="spacer" />
-        <button className="btn btn-sm btn-ghost" onClick={() => store.setCompare(null)}>✕ close</button>
+        <button className="btn btn-sm btn-ghost" onClick={() => store.setCompare(null)}>
+          ✕ close
+        </button>
       </div>
 
       <table className="cmp-table">
         <thead>
-          <tr><th>Variable</th><th style={{ textAlign: 'right' }}>A</th><th style={{ textAlign: 'right' }}>B</th><th style={{ textAlign: 'right' }}>Δ</th></tr>
+          <tr>
+            <th>Variable</th>
+            <th style={{ textAlign: 'right' }}>A</th>
+            <th style={{ textAlign: 'right' }}>B</th>
+            <th style={{ textAlign: 'right' }}>Δ</th>
+          </tr>
         </thead>
         <tbody>
           {cmp.diffs.map((d) => {
@@ -499,7 +669,9 @@ function Comparison({ store }: { store: Store }) {
                 <td>{d.label}</td>
                 <td className="num">{formatValue(d.from, d.unit)}</td>
                 <td className="num">{formatValue(d.to, d.unit)}</td>
-                <td className={`num ${Math.abs(d.delta) < 1e-6 ? 'delta-flat' : good ? 'delta-up' : 'delta-down'}`}>
+                <td
+                  className={`num ${Math.abs(d.delta) < 1e-6 ? 'delta-flat' : good ? 'delta-up' : 'delta-down'}`}
+                >
                   {formatDelta(d.delta, d.unit)}
                 </td>
               </tr>
@@ -509,9 +681,17 @@ function Comparison({ store }: { store: Store }) {
       </table>
 
       <div style={{ marginTop: 9, display: 'flex', flexDirection: 'column', gap: 4 }}>
-        {[stat(cmp.stability.stable, 'stable', ''), stat(cmp.stability.moved, 'moved', ''), stat(cmp.stability.sensitive, 'noise-sensitive', '')]
+        {[
+          stat(cmp.stability.stable, 'stable', ''),
+          stat(cmp.stability.moved, 'moved', ''),
+          stat(cmp.stability.sensitive, 'noise-sensitive', ''),
+        ]
           .filter((x): x is string => x !== null)
-          .map((s) => <span key={s} style={{ fontSize: 11, color: 'var(--text-dim)' }}>{s}</span>)}
+          .map((s) => (
+            <span key={s} style={{ fontSize: 11, color: 'var(--text-dim)' }}>
+              {s}
+            </span>
+          ))}
       </div>
       <div className="note" style={{ marginTop: 8, fontSize: 11 }}>
         Variables marked noise-sensitive moved within their own engine variance — treat those

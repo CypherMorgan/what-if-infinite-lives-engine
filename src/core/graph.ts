@@ -41,11 +41,14 @@ export function validateGraph(doc: SimulationDoc): GraphReport {
 
   const starts = nodes.filter((n) => n.type === 'start');
   if (starts.length === 0) errors.push('Document has no starting node.');
-  if (starts.length > 1) errors.push(`Document has ${starts.length} starting nodes; exactly one is expected.`);
+  if (starts.length > 1)
+    errors.push(`Document has ${starts.length} starting nodes; exactly one is expected.`);
 
   for (const edge of edges) {
-    if (!nodeIds.has(edge.from)) errors.push(`Edge "${edge.id}" references missing source node "${edge.from}".`);
-    if (!nodeIds.has(edge.to)) errors.push(`Edge "${edge.id}" references missing target node "${edge.to}".`);
+    if (!nodeIds.has(edge.from))
+      errors.push(`Edge "${edge.id}" references missing source node "${edge.from}".`);
+    if (!nodeIds.has(edge.to))
+      errors.push(`Edge "${edge.id}" references missing target node "${edge.to}".`);
   }
 
   for (const node of nodes) {
@@ -87,7 +90,7 @@ export function validateGraph(doc: SimulationDoc): GraphReport {
       const unreachable = nodes.filter((n) => !seen.has(n.id));
       if (unreachable.length > 0) {
         warnings.push(
-          `${unreachable.length} node${unreachable.length === 1 ? ' is' : 's are'} not reachable from the start node and will not be shown.`,
+          `${unreachable.length} node${unreachable.length === 1 ? ' is' : 's are'} not reachable from the start node and will not be shown.`
         );
       }
     }
@@ -96,7 +99,9 @@ export function validateGraph(doc: SimulationDoc): GraphReport {
   // Layout coverage.
   const missingLayout = nodes.filter((n) => !doc.layout[n.id]);
   if (missingLayout.length > 0) {
-    warnings.push(`${missingLayout.length} node${missingLayout.length === 1 ? ' has' : 's have'} no saved position.`);
+    warnings.push(
+      `${missingLayout.length} node${missingLayout.length === 1 ? ' has' : 's have'} no saved position.`
+    );
   }
 
   for (const branch of Object.values(doc.branches)) {

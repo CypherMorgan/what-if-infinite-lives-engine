@@ -15,8 +15,14 @@ declare global {
   interface Window {
     whatifs?: {
       platform: string;
-      openFile(filters?: { name: string; extensions: string[] }[]): Promise<{ path: string; text: string } | null>;
-      saveFile(defaultName: string, text: string, filters?: { name: string; extensions: string[] }[]): Promise<string | null>;
+      openFile(
+        filters?: { name: string; extensions: string[] }[]
+      ): Promise<{ path: string; text: string } | null>;
+      saveFile(
+        defaultName: string,
+        text: string,
+        filters?: { name: string; extensions: string[] }[]
+      ): Promise<string | null>;
       writeText(text: string): Promise<string>;
       readText(): Promise<string | null>;
       setSecret(key: string, value: string): Promise<boolean>;
@@ -35,14 +41,21 @@ export function ModalHost({ store }: { store: Store }) {
   const close = (): void => store.openModal(null);
 
   return (
-    <div className="modal-scrim" onMouseDown={(e) => { if (e.target === e.currentTarget) close(); }}>
+    <div
+      className="modal-scrim"
+      onMouseDown={(e) => {
+        if (e.target === e.currentTarget) close();
+      }}
+    >
       <div className="modal" role="dialog" aria-modal="true">
         {modal.kind === 'new' && <NewUniverse store={store} close={close} />}
         {modal.kind === 'import' && <ImportModal store={store} close={close} />}
         {modal.kind === 'export' && <ExportModal store={store} close={close} />}
         {modal.kind === 'settings' && <SettingsModal store={store} close={close} />}
         {modal.kind === 'library' && <LibraryModal store={store} close={close} />}
-        {modal.kind === 'counterfactual' && <CounterfactualModal store={store} close={close} assumptionId={modal.assumptionId} />}
+        {modal.kind === 'counterfactual' && (
+          <CounterfactualModal store={store} close={close} assumptionId={modal.assumptionId} />
+        )}
         {modal.kind === 'about' && <AboutModal store={store} close={close} />}
         {modal.kind === 'shortcuts' && <ShortcutsModal store={store} close={close} />}
       </div>
@@ -55,7 +68,9 @@ function Head({ title, close, hint }: { title: string; close: () => void; hint?:
     <div className="modal-head">
       <span className="modal-title">{title}</span>
       {hint && <span className="chip">{hint}</span>}
-      <button className="btn btn-ghost btn-sm" onClick={close} aria-label="Close">✕</button>
+      <button className="btn btn-ghost btn-sm" onClick={close} aria-label="Close">
+        ✕
+      </button>
     </div>
   );
 }
@@ -113,7 +128,9 @@ function NewUniverse({ store, close }: { store: Store; close: () => void }) {
 
           <div className="suggest-row">
             {SUGGESTIONS.map((s) => (
-              <button key={s} className="suggest" onClick={() => setSituation(s)}>{s.slice(0, 52)}…</button>
+              <button key={s} className="suggest" onClick={() => setSituation(s)}>
+                {s.slice(0, 52)}…
+              </button>
             ))}
           </div>
 
@@ -124,19 +141,30 @@ function NewUniverse({ store, close }: { store: Store; close: () => void }) {
               value={decision}
               placeholder="Should I take the overseas offer?"
               onChange={(e) => setDecision(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter' && valid) submit(); }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && valid) submit();
+              }}
             />
           </label>
 
           <label className="field">
             <span className="field-label">Goals (comma separated)</span>
-            <input className="input" value={goals} placeholder="financial stability, mastery, time outdoors" onChange={(e) => setGoals(e.target.value)} />
+            <input
+              className="input"
+              value={goals}
+              placeholder="financial stability, mastery, time outdoors"
+              onChange={(e) => setGoals(e.target.value)}
+            />
           </label>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
             <label className="field">
               <span className="field-label">Horizon</span>
-              <select className="select" value={horizon} onChange={(e) => setHorizon(Number(e.target.value))}>
+              <select
+                className="select"
+                value={horizon}
+                onChange={(e) => setHorizon(Number(e.target.value))}
+              >
                 <option value={12}>12 months</option>
                 <option value={24}>24 months</option>
                 <option value={36}>36 months</option>
@@ -146,8 +174,16 @@ function NewUniverse({ store, close }: { store: Store; close: () => void }) {
             </label>
             <label className="field">
               <span className="field-label">Branches</span>
-              <select className="select" value={branchCount} onChange={(e) => setBranchCount(Number(e.target.value))}>
-                {[2, 3, 4, 5].map((n) => <option key={n} value={n}>{n} paths</option>)}
+              <select
+                className="select"
+                value={branchCount}
+                onChange={(e) => setBranchCount(Number(e.target.value))}
+              >
+                {[2, 3, 4, 5].map((n) => (
+                  <option key={n} value={n}>
+                    {n} paths
+                  </option>
+                ))}
               </select>
             </label>
             <label className="field">
@@ -162,7 +198,9 @@ function NewUniverse({ store, close }: { store: Store; close: () => void }) {
                 style={{ width: '100%', marginTop: 6 }}
                 aria-label="Imagination"
               />
-              <span style={{ fontSize: 10.5, color: 'var(--text-faint)' }}>grounded ← → speculative</span>
+              <span style={{ fontSize: 10.5, color: 'var(--text-faint)' }}>
+                grounded ← → speculative
+              </span>
             </label>
           </div>
         </div>
@@ -174,8 +212,12 @@ function NewUniverse({ store, close }: { store: Store; close: () => void }) {
         )}
       </div>
       <div className="modal-foot">
-        <button className="btn btn-ghost" onClick={close}>Cancel</button>
-        <button className="btn btn-primary" disabled={!valid} onClick={submit}>Create universe →</button>
+        <button className="btn btn-ghost" onClick={close}>
+          Cancel
+        </button>
+        <button className="btn btn-primary" disabled={!valid} onClick={submit}>
+          Create universe →
+        </button>
       </div>
     </>
   );
@@ -197,7 +239,9 @@ function ImportModal({ store, close }: { store: Store; close: () => void }) {
     setError(null);
     try {
       if (window.whatifs) {
-        const picked = await window.whatifs.openFile([{ name: 'What If? universe', extensions: ['whatif.json', 'json'] }]);
+        const picked = await window.whatifs.openFile([
+          { name: 'What If? universe', extensions: ['whatif.json', 'json'] },
+        ]);
         if (!picked) return;
         if (store.importText(picked.text)) close();
         return;
@@ -213,10 +257,16 @@ function ImportModal({ store, close }: { store: Store; close: () => void }) {
 
   return (
     <>
-      <Head title="Import universe" close={close} hint={`max ${Math.round(IMPORT_LIMITS.maxBytes / 1024)} KB`} />
+      <Head
+        title="Import universe"
+        close={close}
+        hint={`max ${Math.round(IMPORT_LIMITS.maxBytes / 1024)} KB`}
+      />
       <div className="modal-body">
         <div className="btn-row" style={{ marginBottom: 10 }}>
-          <button className="btn btn-primary" onClick={() => void pickFile()}>Open file…</button>
+          <button className="btn btn-primary" onClick={() => void pickFile()}>
+            Open file…
+          </button>
           <span style={{ fontSize: 11.5, color: 'var(--text-faint)', alignSelf: 'center' }}>
             or paste the exported JSON below
           </span>
@@ -241,16 +291,24 @@ function ImportModal({ store, close }: { store: Store; close: () => void }) {
           value={text}
           onChange={(e) => setText(e.target.value)}
         />
-        {error && <div className="note" style={{ marginTop: 8, borderLeftColor: 'var(--rose)' }}>{error}</div>}
+        {error && (
+          <div className="note" style={{ marginTop: 8, borderLeftColor: 'var(--rose)' }}>
+            {error}
+          </div>
+        )}
         <div className="note" style={{ marginTop: 10 }}>
-          Imports are validated strictly: malformed JSON or structurally broken graphs are
-          rejected with the exact reason. Dangling edges and unreachable nodes are repaired
-          automatically and the repairs are reported back to you.
+          Imports are validated strictly: malformed JSON or structurally broken graphs are rejected
+          with the exact reason. Dangling edges and unreachable nodes are repaired automatically and
+          the repairs are reported back to you.
         </div>
       </div>
       <div className="modal-foot">
-        <button className="btn btn-ghost" onClick={close}>Cancel</button>
-        <button className="btn btn-primary" disabled={text.trim().length === 0} onClick={useText}>Import →</button>
+        <button className="btn btn-ghost" onClick={close}>
+          Cancel
+        </button>
+        <button className="btn btn-primary" disabled={text.trim().length === 0} onClick={useText}>
+          Import →
+        </button>
       </div>
     </>
   );
@@ -273,7 +331,9 @@ function ExportModal({ store, close }: { store: Store; close: () => void }) {
   const save = async (): Promise<void> => {
     try {
       if (window.whatifs) {
-        const path = await window.whatifs.saveFile(name, text, [{ name: 'What If? universe', extensions: ['whatif.json'] }]);
+        const path = await window.whatifs.saveFile(name, text, [
+          { name: 'What If? universe', extensions: ['whatif.json'] },
+        ]);
         setNote(path ? `Saved to ${path}` : 'Save cancelled.');
         return;
       }
@@ -295,9 +355,17 @@ function ExportModal({ store, close }: { store: Store; close: () => void }) {
       <Head title="Export universe" close={close} hint={name} />
       <div className="modal-body">
         <div className="btn-row" style={{ marginBottom: 10 }}>
-          <button className="btn btn-primary" onClick={() => void save()}>Save file…</button>
-          <button className="btn" onClick={() => void copy()}>Copy JSON</button>
-          {note && <span style={{ fontSize: 11.5, color: 'var(--cyan)', alignSelf: 'center' }}>{note}</span>}
+          <button className="btn btn-primary" onClick={() => void save()}>
+            Save file…
+          </button>
+          <button className="btn" onClick={() => void copy()}>
+            Copy JSON
+          </button>
+          {note && (
+            <span style={{ fontSize: 11.5, color: 'var(--cyan)', alignSelf: 'center' }}>
+              {note}
+            </span>
+          )}
         </div>
         <pre className="code-block">{text}</pre>
         <div className="note" style={{ marginTop: 10 }}>
@@ -307,7 +375,9 @@ function ExportModal({ store, close }: { store: Store; close: () => void }) {
         </div>
       </div>
       <div className="modal-foot">
-        <button className="btn btn-ghost" onClick={close}>Close</button>
+        <button className="btn btn-ghost" onClick={close}>
+          Close
+        </button>
       </div>
     </>
   );
@@ -331,7 +401,9 @@ function SettingsModal({ store, close }: { store: Store; close: () => void }) {
         if (alive) setSecretState(v ? 'set' : 'missing');
       });
     } else setSecretState('missing');
-    return () => { alive = false; };
+    return () => {
+      alive = false;
+    };
   }, []);
 
   const patch = (p: Partial<ProviderSettings>): void => setDraft((d) => ({ ...d, ...p }));
@@ -339,7 +411,10 @@ function SettingsModal({ store, close }: { store: Store; close: () => void }) {
   const save = async (): Promise<void> => {
     if (window.whatifs && secret.trim()) {
       const ok = await window.whatifs.setSecret('whatifs:http', secret.trim());
-      if (!ok) { setSaved(false); return; }
+      if (!ok) {
+        setSaved(false);
+        return;
+      }
       setSecret('');
       setSecretState('set');
     }
@@ -363,8 +438,10 @@ function SettingsModal({ store, close }: { store: Store; close: () => void }) {
                 const id = e.target.value as ProviderSettings['id'];
                 const preset = PROVIDER_PRESETS.find((p) => p.id === id);
                 patch({ id, label: preset ? preset.label : 'Built-in engine' });
-                if (preset) patch({ id, label: preset.label, baseUrl: preset.baseUrl, model: preset.model });
-                if (id === 'offline') patch({ id, label: 'Built-in engine', baseUrl: '', model: '' });
+                if (preset)
+                  patch({ id, label: preset.label, baseUrl: preset.baseUrl, model: preset.model });
+                if (id === 'offline')
+                  patch({ id, label: 'Built-in engine', baseUrl: '', model: '' });
               }}
             >
               <option value="offline">Built-in engine (offline, always works)</option>
@@ -377,48 +454,96 @@ function SettingsModal({ store, close }: { store: Store; close: () => void }) {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                 <label className="field">
                   <span className="field-label">Base URL</span>
-                  <input className="input" value={draft.baseUrl} placeholder="https://api.openai.com/v1" onChange={(e) => patch({ baseUrl: e.target.value })} />
+                  <input
+                    className="input"
+                    value={draft.baseUrl}
+                    placeholder="https://api.openai.com/v1"
+                    onChange={(e) => patch({ baseUrl: e.target.value })}
+                  />
                 </label>
                 <label className="field">
                   <span className="field-label">Model</span>
-                  <input className="input" value={draft.model} placeholder="gpt-4o-mini / llama3.1" onChange={(e) => patch({ model: e.target.value })} />
+                  <input
+                    className="input"
+                    value={draft.model}
+                    placeholder="gpt-4o-mini / llama3.1"
+                    onChange={(e) => patch({ model: e.target.value })}
+                  />
                 </label>
               </div>
 
               <label className="field">
                 <span className="field-label">
-                  API key {secretState === 'set' ? '· stored in Windows credential vault' : secretState === 'missing' ? '· none stored' : ''}
+                  API key{' '}
+                  {secretState === 'set'
+                    ? '· stored in Windows credential vault'
+                    : secretState === 'missing'
+                      ? '· none stored'
+                      : ''}
                 </span>
                 <input
                   className="input"
                   type="password"
                   value={secret}
-                  placeholder={secretState === 'set' ? '••••••••  (enter to replace)' : 'sk-… (optional for local servers)'}
+                  placeholder={
+                    secretState === 'set'
+                      ? '••••••••  (enter to replace)'
+                      : 'sk-… (optional for local servers)'
+                  }
                   onChange={(e) => setSecret(e.target.value)}
                   autoComplete="off"
                 />
                 <span style={{ fontSize: 10.5, color: 'var(--text-faint)' }}>
-                  Saved through Electron <code>safeStorage</code> in the main process — never written
-                  to the renderer, logs or exported files. Leave blank to keep the stored one.
+                  Saved through Electron <code>safeStorage</code> in the main process — never
+                  written to the renderer, logs or exported files. Leave blank to keep the stored
+                  one.
                 </span>
               </label>
 
               <div className="switch-row">
                 <span>Keyless endpoint (Ollama, llama.cpp, LM Studio)</span>
-                <button className="switch" role="switch" aria-checked={draft.keyless} onClick={() => patch({ keyless: !draft.keyless })} />
+                <button
+                  className="switch"
+                  role="switch"
+                  aria-checked={draft.keyless}
+                  onClick={() => patch({ keyless: !draft.keyless })}
+                />
               </div>
               <div className="switch-row">
                 <span>Strict — fail instead of falling back to the built-in engine</span>
-                <button className="switch" role="switch" aria-checked={draft.strict} onClick={() => patch({ strict: !draft.strict })} />
+                <button
+                  className="switch"
+                  role="switch"
+                  aria-checked={draft.strict}
+                  onClick={() => patch({ strict: !draft.strict })}
+                />
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 8 }}>
+              <div
+                style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 8 }}
+              >
                 <label className="field">
                   <span className="field-label">Timeout (ms)</span>
-                  <input className="input" type="number" min={1000} max={120000} step={1000} value={draft.timeoutMs} onChange={(e) => patch({ timeoutMs: Number(e.target.value) })} />
+                  <input
+                    className="input"
+                    type="number"
+                    min={1000}
+                    max={120000}
+                    step={1000}
+                    value={draft.timeoutMs}
+                    onChange={(e) => patch({ timeoutMs: Number(e.target.value) })}
+                  />
                 </label>
                 <label className="field">
                   <span className="field-label">Max tokens</span>
-                  <input className="input" type="number" min={256} max={8192} step={256} value={draft.maxTokens} onChange={(e) => patch({ maxTokens: Number(e.target.value) })} />
+                  <input
+                    className="input"
+                    type="number"
+                    min={256}
+                    max={8192}
+                    step={256}
+                    value={draft.maxTokens}
+                    onChange={(e) => patch({ maxTokens: Number(e.target.value) })}
+                  />
                 </label>
               </div>
             </>
@@ -429,31 +554,55 @@ function SettingsModal({ store, close }: { store: Store; close: () => void }) {
           <h3 className="section-title">Appearance & feedback</h3>
           <div className="switch-row">
             <span>Reduced motion (no growth animations, instant transitions)</span>
-            <button className="switch" role="switch" aria-checked={state.settings.reducedMotion} onClick={() => store.setSettings({ reducedMotion: !state.settings.reducedMotion })} />
+            <button
+              className="switch"
+              role="switch"
+              aria-checked={state.settings.reducedMotion}
+              onClick={() => store.setSettings({ reducedMotion: !state.settings.reducedMotion })}
+            />
           </div>
           <div className="switch-row">
             <span>Minimap</span>
-            <button className="switch" role="switch" aria-checked={state.settings.showMinimap} onClick={() => store.setSettings({ showMinimap: !state.settings.showMinimap })} />
+            <button
+              className="switch"
+              role="switch"
+              aria-checked={state.settings.showMinimap}
+              onClick={() => store.setSettings({ showMinimap: !state.settings.showMinimap })}
+            />
           </div>
           <div className="switch-row">
             <span>Canvas grid</span>
-            <button className="switch" role="switch" aria-checked={state.settings.showGrid} onClick={() => store.setSettings({ showGrid: !state.settings.showGrid })} />
+            <button
+              className="switch"
+              role="switch"
+              aria-checked={state.settings.showGrid}
+              onClick={() => store.setSettings({ showGrid: !state.settings.showGrid })}
+            />
           </div>
           <div className="switch-row">
             <span>State chips on node cards</span>
-            <button className="switch" role="switch" aria-checked={state.settings.showSpread} onClick={() => store.setSettings({ showSpread: !state.settings.showSpread })} />
+            <button
+              className="switch"
+              role="switch"
+              aria-checked={state.settings.showSpread}
+              onClick={() => store.setSettings({ showSpread: !state.settings.showSpread })}
+            />
           </div>
         </div>
 
         <div className="note">
-          This app never sends anything anywhere unless you configure a provider above.
-          No telemetry, no crash reporting, no accounts. Saved universes live in this
-          machine’s app data.
+          This app never sends anything anywhere unless you configure a provider above. No
+          telemetry, no crash reporting, no accounts. Saved universes live in this machine’s app
+          data.
         </div>
       </div>
       <div className="modal-foot">
-        <button className="btn btn-ghost" onClick={close}>Cancel</button>
-        <button className="btn btn-primary" onClick={() => void save()}>{saved ? 'Saved ✓' : 'Save settings'}</button>
+        <button className="btn btn-ghost" onClick={close}>
+          Cancel
+        </button>
+        <button className="btn btn-primary" onClick={() => void save()}>
+          {saved ? 'Saved ✓' : 'Save settings'}
+        </button>
       </div>
     </>
   );
@@ -479,24 +628,52 @@ function LibraryModal({ store, close }: { store: Store; close: () => void }) {
         ) : (
           <div className="node-list">
             {state.library.map((s) => (
-              <div key={s.id} className="variant-card" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div
+                key={s.id}
+                className="variant-card"
+                style={{ display: 'flex', alignItems: 'center', gap: 10 }}
+              >
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div className="variant-title" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.title}</div>
+                  <div
+                    className="variant-title"
+                    style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                  >
+                    {s.title}
+                  </div>
                   <div className="variant-sub">
-                    {s.nodeCount} nodes · {s.branchCount} branches · {new Date(s.updatedAt).toLocaleString()}
+                    {s.nodeCount} nodes · {s.branchCount} branches ·{' '}
+                    {new Date(s.updatedAt).toLocaleString()}
                   </div>
                 </div>
                 {s.isCounterfactual && <span className="chip chip-violet">counterfactual</span>}
-                <span className={`chip ${s.generator === 'ai' ? 'chip-violet' : 'chip-cyan'}`}>{s.generator === 'ai' ? 'ai' : 'offline'}</span>
-                <button className="btn btn-sm btn-primary" onClick={() => { store.openFromLibrary(s.id); close(); }}>Open</button>
-                <button className="btn btn-sm btn-ghost" onClick={() => store.deleteFromLibrary(s.id)} aria-label="Delete">✕</button>
+                <span className={`chip ${s.generator === 'ai' ? 'chip-violet' : 'chip-cyan'}`}>
+                  {s.generator === 'ai' ? 'ai' : 'offline'}
+                </span>
+                <button
+                  className="btn btn-sm btn-primary"
+                  onClick={() => {
+                    store.openFromLibrary(s.id);
+                    close();
+                  }}
+                >
+                  Open
+                </button>
+                <button
+                  className="btn btn-sm btn-ghost"
+                  onClick={() => store.deleteFromLibrary(s.id)}
+                  aria-label="Delete"
+                >
+                  ✕
+                </button>
               </div>
             ))}
           </div>
         )}
       </div>
       <div className="modal-foot">
-        <button className="btn btn-ghost" onClick={close}>Close</button>
+        <button className="btn btn-ghost" onClick={close}>
+          Close
+        </button>
       </div>
     </>
   );
@@ -506,7 +683,15 @@ function LibraryModal({ store, close }: { store: Store; close: () => void }) {
 /* Counterfactual                                                      */
 /* ------------------------------------------------------------------ */
 
-function CounterfactualModal({ store, close, assumptionId }: { store: Store; close: () => void; assumptionId: string }) {
+function CounterfactualModal({
+  store,
+  close,
+  assumptionId,
+}: {
+  store: Store;
+  close: () => void;
+  assumptionId: string;
+}) {
   const state = useAppState(store);
   const assumption = state.doc.assumptions.find((a) => a.id === assumptionId);
   const [value, setValue] = useState(assumption?.value ?? 0);
@@ -516,8 +701,14 @@ function CounterfactualModal({ store, close, assumptionId }: { store: Store; clo
     return (
       <>
         <Head title="What if…" close={close} />
-        <div className="modal-body"><div className="empty">That assumption no longer exists.</div></div>
-        <div className="modal-foot"><button className="btn btn-ghost" onClick={close}>Close</button></div>
+        <div className="modal-body">
+          <div className="empty">That assumption no longer exists.</div>
+        </div>
+        <div className="modal-foot">
+          <button className="btn btn-ghost" onClick={close}>
+            Close
+          </button>
+        </div>
       </>
     );
   }
@@ -527,16 +718,25 @@ function CounterfactualModal({ store, close, assumptionId }: { store: Store; clo
   const hi = Math.max(assumption.baseValue, assumption.value) + step * 10;
 
   const create = (): void => {
-    const doc = store.makeCounterfactual(assumption.id, value, note.trim() || `Set ${assumption.label} to ${formatValue(value, assumption.unit)}`);
+    const doc = store.makeCounterfactual(
+      assumption.id,
+      value,
+      note.trim() || `Set ${assumption.label} to ${formatValue(value, assumption.unit)}`
+    );
     if (doc) close();
   };
 
   return (
     <>
-      <Head title={`What if ${assumption.label.toLowerCase()} changed?`} close={close} hint="forks the universe" />
+      <Head
+        title={`What if ${assumption.label.toLowerCase()} changed?`}
+        close={close}
+        hint="forks the universe"
+      />
       <div className="modal-body">
         <div className="note">
-          <strong>Now:</strong> {formatValue(assumption.value, assumption.unit)} (base {formatValue(assumption.baseValue, assumption.unit)})<br />
+          <strong>Now:</strong> {formatValue(assumption.value, assumption.unit)} (base{' '}
+          {formatValue(assumption.baseValue, assumption.unit)})<br />
           {assumption.rationale}
         </div>
 
@@ -554,7 +754,15 @@ function CounterfactualModal({ store, close, assumptionId }: { store: Store; clo
             />
             <span className="range-value">{formatValue(value, assumption.unit)}</span>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10.5, color: 'var(--text-faint)', marginTop: 4 }}>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              fontSize: 10.5,
+              color: 'var(--text-faint)',
+              marginTop: 4,
+            }}
+          >
             <span>{formatValue(lo, assumption.unit)}</span>
             <span>sensitivity {Math.round(assumption.sensitivity * 100)}%</span>
             <span>{formatValue(hi, assumption.unit)}</span>
@@ -563,18 +771,27 @@ function CounterfactualModal({ store, close, assumptionId }: { store: Store; clo
 
         <label className="field" style={{ marginTop: 16 }}>
           <span className="field-label">Why this change? (recorded in lineage)</span>
-          <input className="input" value={note} placeholder="e.g. I could negotiate a relocation package" onChange={(e) => setNote(e.target.value)} />
+          <input
+            className="input"
+            value={note}
+            placeholder="e.g. I could negotiate a relocation package"
+            onChange={(e) => setNote(e.target.value)}
+          />
         </label>
 
         <div className="note note-violet">
-          This creates a <strong>new universe document</strong> derived from the current one —
-          the original stays untouched, and both are comparable in the branch diff. The change
-          is re-simulated through the rule engine, not relabelled.
+          This creates a <strong>new universe document</strong> derived from the current one — the
+          original stays untouched, and both are comparable in the branch diff. The change is
+          re-simulated through the rule engine, not relabelled.
         </div>
       </div>
       <div className="modal-foot">
-        <button className="btn btn-ghost" onClick={close}>Cancel</button>
-        <button className="btn btn-violet" onClick={create}>Create counterfactual →</button>
+        <button className="btn btn-ghost" onClick={close}>
+          Cancel
+        </button>
+        <button className="btn btn-violet" onClick={create}>
+          Create counterfactual →
+        </button>
       </div>
     </>
   );
@@ -593,11 +810,14 @@ function AboutModal({ store, close }: { store: Store; close: () => void }) {
         <div className="hero">
           <div className="hero-title">WHAT IF? — The Infinite Lives Engine</div>
           <div className="hero-sub">
-            Version {APP_VERSION} · schema v{state.doc.schemaVersion} · {state.doc.meta.generator === 'ai' ? 'AI-assisted' : 'Built-in rules engine'}
+            Version {APP_VERSION} · schema v{state.doc.schemaVersion} ·{' '}
+            {state.doc.meta.generator === 'ai' ? 'AI-assisted' : 'Built-in rules engine'}
           </div>
           <div className="btn-row">
             <span className="chip chip-cyan">{state.doc.meta.providerLabel}</span>
-            {state.doc.meta.modelLabel && <span className="chip chip-violet">{state.doc.meta.modelLabel}</span>}
+            {state.doc.meta.modelLabel && (
+              <span className="chip chip-violet">{state.doc.meta.modelLabel}</span>
+            )}
             <span className="chip">seed {state.doc.seed}</span>
             <span className="chip">{state.doc.id}</span>
           </div>
@@ -621,13 +841,15 @@ function AboutModal({ store, close }: { store: Store; close: () => void }) {
         <div className="section">
           <h3 className="section-title">Privacy</h3>
           <div className="note">
-            Local-first. No telemetry, no analytics, no crash reporting, no accounts. Network
-            access happens only if you configure an HTTP provider yourself.
+            Local-first. No telemetry, no analytics, no crash reporting, no accounts. Network access
+            happens only if you configure an HTTP provider yourself.
           </div>
         </div>
       </div>
       <div className="modal-foot">
-        <button className="btn btn-ghost" onClick={close}>Close</button>
+        <button className="btn btn-ghost" onClick={close}>
+          Close
+        </button>
       </div>
     </>
   );

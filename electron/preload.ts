@@ -22,7 +22,8 @@ const api = {
   readText: (): Promise<string> => ipcRenderer.invoke('clipboard:read'),
 
   /* secrets — stored encrypted in the user data directory, never in the renderer */
-  setSecret: (key: string, value: string): Promise<boolean> => ipcRenderer.invoke('secret:set', key, value),
+  setSecret: (key: string, value: string): Promise<boolean> =>
+    ipcRenderer.invoke('secret:set', key, value),
   getSecret: (key: string): Promise<string | null> => ipcRenderer.invoke('secret:get', key),
   deleteSecret: (key: string): Promise<boolean> => ipcRenderer.invoke('secret:delete', key),
 

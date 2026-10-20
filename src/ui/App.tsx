@@ -19,7 +19,9 @@ export function App({ store }: { store: Store }) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent): void => {
       const target = e.target as HTMLElement | null;
-      const typing = target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable);
+      const typing =
+        target &&
+        (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable);
       const mod = e.ctrlKey || e.metaKey;
 
       if (mod && e.key.toLowerCase() === 'z') {
@@ -28,10 +30,26 @@ export function App({ store }: { store: Store }) {
         else store.undo();
         return;
       }
-      if (mod && e.key.toLowerCase() === 'y') { e.preventDefault(); store.redo(); return; }
-      if (mod && e.key.toLowerCase() === 'n') { e.preventDefault(); store.openModal({ kind: 'new' }); return; }
-      if (mod && e.key.toLowerCase() === 'o') { e.preventDefault(); store.openModal({ kind: 'import' }); return; }
-      if (mod && e.key.toLowerCase() === 's') { e.preventDefault(); store.openModal({ kind: 'export' }); return; }
+      if (mod && e.key.toLowerCase() === 'y') {
+        e.preventDefault();
+        store.redo();
+        return;
+      }
+      if (mod && e.key.toLowerCase() === 'n') {
+        e.preventDefault();
+        store.openModal({ kind: 'new' });
+        return;
+      }
+      if (mod && e.key.toLowerCase() === 'o') {
+        e.preventDefault();
+        store.openModal({ kind: 'import' });
+        return;
+      }
+      if (mod && e.key.toLowerCase() === 's') {
+        e.preventDefault();
+        store.openModal({ kind: 'export' });
+        return;
+      }
       if (mod && e.key.toLowerCase() === 'f') {
         e.preventDefault();
         window.dispatchEvent(new CustomEvent('whatifs:focus-search'));
@@ -69,13 +87,21 @@ export function App({ store }: { store: Store }) {
       if (state.selected && (e.key === 'ArrowDown' || e.key === 'ArrowRight')) {
         const kids = state.doc.nodes[state.selected]?.children ?? [];
         const next = kids[0];
-        if (next) { e.preventDefault(); store.select(next); store.centerOn(next); }
+        if (next) {
+          e.preventDefault();
+          store.select(next);
+          store.centerOn(next);
+        }
         return;
       }
       if (state.selected && (e.key === 'ArrowUp' || e.key === 'ArrowLeft')) {
         const parents = state.doc.nodes[state.selected]?.parents ?? [];
         const prev = parents[0];
-        if (prev) { e.preventDefault(); store.select(prev); store.centerOn(prev); }
+        if (prev) {
+          e.preventDefault();
+          store.select(prev);
+          store.centerOn(prev);
+        }
       }
     };
     window.addEventListener('keydown', onKey);
@@ -99,7 +125,9 @@ export function App({ store }: { store: Store }) {
       {/* ---------------- top bar ---------------- */}
       <header className="topbar">
         <div className="brand">
-          <span className="brand-mark">WHAT <span className="q">IF?</span></span>
+          <span className="brand-mark">
+            WHAT <span className="q">IF?</span>
+          </span>
           <span className="brand-sub">infinite lives engine</span>
         </div>
 
@@ -109,13 +137,19 @@ export function App({ store }: { store: Store }) {
           aria-label="Universe title"
           onChange={(e) => store.renameTitle(e.target.value)}
           onBlur={() => store.commitTitle()}
-          onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+          }}
         />
 
         <span className="spacer" />
 
         <div className="btn-row">
-          <button className="btn btn-primary" onClick={() => store.openModal({ kind: 'new' })} title="New universe (Ctrl+N)">
+          <button
+            className="btn btn-primary"
+            onClick={() => store.openModal({ kind: 'new' })}
+            title="New universe (Ctrl+N)"
+          >
             ✦ New
           </button>
           <button
@@ -143,7 +177,11 @@ export function App({ store }: { store: Store }) {
           >
             ⤢ Expand
           </button>
-          <button className="btn btn-amber" onClick={() => store.rerollUniverse()} title="Re-simulate the same prompt with a new seed">
+          <button
+            className="btn btn-amber"
+            onClick={() => store.rerollUniverse()}
+            title="Re-simulate the same prompt with a new seed"
+          >
             ⟳ Reroll
           </button>
         </div>
@@ -166,22 +204,46 @@ export function App({ store }: { store: Store }) {
             Timeline
           </button>
           <span style={{ width: 1, height: 22, background: 'var(--line)' }} />
-          <button className="btn btn-ghost" onClick={() => store.openModal({ kind: 'library' })} title="Saved universes">
+          <button
+            className="btn btn-ghost"
+            onClick={() => store.openModal({ kind: 'library' })}
+            title="Saved universes"
+          >
             ▤ Library
           </button>
-          <button className="btn btn-ghost" onClick={() => store.openModal({ kind: 'import' })} title="Import (Ctrl+O)">
+          <button
+            className="btn btn-ghost"
+            onClick={() => store.openModal({ kind: 'import' })}
+            title="Import (Ctrl+O)"
+          >
             ⬀ Import
           </button>
-          <button className="btn btn-ghost" onClick={() => store.openModal({ kind: 'export' })} title="Export (Ctrl+S)">
+          <button
+            className="btn btn-ghost"
+            onClick={() => store.openModal({ kind: 'export' })}
+            title="Export (Ctrl+S)"
+          >
             ⬇ Export
           </button>
-          <button className="btn btn-ghost" onClick={() => store.openModal({ kind: 'settings' })} title="Settings">
+          <button
+            className="btn btn-ghost"
+            onClick={() => store.openModal({ kind: 'settings' })}
+            title="Settings"
+          >
             ⚙ Settings
           </button>
-          <button className="btn btn-ghost" onClick={() => store.openModal({ kind: 'shortcuts' })} title="Keyboard shortcuts (Ctrl+/)">
+          <button
+            className="btn btn-ghost"
+            onClick={() => store.openModal({ kind: 'shortcuts' })}
+            title="Keyboard shortcuts (Ctrl+/)"
+          >
             ⌨
           </button>
-          <button className="btn btn-ghost" onClick={() => store.openModal({ kind: 'about' })} title="About">
+          <button
+            className="btn btn-ghost"
+            onClick={() => store.openModal({ kind: 'about' })}
+            title="About"
+          >
             ⓘ
           </button>
         </div>
@@ -202,12 +264,19 @@ export function App({ store }: { store: Store }) {
         <span className="status-text">{state.status}</span>
         <span className="chip">{nodeCount} nodes</span>
         <span className="chip">{edgeCount} edges</span>
-        <span className="chip">{state.doc.branches && Object.keys(state.doc.branches).length} branches</span>
-        <span className={`chip ${state.settings.provider.id === 'offline' ? 'chip-cyan' : 'chip-violet'}`}>
-          {state.settings.provider.id === 'offline' ? 'built-in engine' : state.settings.provider.model || 'http provider'}
+        <span className="chip">
+          {state.doc.branches && Object.keys(state.doc.branches).length} branches
+        </span>
+        <span
+          className={`chip ${state.settings.provider.id === 'offline' ? 'chip-cyan' : 'chip-violet'}`}
+        >
+          {state.settings.provider.id === 'offline'
+            ? 'built-in engine'
+            : state.settings.provider.model || 'http provider'}
         </span>
         <span className="status-kbd">
-          <kbd>Ctrl</kbd>+<kbd>Z</kbd> undo · <kbd>E</kbd> expand · <kbd>F</kbd> fit · <kbd>Ctrl</kbd>+<kbd>F</kbd> search · double-click a node
+          <kbd>Ctrl</kbd>+<kbd>Z</kbd> undo · <kbd>E</kbd> expand · <kbd>F</kbd> fit ·{' '}
+          <kbd>Ctrl</kbd>+<kbd>F</kbd> search · double-click a node
         </span>
       </footer>
 
@@ -215,15 +284,23 @@ export function App({ store }: { store: Store }) {
       <ModalHost store={store} />
 
       {state.compare && (
-        <div className="toast toast-amber" style={{ position: 'fixed', bottom: 44, right: 360, zIndex: 55 }}>
+        <div
+          className="toast toast-amber"
+          style={{ position: 'fixed', bottom: 44, right: 360, zIndex: 55 }}
+        >
           ⇄ Comparing branches — see the inspector
-          <button className="btn btn-sm btn-ghost" onClick={() => store.setCompare(null)}>✕</button>
+          <button className="btn btn-sm btn-ghost" onClick={() => store.setCompare(null)}>
+            ✕
+          </button>
         </div>
       )}
 
       <div className="toast-stack">
         {state.toasts.map((t) => (
-          <div key={t.id} className={`toast ${t.kind === 'error' ? 'toast-rose' : t.kind === 'success' ? 'toast-cyan' : ''}`}>
+          <div
+            key={t.id}
+            className={`toast ${t.kind === 'error' ? 'toast-rose' : t.kind === 'success' ? 'toast-cyan' : ''}`}
+          >
             {t.kind === 'error' ? '⚠' : t.kind === 'success' ? '✓' : '·'} {t.text}
           </div>
         ))}
@@ -231,4 +308,3 @@ export function App({ store }: { store: Store }) {
     </div>
   );
 }
-

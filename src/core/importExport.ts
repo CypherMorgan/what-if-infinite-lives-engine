@@ -90,8 +90,8 @@ export function importFromText(text: string): Result<ImportReport, AppError> {
       appError(
         'file_too_large',
         'The file is larger than the import limit.',
-        `${Math.round(text.length / 1024 / 1024)} MB read; the limit is ${Math.round(IMPORT_LIMITS.maxBytes / 1024 / 1024)} MB.`,
-      ),
+        `${Math.round(text.length / 1024 / 1024)} MB read; the limit is ${Math.round(IMPORT_LIMITS.maxBytes / 1024 / 1024)} MB.`
+      )
     );
   }
 
@@ -103,8 +103,8 @@ export function importFromText(text: string): Result<ImportReport, AppError> {
       appError(
         'invalid_json',
         'The file is not valid JSON.',
-        e instanceof Error ? e.message : 'Unknown parse error.',
-      ),
+        e instanceof Error ? e.message : 'Unknown parse error.'
+      )
     );
   }
 
@@ -122,7 +122,12 @@ export function importFromText(text: string): Result<ImportReport, AppError> {
   if (envelope['format'] === EXPORT_FORMAT) {
     const document = envelope['document'];
     if (document === undefined || document === null) {
-      return err(appError('missing_document', 'The file declares itself as a universe but contains no document.'));
+      return err(
+        appError(
+          'missing_document',
+          'The file declares itself as a universe but contains no document.'
+        )
+      );
     }
     rawDoc = document;
 
@@ -131,21 +136,28 @@ export function importFromText(text: string): Result<ImportReport, AppError> {
       const actual = fnv1a(serialize(document as SimulationDoc));
       if (actual !== expectedChecksum) {
         warnings.push(
-          'The file checksum does not match its contents, which usually means it was edited by hand or truncated. It was loaded anyway.',
+          'The file checksum does not match its contents, which usually means it was edited by hand or truncated. It was loaded anyway.'
         );
       }
     }
-    if (typeof envelope['formatVersion'] === 'number' && envelope['formatVersion'] > EXPORT_FORMAT_VERSION) {
+    if (
+      typeof envelope['formatVersion'] === 'number' &&
+      envelope['formatVersion'] > EXPORT_FORMAT_VERSION
+    ) {
       warnings.push(
-        `This file uses export format ${envelope['formatVersion']}; this build understands ${EXPORT_FORMAT_VERSION}. It was loaded with best effort.`,
+        `This file uses export format ${envelope['formatVersion']}; this build understands ${EXPORT_FORMAT_VERSION}. It was loaded with best effort.`
       );
     }
     if (typeof envelope['appVersion'] === 'string') {
-      notes.push(`Exported by version ${envelope['appVersion']} on ${typeof envelope['exportedAt'] === 'string' ? envelope['exportedAt'] : 'an unknown date'}.`);
+      notes.push(
+        `Exported by version ${envelope['appVersion']} on ${typeof envelope['exportedAt'] === 'string' ? envelope['exportedAt'] : 'an unknown date'}.`
+      );
     }
   } else {
     rawDoc = parsed;
-    warnings.push('No export envelope was found, so the file was treated as a bare simulation document.');
+    warnings.push(
+      'No export envelope was found, so the file was treated as a bare simulation document.'
+    );
   }
 
   // Migrate.
@@ -156,7 +168,11 @@ export function importFromText(text: string): Result<ImportReport, AppError> {
     notes.push(...result.notes);
   } catch (e) {
     return err(
-      appError('migration_failed', 'The file could not be migrated to the current schema.', e instanceof Error ? e.message : undefined),
+      appError(
+        'migration_failed',
+        'The file could not be migrated to the current schema.',
+        e instanceof Error ? e.message : undefined
+      )
     );
   }
 
@@ -173,8 +189,8 @@ export function importFromText(text: string): Result<ImportReport, AppError> {
         'validation_failed',
         fatal[0]?.message ?? 'The file failed validation and was not imported.',
         detail,
-        false,
-      ),
+        false
+      )
     );
   }
 
@@ -185,7 +201,7 @@ export function importFromText(text: string): Result<ImportReport, AppError> {
   const nonFatal = validation.issues.filter((i) => !i.fatal);
   if (nonFatal.length > 0) {
     warnings.push(
-      `${nonFatal.length} item${nonFatal.length === 1 ? '' : 's'} in the file were malformed and ${nonFatal.length === 1 ? 'was' : 'were'} normalised or dropped.`,
+      `${nonFatal.length} item${nonFatal.length === 1 ? '' : 's'} in the file were malformed and ${nonFatal.length === 1 ? 'was' : 'were'} normalised or dropped.`
     );
   }
 

@@ -2,12 +2,7 @@
  * Engine tests: universe construction, determinism, graph integrity, transitions, expansion.
  */
 import { describe, expect, it } from 'vitest';
-import {
-  ALL_PACKS,
-  BASE_PACK,
-  allRuleIds,
-  allVarKeys,
-} from '../src/core/packs';
+import { ALL_PACKS, BASE_PACK, allRuleIds, allVarKeys } from '../src/core/packs';
 import {
   LIMITS,
   baseStateFor,
@@ -22,7 +17,13 @@ import {
   subtreeOf,
   updateAssumptions,
 } from '../src/core/engine';
-import { validateGraph, visibleNodes, ancestorsOf, descendantsOf, searchNodes } from '../src/core/graph';
+import {
+  validateGraph,
+  visibleNodes,
+  ancestorsOf,
+  descendantsOf,
+  searchNodes,
+} from '../src/core/graph';
 import { runLayout, boundsOf, layoutAdded, LAYOUT } from '../src/core/layout';
 import { ALL_VARS } from '../src/core/packs/vars';
 import { detectArchetypes } from '../src/core/archetypes';
@@ -76,7 +77,11 @@ describe('createUniverse', () => {
   });
 
   it('never exceeds the node and branch limits', () => {
-    const doc = createUniverse({ packs: ALL_PACKS, seed: 7, prompt: { ...prompt, branchCount: 6 } });
+    const doc = createUniverse({
+      packs: ALL_PACKS,
+      seed: 7,
+      prompt: { ...prompt, branchCount: 6 },
+    });
     expect(Object.keys(doc.nodes).length).toBeLessThanOrEqual(LIMITS.maxNodes);
     expect(Object.keys(doc.branches).length).toBeLessThanOrEqual(LIMITS.maxBranches);
   });
@@ -209,7 +214,9 @@ describe('expansion', () => {
     }
 
     // Node count grows by exactly the number of added nodes.
-    expect(Object.keys(result.doc.nodes).length).toBe(Object.keys(doc.nodes).length + result.added.length);
+    expect(Object.keys(result.doc.nodes).length).toBe(
+      Object.keys(doc.nodes).length + result.added.length
+    );
   });
 
   it('maintains graph integrity after expansion', () => {
@@ -237,7 +244,7 @@ describe('expansion', () => {
     const result = expandNode(doc, target.id, ALL_PACKS);
     const parent = result.doc.nodes[target.id];
     expect(parent?.expanded).toBe(true);
-    expect((parent?.children.length ?? 0)).toBeGreaterThan(target.children.length);
+    expect(parent?.children.length ?? 0).toBeGreaterThan(target.children.length);
     for (const child of parent?.children ?? []) {
       expect(result.doc.nodes[child]?.parents).toContain(target.id);
     }
@@ -416,7 +423,19 @@ describe('rule catalogue sanity', () => {
   });
 
   it('every rule requirement references a known archetype', () => {
-    const known = new Set(['education', 'learning', 'career', 'business', 'relocation', 'creative', 'finance', 'health', 'relationships', 'time', 'uncertainty']);
+    const known = new Set([
+      'education',
+      'learning',
+      'career',
+      'business',
+      'relocation',
+      'creative',
+      'finance',
+      'health',
+      'relationships',
+      'time',
+      'uncertainty',
+    ]);
     for (const pack of ALL_PACKS) {
       for (const rule of pack.rules) {
         for (const req of rule.requires ?? []) {
@@ -460,7 +479,9 @@ describe('rule catalogue sanity', () => {
   });
 
   it('detectArchetypes returns ids that exist in the pack registry', () => {
-    const ids = detectArchetypes('I want to start a business and relocate for a new career while managing my health and money');
+    const ids = detectArchetypes(
+      'I want to start a business and relocate for a new career while managing my health and money'
+    );
     expect(ids.length).toBeGreaterThan(0);
     const packIds = new Set(ALL_PACKS.map((p) => p.id));
     for (const id of ids) expect(packIds.has(id)).toBe(true);

@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.0] - 2026-10-20
 
 ### Added
+
 - Initial release: What If? — The Infinite Lives Engine
 - Interactive multiverse graph (Canvas2D) with pan/zoom/drag/search/minimap
 - Deterministic rule-based simulation engine (76 rules, 12 packs)

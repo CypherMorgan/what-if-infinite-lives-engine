@@ -10,8 +10,17 @@ import type { NodeId, SimEdge, SimNode, SimulationDoc } from '../../core/types';
 import { visibleNodes } from '../../core/graph';
 import { LAYOUT } from '../../core/layout';
 
-export interface Camera { x: number; y: number; scale: number; }
-export interface LayoutBox { x: number; y: number; w: number; h: number; }
+export interface Camera {
+  x: number;
+  y: number;
+  scale: number;
+}
+export interface LayoutBox {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
 
 export interface RenderOptions {
   selection: Set<NodeId>;
@@ -60,7 +69,7 @@ const TYPE_TINT: Record<SimNode['type'], [number, number, number]> = {
 };
 
 function hueRgb(hue: number, s = 0.62, l = 0.62): [number, number, number] {
-  return hslToRgb(((hue % 360) + 360) % 360 / 360, s, l);
+  return hslToRgb((((hue % 360) + 360) % 360) / 360, s, l);
 }
 
 function hslToRgb(h: number, s: number, l: number): [number, number, number] {
@@ -121,8 +130,12 @@ export class GraphRenderer {
   }
 
   /** Canvas size in CSS pixels (used by the minimap for viewport mapping). */
-  get width(): number { return this.w; }
-  get height(): number { return this.h; }
+  get width(): number {
+    return this.w;
+  }
+  get height(): number {
+    return this.h;
+  }
 
   dispose(): void {
     if (this.raf) cancelAnimationFrame(this.raf);
@@ -172,8 +185,12 @@ export class GraphRenderer {
     const now = performance.now();
     for (const id of ids) {
       const v = this.views.get(id);
-      if (v) { v.born = now; v.grow = 0; }
-      for (const e of Object.values(this.doc?.edges ?? {})) if (e.to === id) this.edgeAnims.set(e.id, now);
+      if (v) {
+        v.born = now;
+        v.grow = 0;
+      }
+      for (const e of Object.values(this.doc?.edges ?? {}))
+        if (e.to === id) this.edgeAnims.set(e.id, now);
     }
     this.invalidate();
   }
@@ -181,11 +198,17 @@ export class GraphRenderer {
   /* ---------------- transforms ---------------- */
 
   toScreen(wx: number, wy: number): [number, number] {
-    return [(wx - this.camera.x) * this.camera.scale + this.w / 2, (wy - this.camera.y) * this.camera.scale + this.h / 2];
+    return [
+      (wx - this.camera.x) * this.camera.scale + this.w / 2,
+      (wy - this.camera.y) * this.camera.scale + this.h / 2,
+    ];
   }
 
   toWorld(sx: number, sy: number): [number, number] {
-    return [(sx - this.w / 2) / this.camera.scale + this.camera.x, (sy - this.h / 2) / this.camera.scale + this.camera.y];
+    return [
+      (sx - this.w / 2) / this.camera.scale + this.camera.x,
+      (sy - this.h / 2) / this.camera.scale + this.camera.y,
+    ];
   }
 
   setDocument(doc: SimulationDoc): void {
@@ -221,14 +244,18 @@ export class GraphRenderer {
     const list = [...this.views.values()];
     for (let i = list.length - 1; i >= 0; i--) {
       const v = list[i]!;
-      if (wx >= v.box.x && wx <= v.box.x + v.box.w && wy >= v.box.y && wy <= v.box.y + v.box.h) return v.id;
+      if (wx >= v.box.x && wx <= v.box.x + v.box.w && wy >= v.box.y && wy <= v.box.y + v.box.h)
+        return v.id;
     }
     return null;
   }
 
   contentBounds(): { x0: number; y0: number; x1: number; y1: number } | null {
     if (this.views.size === 0) return null;
-    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    let x0 = Infinity,
+      y0 = Infinity,
+      x1 = -Infinity,
+      y1 = -Infinity;
     for (const v of this.views.values()) {
       x0 = Math.min(x0, v.box.x);
       y0 = Math.min(y0, v.box.y);
@@ -262,7 +289,8 @@ export class GraphRenderer {
     const matching = new Set<NodeId>();
     if (q.length >= 2) {
       for (const n of Object.values(this.doc.nodes)) {
-        if (n.title.toLowerCase().includes(q) || n.summary.toLowerCase().includes(q)) matching.add(n.id);
+        if (n.title.toLowerCase().includes(q) || n.summary.toLowerCase().includes(q))
+          matching.add(n.id);
       }
     }
 
@@ -292,8 +320,14 @@ export class GraphRenderer {
     ctx.beginPath();
     const startX = ((ox % step) + step) % step;
     const startY = ((oy % step) + step) % step;
-    for (let x = startX; x < this.w; x += step) { ctx.moveTo(Math.round(x) + 0.5, 0); ctx.lineTo(Math.round(x) + 0.5, this.h); }
-    for (let y = startY; y < this.h; y += step) { ctx.moveTo(0, Math.round(y) + 0.5); ctx.lineTo(this.w, Math.round(y) + 0.5); }
+    for (let x = startX; x < this.w; x += step) {
+      ctx.moveTo(Math.round(x) + 0.5, 0);
+      ctx.lineTo(Math.round(x) + 0.5, this.h);
+    }
+    for (let y = startY; y < this.h; y += step) {
+      ctx.moveTo(0, Math.round(y) + 0.5);
+      ctx.lineTo(this.w, Math.round(y) + 0.5);
+    }
     ctx.stroke();
     ctx.restore();
   }
@@ -314,7 +348,8 @@ export class GraphRenderer {
 
     const anim = this.edgeAnims.get(e.id);
     let progress = 1;
-    if (anim !== undefined && !this.opts.reducedMotion) progress = clamp01((performance.now() - anim) / 420);
+    if (anim !== undefined && !this.opts.reducedMotion)
+      progress = clamp01((performance.now() - anim) / 420);
 
     const accent = hueRgb(a.hue, 0.7, 0.62);
     ctx.save();
@@ -422,9 +457,16 @@ export class GraphRenderer {
 
     // card body
     const grad = ctx.createLinearGradient(x, y, x, y + h);
-    if (sel) { grad.addColorStop(0, '#182748'); grad.addColorStop(1, '#0e1730'); }
-    else if (hover) { grad.addColorStop(0, '#141d38'); grad.addColorStop(1, '#0d1325'); }
-    else { grad.addColorStop(0, '#101528'); grad.addColorStop(1, '#0a0e1c'); }
+    if (sel) {
+      grad.addColorStop(0, '#182748');
+      grad.addColorStop(1, '#0e1730');
+    } else if (hover) {
+      grad.addColorStop(0, '#141d38');
+      grad.addColorStop(1, '#0d1325');
+    } else {
+      grad.addColorStop(0, '#101528');
+      grad.addColorStop(1, '#0a0e1c');
+    }
     ctx.fillStyle = grad;
     roundRect(ctx, x, y, w, h, r);
     ctx.fill();
@@ -516,10 +558,24 @@ export class GraphRenderer {
 /* helpers                                                             */
 /* ------------------------------------------------------------------ */
 
-function easeOutCubic(t: number): number { return 1 - Math.pow(1 - t, 3); }
-function clamp01(v: number): number { return Math.max(0, Math.min(1, v)); }
+function easeOutCubic(t: number): number {
+  return 1 - Math.pow(1 - t, 3);
+}
+function clamp01(v: number): number {
+  return Math.max(0, Math.min(1, v));
+}
 
-function bez(x0: number, y0: number, x1: number, y1: number, x2: number, y2: number, x3: number, y3: number, t: number): [number, number] {
+function bez(
+  x0: number,
+  y0: number,
+  x1: number,
+  y1: number,
+  x2: number,
+  y2: number,
+  x3: number,
+  y3: number,
+  t: number
+): [number, number] {
   const mt = 1 - t;
   const a = mt * mt * mt;
   const b = 3 * mt * mt * t;
@@ -528,7 +584,14 @@ function bez(x0: number, y0: number, x1: number, y1: number, x2: number, y2: num
   return [a * x0 + b * x1 + c * x2 + d * x3, a * y0 + b * y1 + c * y2 + d * y3];
 }
 
-function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number): void {
+function roundRect(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  r: number
+): void {
   const rr = Math.max(0, Math.min(r, w / 2, h / 2));
   ctx.beginPath();
   ctx.moveTo(x + rr, y);
@@ -553,10 +616,17 @@ function ellipsize(ctx: CanvasRenderingContext2D, text: string, maxW: number): s
 }
 
 function shortKey(key: string): string {
-  return key.replace(/([A-Z])/g, ' $1').trim().slice(0, 10);
+  return key
+    .replace(/([A-Z])/g, ' $1')
+    .trim()
+    .slice(0, 10);
 }
 
-function uiFont(): string { return '"Segoe UI", system-ui, sans-serif'; }
-function monoFont(): string { return '"Cascadia Code", Consolas, monospace'; }
+function uiFont(): string {
+  return '"Segoe UI", system-ui, sans-serif';
+}
+function monoFont(): string {
+  return '"Cascadia Code", Consolas, monospace';
+}
 
 export { hueRgb, rgba };

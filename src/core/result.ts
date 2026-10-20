@@ -27,5 +27,5 @@ export const appError = (
   code: string,
   message: string,
   detail?: string,
-  recoverable = true,
+  recoverable = true
 ): AppError => ({ code, message, ...(detail ? { detail } : {}), recoverable });

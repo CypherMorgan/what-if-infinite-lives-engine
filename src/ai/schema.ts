@@ -101,7 +101,12 @@ const NODE_TYPES: ReadonlySet<string> = new Set([
 ]);
 
 const EDGE_KINDS: ReadonlySet<string> = new Set(['causal', 'choice', 'alternative', 'consequence']);
-const EVIDENCE: ReadonlySet<string> = new Set(['user-fact', 'research', 'assumption', 'speculation']);
+const EVIDENCE: ReadonlySet<string> = new Set([
+  'user-fact',
+  'research',
+  'assumption',
+  'speculation',
+]);
 const EFFECT_OPS: ReadonlySet<string> = new Set(['add', 'set', 'mul']);
 
 function isObject(v: unknown): v is Record<string, unknown> {
@@ -188,19 +193,35 @@ export function parseScenarioResponse(raw: string): AiParseResult {
   let dropped = 0;
 
   if (typeof raw !== 'string' || raw.trim().length === 0) {
-    return { ok: false, issues: [{ path: '', message: 'The provider returned an empty response.', fatal: true }], dropped: 0 };
+    return {
+      ok: false,
+      issues: [{ path: '', message: 'The provider returned an empty response.', fatal: true }],
+      dropped: 0,
+    };
   }
   if (raw.length > AI_LIMITS.maxResponseChars) {
     return {
       ok: false,
-      issues: [{ path: '', message: `Response was ${raw.length} characters, exceeding the limit of ${AI_LIMITS.maxResponseChars}.`, fatal: true }],
+      issues: [
+        {
+          path: '',
+          message: `Response was ${raw.length} characters, exceeding the limit of ${AI_LIMITS.maxResponseChars}.`,
+          fatal: true,
+        },
+      ],
       dropped: 0,
     };
   }
 
   const json = extractJson(raw);
   if (!json) {
-    return { ok: false, issues: [{ path: '', message: 'No JSON object could be found in the response.', fatal: true }], dropped: 0 };
+    return {
+      ok: false,
+      issues: [
+        { path: '', message: 'No JSON object could be found in the response.', fatal: true },
+      ],
+      dropped: 0,
+    };
   }
 
   let parsed: unknown;
@@ -208,16 +229,28 @@ export function parseScenarioResponse(raw: string): AiParseResult {
     parsed = JSON.parse(json);
   } catch (e) {
     const message = e instanceof Error ? e.message : 'unknown parse error';
-    return { ok: false, issues: [{ path: '', message: `The response was not valid JSON: ${message}`, fatal: true }], dropped: 0 };
+    return {
+      ok: false,
+      issues: [{ path: '', message: `The response was not valid JSON: ${message}`, fatal: true }],
+      dropped: 0,
+    };
   }
 
   if (!isObject(parsed)) {
-    return { ok: false, issues: [{ path: '', message: 'The response was not a JSON object.', fatal: true }], dropped: 0 };
+    return {
+      ok: false,
+      issues: [{ path: '', message: 'The response was not a JSON object.', fatal: true }],
+      dropped: 0,
+    };
   }
 
   const rawNodes = Array.isArray(parsed['nodes']) ? parsed['nodes'] : [];
   if (rawNodes.length === 0) {
-    return { ok: false, issues: [{ path: 'nodes', message: 'The response contained no nodes.', fatal: true }], dropped: 0 };
+    return {
+      ok: false,
+      issues: [{ path: 'nodes', message: 'The response contained no nodes.', fatal: true }],
+      dropped: 0,
+    };
   }
   if (rawNodes.length > AI_LIMITS.maxNodes) {
     issues.push({
@@ -249,7 +282,11 @@ export function parseScenarioResponse(raw: string): AiParseResult {
       continue;
     }
     if (seenRefs.has(ref)) {
-      issues.push({ path: `${path}.ref`, message: `Duplicate node reference "${ref}" was dropped.`, fatal: false });
+      issues.push({
+        path: `${path}.ref`,
+        message: `Duplicate node reference "${ref}" was dropped.`,
+        fatal: false,
+      });
       dropped += 1;
       continue;
     }
@@ -257,7 +294,11 @@ export function parseScenarioResponse(raw: string): AiParseResult {
 
     const typeRaw = trim(rawNode['type'], 32);
     if (!NODE_TYPES.has(typeRaw)) {
-      issues.push({ path: `${path}.type`, message: `Unknown node type "${typeRaw}"; treated as "event".`, fatal: false });
+      issues.push({
+        path: `${path}.type`,
+        message: `Unknown node type "${typeRaw}"; treated as "event".`,
+        fatal: false,
+      });
     }
 
     const evidence: AiNode['evidence'] = [];
@@ -311,10 +352,14 @@ export function parseScenarioResponse(raw: string): AiParseResult {
     if (isObject(rawNode['decision'])) {
       const question = trim(rawNode['decision']['question'], 500);
       const options = Array.isArray(rawNode['decision']['options'])
-        ? rawNode['decision']['options'].slice(0, 6).filter(isObject).map((o, idx) => ({
-            id: trim(o['id'], 64) || `opt${idx}`,
-            label: trim(o['label'], 200),
-          })).filter((o) => o.label.length > 0)
+        ? rawNode['decision']['options']
+            .slice(0, 6)
+            .filter(isObject)
+            .map((o, idx) => ({
+              id: trim(o['id'], 64) || `opt${idx}`,
+              label: trim(o['label'], 200),
+            }))
+            .filter((o) => o.label.length > 0)
         : [];
       if (question) node.decision = { question, options };
     }
@@ -328,11 +373,19 @@ export function parseScenarioResponse(raw: string): AiParseResult {
         const value = numberish(item['value']);
         const reason = trim(item['reason'], 240);
         if (!key || value === null || !reason) {
-          issues.push({ path: `${path}.effects`, message: 'An effect was missing a key, value or reason and was dropped.', fatal: false });
+          issues.push({
+            path: `${path}.effects`,
+            message: 'An effect was missing a key, value or reason and was dropped.',
+            fatal: false,
+          });
           continue;
         }
         if (!EFFECT_OPS.has(op)) {
-          issues.push({ path: `${path}.effects.op`, message: `Unknown effect operation "${op}" was dropped.`, fatal: false });
+          issues.push({
+            path: `${path}.effects.op`,
+            message: `Unknown effect operation "${op}" was dropped.`,
+            fatal: false,
+          });
           continue;
         }
         effects.push({ key, op: op as 'add' | 'set' | 'mul', value, reason });
@@ -344,7 +397,14 @@ export function parseScenarioResponse(raw: string): AiParseResult {
   }
 
   if (nodes.length === 0) {
-    return { ok: false, issues: [...issues, { path: 'nodes', message: 'No usable nodes remained after validation.', fatal: true }], dropped };
+    return {
+      ok: false,
+      issues: [
+        ...issues,
+        { path: 'nodes', message: 'No usable nodes remained after validation.', fatal: true },
+      ],
+      dropped,
+    };
   }
 
   // --- Edges: must reference surviving nodes, and must not duplicate each other.
@@ -373,7 +433,11 @@ export function parseScenarioResponse(raw: string): AiParseResult {
       continue;
     }
     if (from === to) {
-      issues.push({ path, message: `Edge "${from}" -> "${to}" is a self-loop and was dropped.`, fatal: false });
+      issues.push({
+        path,
+        message: `Edge "${from}" -> "${to}" is a self-loop and was dropped.`,
+        fatal: false,
+      });
       dropped += 1;
       continue;
     }
@@ -392,7 +456,8 @@ export function parseScenarioResponse(raw: string): AiParseResult {
       to,
       kind: EDGE_KINDS.has(kind) ? (kind as AiEdge['kind']) : 'causal',
       confidence: confidence === 'high' || confidence === 'low' ? confidence : 'medium',
-      hypothesis: trim(rawEdge['hypothesis'], 600) || 'The model treats this as a plausible transition.',
+      hypothesis:
+        trim(rawEdge['hypothesis'], 600) || 'The model treats this as a plausible transition.',
     });
   }
 

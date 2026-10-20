@@ -75,7 +75,7 @@ export type FetchLike = (
     headers: Record<string, string>;
     body: string;
     signal?: AbortSignal;
-  },
+  }
 ) => Promise<{
   ok: boolean;
   status: number;
@@ -162,7 +162,7 @@ export const PROVIDER_PRESETS: ProviderPreset[] = [
  */
 export function normaliseEffects(
   response: AiScenarioResponse,
-  vars: readonly VarDef[],
+  vars: readonly VarDef[]
 ): AiScenarioResponse {
   const allowed = new Set(vars.map((v) => v.key));
   return {
@@ -179,7 +179,7 @@ export function toResult(
   parsed: AiParseResult,
   provider: ProviderId,
   providerLabel: string,
-  elapsedMs: number,
+  elapsedMs: number
 ): GenerationResult {
   const notes = parsed.issues.filter((i) => !i.fatal).map((i) => `${i.path}: ${i.message}`);
   if (!parsed.ok || !parsed.data) {

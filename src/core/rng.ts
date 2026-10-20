@@ -12,7 +12,7 @@ export class Rng {
 
   constructor(seed: number) {
     // Normalise any float/int seed into a 32-bit unsigned integer.
-    this.state = (Math.floor(Math.abs(seed)) >>> 0) || 0x9e3779b9;
+    this.state = Math.floor(Math.abs(seed)) >>> 0 || 0x9e3779b9;
   }
 
   /** Uniform in [0, 1). */
@@ -95,7 +95,7 @@ export function hashSeed(input: string): number {
     h ^= input.charCodeAt(i);
     h = Math.imul(h, 16777619);
   }
-  return (h >>> 0) || 1;
+  return h >>> 0 || 1;
 }
 
 /** Creates a fresh random seed value for a new universe. */

@@ -1,7 +1,9 @@
 ## Description
+
 <!-- Describe the changes and motivation -->
 
 ## Type of Change
+
 - [ ] Bug fix
 - [ ] New feature
 - [ ] Breaking change
@@ -9,6 +11,7 @@
 - [ ] Refactor
 
 ## Checklist
+
 - [ ] `npm run typecheck` passes
 - [ ] `npm run lint` passes (no warnings)
 - [ ] `npm test` passes (all tests)

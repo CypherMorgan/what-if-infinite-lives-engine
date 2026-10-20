@@ -14,7 +14,15 @@
  *    unless the user has explicitly asked for strict behaviour.
  */
 import { parseScenarioResponse, RESPONSE_SCHEMA_SPEC, AI_LIMITS } from './schema';
-import { normaliseEffects, toResult, type FetchLike, type GenerationRequest, type GenerationResult, type ProviderSettings, type ScenarioProvider } from './provider';
+import {
+  normaliseEffects,
+  toResult,
+  type FetchLike,
+  type GenerationRequest,
+  type GenerationResult,
+  type ProviderSettings,
+  type ScenarioProvider,
+} from './provider';
 import { composeScenario } from './offline';
 import { ALL_PACKS } from '../core/packs';
 import { activeRules } from '../core/engine';
@@ -35,9 +43,10 @@ You produce structured, conditional scenarios. You follow these rules absolutely
 
 function userPrompt(request: GenerationRequest): string {
   const { prompt } = request;
-  const archetypes = prompt.archetypes.length > 0
-    ? prompt.archetypes
-    : detectArchetypes(`${prompt.situation} ${prompt.decision} ${prompt.goals.join(' ')}`);
+  const archetypes =
+    prompt.archetypes.length > 0
+      ? prompt.archetypes
+      : detectArchetypes(`${prompt.situation} ${prompt.decision} ${prompt.goals.join(' ')}`);
   const availableRules = activeRules(ALL_PACKS, archetypes)
     .slice(0, 40)
     .map((r) => `- ${r.id}: ${r.label}`)
@@ -114,9 +123,13 @@ function extractContent(payload: unknown): string | null {
   // Some gateways return an array of content parts.
   if (Array.isArray(content)) {
     const text = content
-      .map((part) => (typeof part === 'object' && part !== null && typeof (part as { text?: unknown }).text === 'string'
-        ? (part as { text: string }).text
-        : ''))
+      .map((part) =>
+        typeof part === 'object' &&
+        part !== null &&
+        typeof (part as { text?: unknown }).text === 'string'
+          ? (part as { text: string }).text
+          : ''
+      )
       .join('');
     return text || null;
   }
@@ -135,9 +148,10 @@ export interface HttpProviderDeps {
  */
 export function createHttpProvider(
   settings: ProviderSettings,
-  deps: HttpProviderDeps = {},
+  deps: HttpProviderDeps = {}
 ): ScenarioProvider {
-  const fetchImpl: FetchLike = deps.fetchImpl ?? ((url, init) => fetch(url, init) as unknown as ReturnType<FetchLike>);
+  const fetchImpl: FetchLike =
+    deps.fetchImpl ?? ((url, init) => fetch(url, init) as unknown as ReturnType<FetchLike>);
   const allowFallback = deps.allowFallback !== false;
   const label =
     settings.model && settings.baseUrl
@@ -149,7 +163,7 @@ export function createHttpProvider(
     started: number,
     code: string,
     message: string,
-    detail?: string,
+    detail?: string
   ): Promise<GenerationResult> {
     request.onProgress?.('Provider unavailable — using the built-in engine');
     const data = composeScenario(request.prompt, request.vars);
@@ -184,7 +198,8 @@ export function createHttpProvider(
           elapsedMs: Date.now() - started,
           error: {
             code: 'not_configured',
-            message: 'No provider is configured. Add a base URL and model in Settings, or use the built-in engine.',
+            message:
+              'No provider is configured. Add a base URL and model in Settings, or use the built-in engine.',
           },
         };
       }
@@ -197,7 +212,8 @@ export function createHttpProvider(
           elapsedMs: Date.now() - started,
           error: {
             code: 'missing_key',
-            message: 'This provider needs an API key. Add one in Settings, or use the built-in engine.',
+            message:
+              'This provider needs an API key. Add one in Settings, or use the built-in engine.',
           },
         };
       }
@@ -251,7 +267,8 @@ export function createHttpProvider(
                 : code === 'provider_error'
                   ? `The provider returned a server error (${response.status}).`
                   : `The provider rejected the request (${response.status}).`;
-          if (allowFallback && !settings.strict) return fallback(request, started, code, message, safe);
+          if (allowFallback && !settings.strict)
+            return fallback(request, started, code, message, safe);
           return {
             ok: false,
             provider: 'openai-compatible',
@@ -266,7 +283,8 @@ export function createHttpProvider(
         const text = await response.text();
         if (text.length > AI_LIMITS.maxResponseChars) {
           const message = 'The provider returned more data than the application will accept.';
-          if (allowFallback && !settings.strict) return fallback(request, started, 'oversized', message);
+          if (allowFallback && !settings.strict)
+            return fallback(request, started, 'oversized', message);
           return {
             ok: false,
             provider: 'openai-compatible',
@@ -282,21 +300,27 @@ export function createHttpProvider(
           payload = JSON.parse(text);
         } catch {
           const message = 'The provider did not return valid JSON.';
-          if (allowFallback && !settings.strict) return fallback(request, started, 'bad_envelope', message);
+          if (allowFallback && !settings.strict)
+            return fallback(request, started, 'bad_envelope', message);
           return {
             ok: false,
             provider: 'openai-compatible',
             providerLabel: label,
             notes: [],
             elapsedMs: Date.now() - started,
-            error: { code: 'bad_envelope', message, detail: redact(text.slice(0, 400), settings.apiKey) },
+            error: {
+              code: 'bad_envelope',
+              message,
+              detail: redact(text.slice(0, 400), settings.apiKey),
+            },
           };
         }
 
         const content = extractContent(payload);
         if (!content) {
           const message = 'The provider response contained no message content.';
-          if (allowFallback && !settings.strict) return fallback(request, started, 'empty_content', message);
+          if (allowFallback && !settings.strict)
+            return fallback(request, started, 'empty_content', message);
           return {
             ok: false,
             provider: 'openai-compatible',
@@ -312,9 +336,14 @@ export function createHttpProvider(
 
         if (!parsed.ok || !parsed.data) {
           const fatal = parsed.issues.find((i) => i.fatal);
-          const message = fatal?.message ?? 'The provider returned data that did not pass validation.';
-          const detail = parsed.issues.slice(0, 6).map((i) => `${i.path}: ${i.message}`).join('\n');
-          if (allowFallback && !settings.strict) return fallback(request, started, 'invalid_response', message, detail);
+          const message =
+            fatal?.message ?? 'The provider returned data that did not pass validation.';
+          const detail = parsed.issues
+            .slice(0, 6)
+            .map((i) => `${i.path}: ${i.message}`)
+            .join('\n');
+          if (allowFallback && !settings.strict)
+            return fallback(request, started, 'invalid_response', message, detail);
           return {
             ok: false,
             provider: 'openai-compatible',
@@ -327,10 +356,13 @@ export function createHttpProvider(
 
         const result = toResult(parsed, 'openai-compatible', label, Date.now() - started);
         if (result.data) result.data = normaliseEffects(result.data, request.vars);
-        result.notes.unshift(`Received from ${label}. Scenario text was transmitted to that provider.`);
+        result.notes.unshift(
+          `Received from ${label}. Scenario text was transmitted to that provider.`
+        );
         return result;
       } catch (e) {
-        const aborted = e instanceof Error && (e.name === 'AbortError' || controller.signal.aborted);
+        const aborted =
+          e instanceof Error && (e.name === 'AbortError' || controller.signal.aborted);
         if (request.signal?.aborted) {
           return {
             ok: false,

@@ -689,9 +689,7 @@ export function selectOptions(archetypes: readonly string[], count: number): Bra
   };
 
   // Round-robin across archetypes so one loud archetype does not monopolise the options.
-  const lists = archetypes
-    .map((a) => ARCHETYPE_OPTIONS[a] ?? [])
-    .filter((l) => l.length > 0);
+  const lists = archetypes.map((a) => ARCHETYPE_OPTIONS[a] ?? []).filter((l) => l.length > 0);
   const maxLen = lists.reduce((m, l) => Math.max(m, l.length), 0);
   for (let i = 0; i < maxLen; i += 1) {
     for (const list of lists) push(list[i]);

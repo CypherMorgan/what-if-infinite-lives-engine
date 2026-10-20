@@ -28,14 +28,31 @@ const rules: Rule[] = [
       { key: 'portfolio', op: 'add', value: 9, noise: 0.4, reason: 'finished pieces published' },
       { key: 'skill:craft', op: 'add', value: 6, reason: 'building under real constraints' },
       { key: 'reputation', op: 'add', value: 5, reason: 'visible, inspectable work' },
-      { key: 'optionality', op: 'add', value: 5, reason: 'more paths opened by work people can see' },
-      { key: 'goalProgress', op: 'add', value: 6, reason: 'measured by output rather than by attendance' },
+      {
+        key: 'optionality',
+        op: 'add',
+        value: 5,
+        reason: 'more paths opened by work people can see',
+      },
+      {
+        key: 'goalProgress',
+        op: 'add',
+        value: 6,
+        reason: 'measured by output rather than by attendance',
+      },
       { key: 'stress', op: 'add', value: 4, reason: 'publishing before it feels ready' },
     ],
-    assumptions: ['Feedback and opportunity attach to finished work, and finished work is available to anyone.'],
-    uncertainties: ['Whether anyone is looking; early publishing reaches very few people for a long time.'],
+    assumptions: [
+      'Feedback and opportunity attach to finished work, and finished work is available to anyone.',
+    ],
+    uncertainties: [
+      'Whether anyone is looking; early publishing reaches very few people for a long time.',
+    ],
     evidence: [
-      { cls: 'assumption', text: 'Public work attracts correction and opportunity; the frequency is not modelled.' },
+      {
+        cls: 'assumption',
+        text: 'Public work attracts correction and opportunity; the frequency is not modelled.',
+      },
     ],
     tradeoffs: {
       gains: ['A trail of finished work, which is what gatekeepers actually inspect.'],
@@ -53,31 +70,57 @@ const rules: Rule[] = [
       'Consumption accumulates understanding and produces no artefact. The tell is a rising theory score beside a flat portfolio.',
     requires: ['learning'],
     type: 'setback',
-    when: { all: [{ key: 'portfolio', op: '<', value: 30 }, { key: 'skill:structured-theory', op: '>=', value: 35 }] },
+    when: {
+      all: [
+        { key: 'portfolio', op: '<', value: 30 },
+        { key: 'skill:structured-theory', op: '>=', value: 35 },
+      ],
+    },
     weight: 12,
     monthsMin: 3,
     monthsMax: 48,
     durationMonths: 4,
     cooldown: 14,
     effects: [
-      { key: 'skill:structured-theory', op: 'add', value: 6, reason: 'consumption keeps accumulating' },
-      { key: 'portfolio', op: 'add', value: -2, reason: 'existing pieces date while nothing new ships' },
+      {
+        key: 'skill:structured-theory',
+        op: 'add',
+        value: 6,
+        reason: 'consumption keeps accumulating',
+      },
+      {
+        key: 'portfolio',
+        op: 'add',
+        value: -2,
+        reason: 'existing pieces date while nothing new ships',
+      },
       { key: 'goalProgress', op: 'add', value: -7, reason: 'effort without external evidence' },
       { key: 'stress', op: 'add', value: 6, reason: 'hours spent with no visible movement' },
       { key: 'optionality', op: 'add', value: -4, reason: 'no artifact exists to open a door' },
       { key: 'information', op: 'add', value: 10, reason: 'the method is measurably not working' },
     ],
-    assumptions: ['Consuming material and producing work are different activities with different returns.'],
-    uncertainties: ['How long someone stays inside the loop; it is self-reinforcing and rarely interrupted by events.'],
+    assumptions: [
+      'Consuming material and producing work are different activities with different returns.',
+    ],
+    uncertainties: [
+      'How long someone stays inside the loop; it is self-reinforcing and rarely interrupted by events.',
+    ],
     evidence: [
-      { cls: 'speculation', text: 'Tutorial hell is a widely reported pattern among self-directed learners, not a measured phenomenon.' },
+      {
+        cls: 'speculation',
+        text: 'Tutorial hell is a widely reported pattern among self-directed learners, not a measured phenomenon.',
+      },
     ],
     tradeoffs: {
       gains: ['A broad map of the field and very cheap experimentation.'],
       costs: ['Calendar time, and the compounding advantage of having shipped nothing.'],
     },
-    failurePoints: ['Finishing the course is treated as the goal, which is exactly what keeps the loop closed.'],
-    nextSteps: ['Stop adding courses and spend the next ten hours finishing one thing a stranger could use.'],
+    failurePoints: [
+      'Finishing the course is treated as the goal, which is exactly what keeps the loop closed.',
+    ],
+    nextSteps: [
+      'Stop adding courses and spend the next ten hours finishing one thing a stranger could use.',
+    ],
     imagination: 0,
   },
   {
@@ -94,17 +137,38 @@ const rules: Rule[] = [
     durationMonths: 3,
     once: true,
     effects: [
-      { key: 'income', op: 'add', value: 520, noise: 0.6, reason: 'paid work won from the portfolio' },
+      {
+        key: 'income',
+        op: 'add',
+        value: 520,
+        noise: 0.6,
+        reason: 'paid work won from the portfolio',
+      },
       { key: 'money', op: 'add', value: 900, noise: 0.7, reason: 'the first payment for it' },
       { key: 'reputation', op: 'add', value: 9, reason: 'a buyer who can vouch for the work' },
-      { key: 'skill:client-work', op: 'add', value: 7, reason: 'scoping and delivering for a real buyer' },
-      { key: 'optionality', op: 'add', value: 7, reason: 'paid evidence that other people can see' },
+      {
+        key: 'skill:client-work',
+        op: 'add',
+        value: 7,
+        reason: 'scoping and delivering for a real buyer',
+      },
+      {
+        key: 'optionality',
+        op: 'add',
+        value: 7,
+        reason: 'paid evidence that other people can see',
+      },
       { key: 'stress', op: 'add', value: 5, reason: 'delivering for someone who is paying' },
     ],
-    assumptions: ['A portfolio of finished work is enough to reduce the risk for a first small commission.'],
+    assumptions: [
+      'A portfolio of finished work is enough to reduce the risk for a first small commission.',
+    ],
     uncertainties: ['Whether the first buyer arrives through the portfolio or through plain luck.'],
     evidence: [
-      { cls: 'assumption', text: 'Inspectable work lowers the information gap for a first buyer; no outcome rate is claimed.' },
+      {
+        cls: 'assumption',
+        text: 'Inspectable work lowers the information gap for a first buyer; no outcome rate is claimed.',
+      },
     ],
     tradeoffs: {
       gains: ['Market evidence, and a reference worth more than any certificate.'],
@@ -130,14 +194,39 @@ const rules: Rule[] = [
     cooldown: 20,
     effects: [
       { key: 'information', op: 'add', value: 12, reason: 'a diagnosis of why progress stopped' },
-      { key: 'decisionConfidence', op: 'add', value: 8, reason: 'a choice made from evidence rather than mood' },
-      { key: 'skill:craft', op: 'add', value: 5, noise: 0.5, reason: 'harder, better-targeted practice' },
+      {
+        key: 'decisionConfidence',
+        op: 'add',
+        value: 8,
+        reason: 'a choice made from evidence rather than mood',
+      },
+      {
+        key: 'skill:craft',
+        op: 'add',
+        value: 5,
+        noise: 0.5,
+        reason: 'harder, better-targeted practice',
+      },
       { key: 'goalProgress', op: 'add', value: 7, reason: 'the curve moves again' },
-      { key: 'focus', op: 'add', value: 6, reason: 'one method chosen deliberately instead of several tried' },
-      { key: 'stress', op: 'add', value: 5, reason: 'deliberate practice is uncomfortable by design' },
+      {
+        key: 'focus',
+        op: 'add',
+        value: 6,
+        reason: 'one method chosen deliberately instead of several tried',
+      },
+      {
+        key: 'stress',
+        op: 'add',
+        value: 5,
+        reason: 'deliberate practice is uncomfortable by design',
+      },
     ],
-    assumptions: ['Changing difficulty or feedback source restarts progress; this is common but unmeasured here.'],
-    uncertainties: ['Whether the new method suits this person; there is no way to know in advance of trying it.'],
+    assumptions: [
+      'Changing difficulty or feedback source restarts progress; this is common but unmeasured here.',
+    ],
+    uncertainties: [
+      'Whether the new method suits this person; there is no way to know in advance of trying it.',
+    ],
     evidence: [
       {
         cls: 'research',
@@ -159,7 +248,12 @@ const rules: Rule[] = [
       'You fix or extend something a community depends on, and the change is adopted rather than acknowledged. Maintainers now recognise the name, which is a form of reputation no credential can supply because anyone can verify it by reading the history of the project.',
     requires: ['learning'],
     type: 'opportunity',
-    when: { all: [{ key: 'skill:craft', op: '>=', value: 40 }, { key: 'portfolio', op: '>=', value: 25 }] },
+    when: {
+      all: [
+        { key: 'skill:craft', op: '>=', value: 40 },
+        { key: 'portfolio', op: '>=', value: 25 },
+      ],
+    },
     weight: 5,
     monthsMin: 6,
     monthsMax: 84,
@@ -167,23 +261,45 @@ const rules: Rule[] = [
     cooldown: 18,
     once: true,
     effects: [
-      { key: 'reputation', op: 'add', value: 12, reason: 'work kept in a project other people rely on' },
+      {
+        key: 'reputation',
+        op: 'add',
+        value: 12,
+        reason: 'work kept in a project other people rely on',
+      },
       { key: 'network', op: 'add', value: 10, reason: 'maintainers who know the commit history' },
       { key: 'skill:craft', op: 'add', value: 7, reason: 'reviewed by people better than you' },
       { key: 'optionality', op: 'add', value: 9, reason: 'a reputation that travels with you' },
-      { key: 'skill:communication', op: 'add', value: 5, reason: 'explaining decisions to strangers in writing' },
-      { key: 'stress', op: 'add', value: 3, reason: 'public review from people you have never met' },
+      {
+        key: 'skill:communication',
+        op: 'add',
+        value: 5,
+        reason: 'explaining decisions to strangers in writing',
+      },
+      {
+        key: 'stress',
+        op: 'add',
+        value: 3,
+        reason: 'public review from people you have never met',
+      },
     ],
     assumptions: ['Communities reward visible, correct contributions regardless of who made them.'],
-    uncertainties: ['Whether the maintainers are welcoming; some projects are not, and that is not visible from outside.'],
+    uncertainties: [
+      'Whether the maintainers are welcoming; some projects are not, and that is not visible from outside.',
+    ],
     evidence: [
-      { cls: 'assumption', text: 'Peer review in public projects is modelled as accelerating skill and reputation together.' },
+      {
+        cls: 'assumption',
+        text: 'Peer review in public projects is modelled as accelerating skill and reputation together.',
+      },
     ],
     tradeoffs: {
       gains: ['Unprompted credibility and a network built on demonstrated competence.'],
       costs: ['Unpaid hours, and reputational cost if the contribution turns out to be wrong.'],
     },
-    nextSteps: ['Start with documentation or a small fix; the real barrier is social, not technical.'],
+    nextSteps: [
+      'Start with documentation or a small fix; the real barrier is social, not technical.',
+    ],
     imagination: 0.1,
   },
   {
@@ -193,22 +309,46 @@ const rules: Rule[] = [
       'The more you learn, the more precisely you can see how much you do not know, and the comparison set has quietly changed to people who have been at it for a decade. Capability is rising while confidence falls, which is a familiar pattern rather than a verdict, but it still costs you the most visible work.',
     requires: ['learning'],
     type: 'setback',
-    when: { any: [{ key: 'reputation', op: '>=', value: 35 }, { key: 'skill:craft', op: '>=', value: 55 }] },
+    when: {
+      any: [
+        { key: 'reputation', op: '>=', value: 35 },
+        { key: 'skill:craft', op: '>=', value: 55 },
+      ],
+    },
     weight: 9,
     monthsMin: 6,
     monthsMax: 96,
     durationMonths: 3,
     cooldown: 15,
     effects: [
-      { key: 'wellbeing', op: 'add', value: -8, reason: 'measured against an expert reference set' },
+      {
+        key: 'wellbeing',
+        op: 'add',
+        value: -8,
+        reason: 'measured against an expert reference set',
+      },
       { key: 'focus', op: 'add', value: -9, reason: 'attention spent on self-assessment' },
       { key: 'stress', op: 'add', value: 7, reason: 'anxiety about the work being seen' },
-      { key: 'goalProgress', op: 'add', value: -4, reason: 'the harder, more visible task gets avoided' },
-      { key: 'decisionConfidence', op: 'add', value: -6, reason: 'choices deferred while doubt is resolved' },
+      {
+        key: 'goalProgress',
+        op: 'add',
+        value: -4,
+        reason: 'the harder, more visible task gets avoided',
+      },
+      {
+        key: 'decisionConfidence',
+        op: 'add',
+        value: -6,
+        reason: 'choices deferred while doubt is resolved',
+      },
       { key: 'information', op: 'add', value: 5, reason: 'a more accurate map of the field' },
     ],
-    assumptions: ['Self-assessment improves as competence grows, so discomfort here is expected rather than pathological.'],
-    uncertainties: ['How much this costs this person; for some it is a rounding error, for others it stops the work.'],
+    assumptions: [
+      'Self-assessment improves as competence grows, so discomfort here is expected rather than pathological.',
+    ],
+    uncertainties: [
+      'How much this costs this person; for some it is a rounding error, for others it stops the work.',
+    ],
     evidence: [
       {
         cls: 'research',
@@ -220,8 +360,12 @@ const rules: Rule[] = [
       gains: ['A calibrated sense of where the real standard sits.'],
       costs: ['Confidence and forward motion, while nothing measurable has changed.'],
     },
-    failurePoints: ['The instinctive response is to stop publishing, which removes the only feedback loop available.'],
-    nextSteps: ["Compare against your own last six months, not against someone else's public profile."],
+    failurePoints: [
+      'The instinctive response is to stop publishing, which removes the only feedback loop available.',
+    ],
+    nextSteps: [
+      "Compare against your own last six months, not against someone else's public profile.",
+    ],
     imagination: 0,
   },
 ];

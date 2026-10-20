@@ -48,8 +48,12 @@ if (res.status !== 0 || !binaryPresent()) {
   console.error('');
   console.error('[ensure-electron] Could not install the Electron runtime automatically.');
   console.error('[ensure-electron] Fix one of these and re-run `npm install`:');
-  console.error('[ensure-electron]   - Internet access to https://github.com (Electron binaries host)');
-  console.error('[ensure-electron]   - Or run manually:  cd node_modules/electron && node install.js');
+  console.error(
+    '[ensure-electron]   - Internet access to https://github.com (Electron binaries host)'
+  );
+  console.error(
+    '[ensure-electron]   - Or run manually:  cd node_modules/electron && node install.js'
+  );
   if (process.env.WHATIF_STRICT_POSTINSTALL === '1') process.exit(1);
   process.exit(0);
 }

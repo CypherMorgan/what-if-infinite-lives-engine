@@ -119,7 +119,7 @@ describe('applyDecisionChange', () => {
   it('rejects an option that is already one of the branches', () => {
     const doc = makeDoc();
     const alreadyThere = Object.values(doc.nodes).find(
-      (n) => n.type === 'decision' && n.depth === 1,
+      (n) => n.type === 'decision' && n.depth === 1
     );
     const option = Object.values(ARCHETYPE_OPTIONS)
       .flat()
@@ -135,7 +135,7 @@ describe('applyDecisionChange', () => {
     const parentLabels = new Set(
       Object.values(parent.nodes)
         .filter((n) => n.type === 'decision' && n.depth === 1)
-        .map((n) => n.title),
+        .map((n) => n.title)
     );
     const option = Object.values(ARCHETYPE_OPTIONS)
       .flat()
@@ -153,7 +153,7 @@ describe('applyDecisionChange', () => {
     // The original universe must be untouched by the operation.
     expect(parent.counterfactual).toBeUndefined();
     const decisions = Object.values(result.doc.nodes).filter(
-      (n) => n.type === 'decision' && n.depth === 1,
+      (n) => n.type === 'decision' && n.depth === 1
     );
     expect(decisions.map((d) => d.title)).toEqual([option.label]);
   });

@@ -27,11 +27,7 @@ import { Rng, hashSeed, randomSeed } from '../core/rng';
 import { formatValue, getState } from '../core/vars';
 import { ALL_VARS } from '../core/packs/vars';
 import type { ScenarioPrompt, StateVector, VarDef } from '../core/types';
-import type {
-  AiEdge,
-  AiNode,
-  AiScenarioResponse,
-} from './schema';
+import type { AiEdge, AiNode, AiScenarioResponse } from './schema';
 import type { GenerationRequest, GenerationResult, ScenarioProvider } from './provider';
 
 const USAGE_LIMIT = LIMITS.initialStepsPerBranch;
@@ -48,14 +44,17 @@ interface ComposerOptions {
 export function composeScenario(
   prompt: ScenarioPrompt,
   vars: readonly VarDef[] = ALL_VARS,
-  options: ComposerOptions = {},
+  options: ComposerOptions = {}
 ): AiScenarioResponse {
-  const seed = options.seed ?? (hashSeed(`${prompt.situation}|${prompt.decision}|${prompt.horizon}`) || randomSeed());
+  const seed =
+    options.seed ??
+    (hashSeed(`${prompt.situation}|${prompt.decision}|${prompt.horizon}`) || randomSeed());
   const rng = new Rng(seed);
   const ctx = buildTextContext(prompt);
-  const archetypes = prompt.archetypes.length > 0
-    ? prompt.archetypes
-    : detectArchetypes(`${prompt.situation} ${prompt.decision} ${prompt.goals.join(' ')}`);
+  const archetypes =
+    prompt.archetypes.length > 0
+      ? prompt.archetypes
+      : detectArchetypes(`${prompt.situation} ${prompt.decision} ${prompt.goals.join(' ')}`);
 
   const optionList = selectOptions(archetypes, Math.max(2, Math.min(prompt.branchCount, 6)));
 
@@ -79,9 +78,7 @@ export function composeScenario(
     uncertainties: [
       'Everything below is conditional on this situation being described accurately.',
     ],
-    evidence: [
-      { cls: 'user-fact', text: 'Taken directly from what you described.' },
-    ],
+    evidence: [{ cls: 'user-fact', text: 'Taken directly from what you described.' }],
   });
 
   const baseState = derive(seedState(prompt, vars), archetypes);
@@ -218,23 +215,23 @@ export function composeScenario(
     .slice(0, 4);
 
   globalAssumptions.push(
-    `Progress toward your goals is computed from ${carry.join(', ')}. Those are the concrete things this situation builds, not a judgement of the outcome.`,
+    `Progress toward your goals is computed from ${carry.join(', ')}. Those are the concrete things this situation builds, not a judgement of the outcome.`
   );
   globalAssumptions.push(
-    `Monthly income and costs accrue continuously across the whole horizon; events change the rates rather than the totals directly.`,
+    `Monthly income and costs accrue continuously across the whole horizon; events change the rates rather than the totals directly.`
   );
   globalAssumptions.push(
-    'The rules catalogue encodes typical dynamics for these kinds of decisions. It does not encode anything specific about you.',
+    'The rules catalogue encodes typical dynamics for these kinds of decisions. It does not encode anything specific about you.'
   );
 
   unknowns.push(
-    'Timing and luck. Two people taking identical steps can end up in very different places for reasons no model can capture.',
+    'Timing and luck. Two people taking identical steps can end up in very different places for reasons no model can capture.'
   );
   unknowns.push(
-    'Your actual tolerance for uncertainty, which usually only becomes clear after living with a choice.',
+    'Your actual tolerance for uncertainty, which usually only becomes clear after living with a choice.'
   );
   unknowns.push(
-    'External conditions over the horizon: the labour market, the cost of living, the availability of the specific opportunities you would want.',
+    'External conditions over the horizon: the labour market, the cost of living, the availability of the specific opportunities you would want.'
   );
 
   return {
@@ -273,7 +270,7 @@ function seedState(prompt: ScenarioPrompt, vars: readonly VarDef[]): StateVector
 function describeBiggestGains(
   after: StateVector,
   before: StateVector,
-  vars: readonly VarDef[],
+  vars: readonly VarDef[]
 ): string[] {
   const moves: { text: string; magnitude: number }[] = [];
   for (const def of vars) {
@@ -292,7 +289,7 @@ function describeBiggestGains(
 function describeBiggestCosts(
   after: StateVector,
   before: StateVector,
-  vars: readonly VarDef[],
+  vars: readonly VarDef[]
 ): string[] {
   const moves: { text: string; magnitude: number }[] = [];
   for (const def of vars) {
@@ -323,9 +320,10 @@ export function catalogueStats(prompt: ScenarioPrompt): {
   ruleCount: number;
   optionCount: number;
 } {
-  const archetypes = prompt.archetypes.length > 0
-    ? prompt.archetypes
-    : detectArchetypes(`${prompt.situation} ${prompt.decision} ${prompt.goals.join(' ')}`);
+  const archetypes =
+    prompt.archetypes.length > 0
+      ? prompt.archetypes
+      : detectArchetypes(`${prompt.situation} ${prompt.decision} ${prompt.goals.join(' ')}`);
   const rules = activeRules(ALL_PACKS, archetypes);
   const options = selectOptions(archetypes, Math.max(2, Math.min(prompt.branchCount, 6)));
   return { archetypes, ruleCount: rules.length, optionCount: options.length };
@@ -339,9 +337,12 @@ export const offlineProvider: ScenarioProvider = {
   async generate(request: GenerationRequest): Promise<GenerationResult> {
     const started = Date.now();
     request.onProgress?.('Detecting the shape of the situation');
-    const archetypes = request.prompt.archetypes.length > 0
-      ? request.prompt.archetypes
-      : detectArchetypes(`${request.prompt.situation} ${request.prompt.decision} ${request.prompt.goals.join(' ')}`);
+    const archetypes =
+      request.prompt.archetypes.length > 0
+        ? request.prompt.archetypes
+        : detectArchetypes(
+            `${request.prompt.situation} ${request.prompt.decision} ${request.prompt.goals.join(' ')}`
+          );
     const prompt: ScenarioPrompt = { ...request.prompt, archetypes };
 
     request.onProgress?.(`Selected ${archetypes.length} relevant rule packs`);
@@ -356,7 +357,12 @@ export const offlineProvider: ScenarioProvider = {
         ok: true,
         provider: 'offline',
         providerLabel: this.label,
-        data: { ...data, nodes: [...extra.nodes], edges: [...extra.edges], branchLabel: `Following: ${request.nodeTitle}` },
+        data: {
+          ...data,
+          nodes: [...extra.nodes],
+          edges: [...extra.edges],
+          branchLabel: `Following: ${request.nodeTitle}`,
+        },
         notes: ['Composed locally by the rules engine.'],
         elapsedMs: Date.now() - started,
       };
@@ -367,9 +373,7 @@ export const offlineProvider: ScenarioProvider = {
       provider: 'offline',
       providerLabel: this.label,
       data,
-      notes: [
-        `Composed locally from ${archetypes.length} rule packs. Nothing was sent anywhere.`,
-      ],
+      notes: [`Composed locally from ${archetypes.length} rule packs. Nothing was sent anywhere.`],
       elapsedMs: Date.now() - started,
     };
   },
@@ -379,7 +383,7 @@ export const offlineProvider: ScenarioProvider = {
 function expansionFor(
   prompt: ScenarioPrompt,
   nodeTitle: string,
-  state: StateVector,
+  state: StateVector
 ): { nodes: AiNode[]; edges: AiEdge[] } {
   const rng = new Rng(hashSeed(`${prompt.decision}|${nodeTitle}`));
   const rules = activeRules(ALL_PACKS, prompt.archetypes);

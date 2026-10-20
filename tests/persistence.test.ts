@@ -65,7 +65,7 @@ describe('export envelope', () => {
     const doc = makeDoc();
     expect(exportFileName({ ...doc, title: '' })).toBe('universe.whatif.json');
     expect(exportFileName({ ...doc, title: 'What if I moved to Lisbon??' })).toBe(
-      'what-if-i-moved-to-lisbon.whatif.json',
+      'what-if-i-moved-to-lisbon.whatif.json'
     );
   });
 
@@ -80,8 +80,26 @@ describe('export envelope', () => {
 
   it('serialises the index newest-first', () => {
     const index = serialiseIndex([
-      { id: 'a', title: 'A', createdAt: '2026-01-01', updatedAt: '2026-01-01', nodeCount: 1, branchCount: 1, generator: 'offline', isCounterfactual: false },
-      { id: 'b', title: 'B', createdAt: '2026-02-01', updatedAt: '2026-02-01', nodeCount: 1, branchCount: 1, generator: 'offline', isCounterfactual: false },
+      {
+        id: 'a',
+        title: 'A',
+        createdAt: '2026-01-01',
+        updatedAt: '2026-01-01',
+        nodeCount: 1,
+        branchCount: 1,
+        generator: 'offline',
+        isCounterfactual: false,
+      },
+      {
+        id: 'b',
+        title: 'B',
+        createdAt: '2026-02-01',
+        updatedAt: '2026-02-01',
+        nodeCount: 1,
+        branchCount: 1,
+        generator: 'offline',
+        isCounterfactual: false,
+      },
     ]);
     expect(index.items.map((i) => i.id)).toEqual(['b', 'a']);
   });
@@ -252,10 +270,9 @@ describe('migrations', () => {
 
     const { doc, notes } = migrate(v1);
     expect(doc.schemaVersion).toBe(SCHEMA_VERSION);
-    expect(notes).toEqual(expect.arrayContaining([
-      expect.stringContaining('1 -> 2'),
-      expect.stringContaining('2 -> 3'),
-    ]));
+    expect(notes).toEqual(
+      expect.arrayContaining([expect.stringContaining('1 -> 2'), expect.stringContaining('2 -> 3')])
+    );
     expect(Array.isArray(doc.prompt.archetypes)).toBe(true);
     expect(doc.prompt.archetypes).toEqual(['career', 'learning']);
     expect(doc.prompt.goals).toEqual([]);

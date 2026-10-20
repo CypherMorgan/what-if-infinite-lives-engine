@@ -7,7 +7,15 @@
  * tracking and a single place to persist.
  */
 import { useSyncExternalStore } from 'react';
-import type { Assumption, BranchId, NodeId, ScenarioPrompt, SimulationDoc, SimulationSummary, StateVector } from '../../core/types';
+import type {
+  Assumption,
+  BranchId,
+  NodeId,
+  ScenarioPrompt,
+  SimulationDoc,
+  SimulationSummary,
+  StateVector,
+} from '../../core/types';
 import {
   createUniverse,
   expandNode,
@@ -78,7 +86,9 @@ function loadUi(): UiSettings {
         provider: { ...DEFAULT_SETTINGS, ...(parsed.provider ?? {}), apiKey: undefined },
       };
     }
-  } catch { /* corrupted settings fall back to defaults */ }
+  } catch {
+    /* corrupted settings fall back to defaults */
+  }
   return DEFAULT_UI;
 }
 
@@ -86,7 +96,9 @@ function saveUi(s: UiSettings): void {
   try {
     const safe: UiSettings = { ...s, provider: { ...s.provider, apiKey: undefined } };
     localStorage.setItem(LS_UI, JSON.stringify(safe));
-  } catch { /* storage unavailable */ }
+  } catch {
+    /* storage unavailable */
+  }
 }
 
 /* ------------------------------------------------------------------ */
@@ -105,7 +117,11 @@ const HISTORY_LIMIT = 50;
 /* ------------------------------------------------------------------ */
 
 export type ToastKind = 'info' | 'error' | 'success';
-export interface Toast { id: number; kind: ToastKind; text: string; }
+export interface Toast {
+  id: number;
+  kind: ToastKind;
+  text: string;
+}
 
 export interface AppState {
   doc: SimulationDoc;
@@ -205,9 +221,12 @@ export class Store {
   toast(text: string, kind: ToastKind = 'info'): void {
     const t: Toast = { id: ++this.toastSeq, kind, text };
     this.set({ toasts: [...this.state.toasts, t] });
-    window.setTimeout(() => {
-      this.set({ toasts: this.state.toasts.filter((x) => x.id !== t.id) });
-    }, kind === 'error' ? 6000 : 3200);
+    window.setTimeout(
+      () => {
+        this.set({ toasts: this.state.toasts.filter((x) => x.id !== t.id) });
+      },
+      kind === 'error' ? 6000 : 3200
+    );
   }
 
   setStatus(status: string): void {
@@ -235,7 +254,10 @@ export class Store {
   }
 
   private commit(doc: SimulationDoc, status: string): void {
-    const selected = this.state.selected && doc.nodes[this.state.selected] ? this.state.selected : firstNodeId(doc);
+    const selected =
+      this.state.selected && doc.nodes[this.state.selected]
+        ? this.state.selected
+        : firstNodeId(doc);
     this.set({
       doc,
       selected,
@@ -319,7 +341,14 @@ export class Store {
 
   /* ---------------- universe lifecycle ---------------- */
 
-  newUniverse(input: { situation: string; decision: string; goals: string; horizon: number; imagination: number; branchCount: number }): void {
+  newUniverse(input: {
+    situation: string;
+    decision: string;
+    goals: string;
+    horizon: number;
+    imagination: number;
+    branchCount: number;
+  }): void {
     const text = `${input.situation} ${input.decision} ${input.goals}`;
     const archetypes = detectArchetypes(text);
     const prompt: ScenarioPrompt = {
@@ -340,7 +369,10 @@ export class Store {
     this.future = [];
     this.commit(doc, `Created “${doc.title}”`);
     this.select(firstNodeId(doc));
-    this.toast(`Universe created — ${Object.keys(doc.nodes).length} nodes, ${Object.keys(doc.branches).length} branches.`, 'success');
+    this.toast(
+      `Universe created — ${Object.keys(doc.nodes).length} nodes, ${Object.keys(doc.branches).length} branches.`,
+      'success'
+    );
   }
 
   /** Regenerate the whole universe with a fresh seed, keeping the prompt. */
@@ -362,9 +394,16 @@ export class Store {
         id: doc.id,
       });
       if (outcome.ok) {
-        this.run('Generate with provider', outcome.doc, `Generated via ${outcome.result.providerLabel}`);
+        this.run(
+          'Generate with provider',
+          outcome.doc,
+          `Generated via ${outcome.result.providerLabel}`
+        );
         this.select(firstNodeId(outcome.doc));
-        this.toast(`Generated via ${outcome.result.providerLabel} in ${outcome.result.elapsedMs} ms.`, 'success');
+        this.toast(
+          `Generated via ${outcome.result.providerLabel} in ${outcome.result.elapsedMs} ms.`,
+          'success'
+        );
       } else {
         this.setStatus(`Generation failed: ${outcome.error.message}`);
         this.toast(outcome.error.message, 'error');
@@ -389,7 +428,10 @@ export class Store {
       return;
     }
     if (node.expanded) {
-      this.toast('Already expanded. Use “What if…” to explore a different assumption here.', 'info');
+      this.toast(
+        'Already expanded. Use “What if…” to explore a different assumption here.',
+        'info'
+      );
       return;
     }
     const result = expandNode(before, nodeId, ALL_PACKS);
@@ -404,12 +446,18 @@ export class Store {
       const parent = result.doc.nodes[id]?.parents[0];
       const base = parent ? layout[parent] : undefined;
       const idx = result.added.indexOf(id);
-      layout[id] = { x: (base?.x ?? 0) + 360, y: (base?.y ?? 0) + (idx - (result.added.length - 1) / 2) * 138 };
+      layout[id] = {
+        x: (base?.x ?? 0) + 360,
+        y: (base?.y ?? 0) + (idx - (result.added.length - 1) / 2) * 138,
+      };
     }
     const doc: SimulationDoc = { ...result.doc, layout, updatedAt: new Date().toISOString() };
     this.run(`Expand “${node.title}”`, doc);
     this.set({ selected: result.added[0] ?? nodeId, path: pathTo(doc, result.added[0] ?? nodeId) });
-    this.toast(`Added ${result.added.length} step${result.added.length === 1 ? '' : 's'}.`, 'success');
+    this.toast(
+      `Added ${result.added.length} step${result.added.length === 1 ? '' : 's'}.`,
+      'success'
+    );
     this.recentlyAdded = result.added;
   }
 
@@ -525,7 +573,12 @@ export class Store {
       this.toast('Both nodes need computed state to be comparable.', 'error');
       return;
     }
-    this.setCompare({ a, b, diffs: diffSnapshots(a, b), stability: stabilityBetween(a, b, noisyKeys(ALL_PACKS)) });
+    this.setCompare({
+      a,
+      b,
+      diffs: diffSnapshots(a, b),
+      stability: stabilityBetween(a, b, noisyKeys(ALL_PACKS)),
+    });
     this.setStatus(`Comparing ${a.title} → ${b.title}`);
   }
 
@@ -547,7 +600,10 @@ export class Store {
   importText(text: string): boolean {
     const result = importFromText(text);
     if (!result.ok) {
-      this.toast(`${result.error.message}${result.error.detail ? ` — ${result.error.detail}` : ''}`, 'error');
+      this.toast(
+        `${result.error.message}${result.error.detail ? ` — ${result.error.detail}` : ''}`,
+        'error'
+      );
       return false;
     }
     const { doc, notes, warnings } = result.value;
@@ -573,7 +629,9 @@ export class Store {
       items.push(summarise(doc));
       localStorage.setItem(LS_INDEX, JSON.stringify(items.slice(-40)));
       this.set({ library: items.slice(-40) });
-    } catch { /* storage unavailable */ }
+    } catch {
+      /* storage unavailable */
+    }
   }
 
   /* ---------------- persistence ---------------- */
@@ -582,7 +640,9 @@ export class Store {
     try {
       localStorage.setItem(`whatifs:doc:${doc.id}`, exportToText(doc));
       localStorage.setItem('whatifs:last', doc.id);
-    } catch { /* quota exceeded or unavailable */ }
+    } catch {
+      /* quota exceeded or unavailable */
+    }
   }
 
   private persistFocus(nodeId: NodeId): void {
@@ -590,7 +650,9 @@ export class Store {
     this.set({ doc });
     try {
       localStorage.setItem(`whatifs:doc:${doc.id}`, exportToText(doc));
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   }
 
   saveCamera(): void {
@@ -599,7 +661,9 @@ export class Store {
     this.set({ doc: next });
     try {
       localStorage.setItem(`whatifs:doc:${next.id}`, exportToText(next));
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   }
 
   /* ---------------- derived helpers ---------------- */
@@ -649,7 +713,9 @@ export class Store {
   deleteFromLibrary(id: string): void {
     try {
       localStorage.removeItem(`whatifs:doc:${id}`);
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
     this.refreshLibrary();
   }
 }

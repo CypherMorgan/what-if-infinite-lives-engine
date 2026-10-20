@@ -5,17 +5,20 @@ the final choice was made. It is deliberately blunt about trade-offs and limitat
 
 ## 0. Environment findings (measured, not assumed)
 
-| Probe | Result |
-| --- | --- |
-| OS | Windows x64 |
-| Node.js | v26.8.1 |
-| npm | 11.19.0 (registry reachable, HTTP 200) |
-| Python | 3.11.9, pip 26.2.1 (PyPI reachable, HTTP 200) |
-| GitHub | reachable (HTTP 200) |
-| `rustc` / `cargo` | **absent** |
-| `gcc` / `g++` | **absent** |
-| .NET SDK | **absent** |
-| git | 2.52.0 |
+| Probe             | Result                                        |
+| ----------------- | --------------------------------------------- |
+| OS                | Windows x64                                   |
+
+
+
+| Node.js           | v26.8.1                                       |
+| npm               | 11.19.0 (registry reachable, HTTP 200)        |
+| Python            | 3.11.9, pip 26.2.1 (PyPI reachable, HTTP 200) |
+| GitHub            | reachable (HTTP 200)                          |
+| `rustc` / `cargo` | **absent**                                    |
+| `gcc` / `g++`     | **absent**                                    |
+| .NET SDK          | **absent**                                    |
+| git               | 2.52.0                                        |
 
 The absence of any C/C++ toolchain and of the .NET SDK is decisive. It removes
 C++/Qt, C#/WinUI, and Rust/Tauri from serious contention: Tauri and native Node
@@ -42,12 +45,12 @@ Rationale:
 
 Options rejected and why:
 
-| Option | Verdict |
-| --- | --- |
-| C++ / Qt 6 | No compiler on the machine; would require installing Qt + MSVC or MinGW first. Highest risk of shipping nothing. |
-| C# / WinUI 3 or WPF | No .NET SDK present. |
-| Rust / Tauri | No Rust toolchain; Tauri also needs the MSVC linker. |
-| Python / PySide6 | Installs cleanly, but the animation/visual fidelity ceiling for an "impossible" UI is meaningfully lower and PyInstaller packaging adds fragility. |
+| Option                            | Verdict                                                                                                                                                          |
+| --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| C++ / Qt 6                        | No compiler on the machine; would require installing Qt + MSVC or MinGW first. Highest risk of shipping nothing.                                                 |
+| C# / WinUI 3 or WPF               | No .NET SDK present.                                                                                                                                             |
+| Rust / Tauri                      | No Rust toolchain; Tauri also needs the MSVC linker.                                                                                                             |
+| Python / PySide6                  | Installs cleanly, but the animation/visual fidelity ceiling for an "impossible" UI is meaningfully lower and PyInstaller packaging adds fragility.               |
 | Python simulation core + JS shell | Rejected as gratuitous: a second runtime, an IPC bridge, and two packaging stories for no accuracy gain. The model is arithmetic + rules, not numerically heavy. |
 
 **Consequence to be honest about:** Electron ships a Chromium runtime, so the installer is
@@ -86,7 +89,7 @@ before they are allowed to touch the store, and size-limited.
   key and never talks to a provider directly; it sends an intent over IPC. This means a
   compromised renderer (e.g. injected content) cannot read the credential.
 - API keys are encrypted at rest with Electron `safeStorage` (Windows DPAPI, per-user).
-  If `safeStorage` is unavailable the app refuses to *persist* the key and falls back to
+  If `safeStorage` is unavailable the app refuses to _persist_ the key and falls back to
   session-only memory, rather than writing plaintext to disk.
 - Every model response is parsed and structurally validated. Malformed JSON, wrong types,
   dangling edge references, duplicate ids, over-long fields and oversized payloads are all
@@ -103,7 +106,7 @@ A rule pack is data, not code branches:
   assumptions, uncertainties and evidence class.
 - `simulate()` is a pure function of `(pack, initial state, choices, seed)`.
 
-Branches are produced by layered traversal: each step selects among *eligible* rules by
+Branches are produced by layered traversal: each step selects among _eligible_ rules by
 seeded weighted sampling, applies the effects, and may open a new decision point. Because
 selection is seeded, **a simulation is exactly reproducible from its seed** — asserted by test.
 
