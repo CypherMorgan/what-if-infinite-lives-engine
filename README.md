@@ -1,0 +1,147 @@
+# What If? — The Infinite Lives Engine
+
+A local-first Windows desktop application for exploring plausible alternative life paths through interactive branching timelines, decisions, counterfactuals, and deterministic simulations. It runs fully offline with a built-in rules engine and has an optional OpenAI-compatible provider for richer prose — without sending anything to the network unless you explicitly configure one.
+
+## Features
+
+- **Interactive multiverse graph** — Pan, zoom, drag nodes, select paths, collapse branches, search, minimap, auto-layout. Animated branch growth with reduced-motion support.
+- **Deterministic simulation** — Pure rule-engine model over a typed variable/state system. No fake probabilities or hardcoded guesses. "Model spread" is labelled engine variance, not a real-world forecast.
+- **Counterfactuals** — Change any assumption or choose a decision option to fork a new universe. Full lineage (parent/counterfactual metadata), snapshots, diffs, and stability analysis.
+- **Honest evidence model** — Every node carries evidence tags (`user-fact`, `research`, `assumption`, `speculation`) with provenance so you can tell stated facts from extrapolation.
+- **Local-first persistence** — Versioned JSON documents (`schemaVersion: 3`) with migrations, atomic writes, repair-on-import for recoverable issues (dangling edges/unreachable nodes are repaired with notes; structural failures are rejected), and a library index.
+- **Import/Export** — Self-contained `.whatif.json` envelope (`format: whatif.universe`) with checksum/hash, schema version, and app version for forward-compatible migration.
+- **Privacy by design** — No telemetry, analytics, crash reporting, or accounts. Network access only if you configure an HTTP provider. API keys go through Electron `safeStorage` (DPAPI on Windows), never written to renderer storage, logs, or exports.
+- **Windows-native** — Electron app with menus, shortcuts, file dialogs, DPI awareness, NSIS installer + portable build.
+
+## Tech Stack
+
+| Layer | Technology | Rationale |
+| --- | --- | --- |
+| Desktop shell | [Electron 44.9.0](https://www.electronjs.org/) | Ships a real Windows exe/installer with no C++/.NET/Rust toolchain required on this machine. |
+| UI | [React 19](https://react.dev/) + [TypeScript 5.9](https://www.typescriptlang.org/) (strict, `noUncheckedIndexedAccess`) | Type-safe, predictable rendering. |
+| Build | [Vite 7](https://vitejs.dev/) | Fast dev + correct file:// loading (`base: './'`). |
+| Packaging | [electron-builder 26](https://www.electron.build/) | NSIS installer + portable Windows builds. |
+| Core/simulation | Hand-written TypeScript | Deterministic, testable, no native modules (avoids build complexity). Canvas2D graph renderer hand-written for full control over motion/layout. |
+| Persistence | Versioned JSON + migration chain | Atomic writes, portable, auditable. |
+
+Core modules have no Electron imports so the simulation/graph/AI logic runs in Node for unit tests.
+
+## Requirements
+
+- Windows 10/11 x64
+- Node.js 18+ (tested with 26.8.1)
+- npm 11+ (tested with 11.19.0)
+
+## Installation & Development
+
+```powershell
+# Install dependencies
+npm install
+
+# Run in browser (Vite dev server)
+npm run dev
+# → http://localhost:5199
+
+# Run as desktop app (builds Electron shell first)
+npm run dev:desktop
+
+# Typecheck
+npm run typecheck
+
+# Lint
+npm run lint
+
+# Run all tests
+npm test
+
+# Watch tests
+npm run test:watch
+```
+
+## Building for Windows
+
+```powershell
+# Build renderer + Electron shell
+npm run build
+
+# Create NSIS installer + portable in release/
+npm run dist
+
+# Portable only
+npm run dist:portable
+```
+
+Outputs:
+- `release/win-unpacked/` — Unpacked portable app (`What If Infinite Lives Engine.exe`)
+- `release/what-if-infinite-lives-engine-1.0.0-x64.nsis.7z` — NSIS archive
+- `release/*.exe` — NSIS installer (when completed)
+
+## Project Structure
+
+```
+thewhatifs/
+├── docs/ARCHITECTURE.md      # Stack rationale
+├── electron/                 # Main + preload (contextBridge API)
+│   ├── main.ts
+│   └── preload.ts
+├── src/
+│   ├── ai/                   # Provider interface, offline/HTTP adapters, orchestrator, schema
+│   ├── core/                 # Engine, graph, layout, rules, counterfactuals, migration/import/export
+│   │   ├── packs/            # Rule packs + variables
+│   │   └── ...
+│   ├── ui/                   # React app, Canvas renderer, state store, theme
+│   │   ├── components/
+│   │   ├── graph/
+│   │   ├── state/
+│   │   └── theme.css
+│   ├── main.tsx
+│   └── ui/App.tsx
+├── tests/                    # 146 unit tests (engine, counterfactual, persistence, AI)
+└── scripts/                  # Build helpers
+```
+
+## Usage
+
+1. **Create a universe** (`Ctrl+N`) — Describe your situation and the decision in front of you. The offline engine generates a branching simulation deterministically.
+2. **Navigate** — Click nodes to inspect. Use arrow keys to move along paths, `E` to expand, mouse to pan/zoom/drag.
+3. **Expand** — `Expand` generates the next plausible steps from a node using the rule catalogue.
+4. **Counterfactuals** — Tweak assumptions in the inspector or use "What if…" to fork a new universe. Choose decision options to explore alternatives.
+5. **Compare** — Compare any two nodes to see diffs, stability, and noise-sensitive variables.
+6. **Import/Export** — `Ctrl+S` / `Ctrl+O` to save/load `.whatif.json` files. Universes are also auto-saved to your library.
+7. **Settings** — Configure an OpenAI-compatible provider (base URL/model/keyless). Keys are stored encrypted via `safeStorage` in the app data folder.
+
+## Keyboard Shortcuts
+
+| Shortcut | Action |
+| --- | --- |
+| `Ctrl+N` | New universe |
+| `Ctrl+O` | Import |
+| `Ctrl+S` | Export |
+| `Ctrl+Z` / `Ctrl+Shift+Z` | Undo / Redo |
+| `Ctrl+F` | Search nodes |
+| `E` | Expand selected node |
+| `F` | Fit to view |
+| `+` / `-` | Zoom in / out |
+| `↑/↓/←/→` | Navigate to parent/child |
+| `Esc` | Clear selection/close modal |
+
+## Testing
+
+All core logic is covered by unit tests (146 passing):
+
+- **engine.test.ts** — Determinism, expansion, layout, queries, forecast/spread, rule catalogue, derive clamping
+- **counterfactual.test.ts** — Assumption/decision counterfactuals, lineage, reroll, snapshots/diffs/stability
+- **persistence.test.ts** — Export envelope round-trip, all typed import failures, v1→v3 migrations
+- **ai.test.ts** — JSON extraction/parse, HTTP provider (fallback/strict/redaction/cancellation), document coercion
+
+## Privacy & Security
+
+- **Offline by default** — No network calls unless a provider is configured.
+- **No telemetry** — Nothing is collected or sent.
+- **Secrets** — API keys encrypted with Windows DPAPI via `safeStorage`, stored in `secrets/` under the app data directory. Never persisted in renderer localStorage or exports.
+- **Sandboxed renderer** — `contextIsolation: true`, `nodeIntegration: false`, CSP in `index.html`, navigation/permissions blocked.
+- **Local data** — Universes live in `localStorage` and app data; fully user-controlled.
+
+## License
+
+MIT

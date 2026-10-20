@@ -1,0 +1,84 @@
+{
+  "name": "what-if-infinite-lives-engine",
+  "productName": "What If? — The Infinite Lives Engine",
+  "version": "1.0.0",
+  "description": "Explore plausible alternative versions of your life through interactive branching timelines, decisions, consequences and evolving simulations.",
+  "author": "What If? Labs",
+  "license": "MIT",
+  "private": true,
+  "main": "dist-electron/main.js",
+  "scripts": {
+    "dev": "vite",
+    "dev:desktop": "npm run build:electron && electron .",
+    "build": "npm run typecheck && vite build && npm run build:electron",
+    "build:electron": "tsc -p tsconfig.electron.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint . --max-warnings 0",
+    "dist": "npm run build && electron-builder --win",
+    "dist:portable": "npm run build && electron-builder --win portable",
+    "postinstall": "node scripts/ensure-electron.cjs && electron-builder install-app-deps"
+  },
+  "dependencies": {
+    "react": "19.1.1",
+    "react-dom": "19.1.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "9.37.0",
+    "@types/node": "24.7.0",
+    "@types/react": "19.1.10",
+    "@types/react-dom": "19.1.7",
+    "@vitejs/plugin-react": "5.0.2",
+    "electron": "44.9.0",
+    "electron-builder": "26.15.3",
+    "eslint": "9.37.0",
+    "typescript": "5.9.2",
+    "typescript-eslint": "8.46.0",
+    "vite": "7.1.5",
+    "vitest": "3.2.4"
+  },
+  "build": {
+    "appId": "com.whatif.livesengine",
+    "productName": "What If Infinite Lives Engine",
+    "artifactName": "${productName}-${version}-${os}-${arch}.${ext}",
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*",
+      "!**/*.map",
+      "!**/*.ts"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.ico",
+      "requestedExecutionLevel": "asInvoker"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "What If?"
+    },
+    "compression": "normal",
+    "asar": true
+  }
+}
