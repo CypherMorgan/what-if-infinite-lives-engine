@@ -9,6 +9,7 @@ import { PROVIDER_PRESETS, type ProviderSettings } from '../../ai/provider';
 import { IMPORT_LIMITS } from '../../core/validate';
 import { APP_VERSION } from '../../core/importExport';
 import { formatValue } from '../../core/vars';
+import { ShortcutsModal } from './ShortcutsModal';
 
 declare global {
   interface Window {
@@ -43,6 +44,7 @@ export function ModalHost({ store }: { store: Store }) {
         {modal.kind === 'library' && <LibraryModal store={store} close={close} />}
         {modal.kind === 'counterfactual' && <CounterfactualModal store={store} close={close} assumptionId={modal.assumptionId} />}
         {modal.kind === 'about' && <AboutModal store={store} close={close} />}
+        {modal.kind === 'shortcuts' && <ShortcutsModal store={store} close={close} />}
       </div>
     </div>
   );

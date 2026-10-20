@@ -3,11 +3,13 @@
 // on correctness footguns that the type checker does not catch.
 import js from '@eslint/js';
 import tseslint from 'typescript-eslint';
+import prettier from 'eslint-config-prettier';
 
 export default tseslint.config(
-  { ignores: ['dist/**', 'dist-electron/**', 'release/**', 'node_modules/**', 'build/**'] },
+  { ignores: ['dist/**', 'dist-electron/**', 'release/**', 'node_modules/**', 'build/**', '*.cjs', 'commitlint.config.js'] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
+  prettier,
   {
     rules: {
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],

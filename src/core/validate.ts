@@ -182,6 +182,8 @@ function normalizeNode(id: string, raw: unknown, issues: ValidationIssue[]): Sim
 
   const ruleId = str(raw['ruleId']).trim();
   if (ruleId) node.ruleId = ruleId;
+  const userNotes = str(raw['userNotes']);
+  if (userNotes) node.userNotes = userNotes;
 
   return node;
 }

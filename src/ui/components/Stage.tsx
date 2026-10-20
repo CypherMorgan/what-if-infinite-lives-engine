@@ -8,6 +8,7 @@ import { useAppState } from '../state/store';
 import { GraphRenderer, type Camera } from '../graph/GraphRenderer';
 import { boundsOf } from '../../core/layout';
 import { visibleNodes } from '../../core/graph';
+import { exportCanvasAsPng } from '../utils/exportCanvas';
 
 export function Stage({ store }: { store: Store }) {
   const state = useAppState(store);
@@ -354,6 +355,24 @@ export function Stage({ store }: { store: Store }) {
             <button className="btn" onClick={() => zoomBy(1.25)} aria-label="Zoom in">+</button>
             <button className="btn" onClick={fit} aria-label="Fit to view">Fit</button>
             <button className="btn" onClick={focusSelected} aria-label="Center selection">◎</button>
+            <button
+              className="btn"
+              onClick={() => {
+                const c = canvasRef.current;
+                if (c) {
+                  try {
+                    exportCanvasAsPng(c, state.doc.title + '.png');
+                    store.toast('Graph exported as PNG', 'success');
+                  } catch {
+                    store.toast('Failed to export PNG', 'error');
+                  }
+                }
+              }}
+              aria-label="Export graph as PNG"
+              title="Export graph as PNG"
+            >
+              📸 PNG
+            </button>
           </div>
           {matchCount > 0 && (
             <span className="chip chip-cyan" style={{ marginTop: 6 }}>{matchCount} match{matchCount === 1 ? '' : 'es'}</span>

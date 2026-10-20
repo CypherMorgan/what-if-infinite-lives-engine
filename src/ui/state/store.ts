@@ -126,6 +126,7 @@ export interface AppState {
   modal: ModalState | null;
   compare: CompareState | null;
   library: SimulationSummary[];
+  viewMode: 'graph' | 'timeline';
 }
 
 export type ModalState =
@@ -135,7 +136,8 @@ export type ModalState =
   | { kind: 'settings' }
   | { kind: 'about' }
   | { kind: 'counterfactual'; assumptionId: string }
-  | { kind: 'library' };
+  | { kind: 'library' }
+  | { kind: 'shortcuts' };
 
 export interface CompareState {
   a: BranchSnapshot;
@@ -172,6 +174,13 @@ export class Store {
       modal: null,
       compare: null,
       library: loadIndex(),
+      viewMode: ((): 'graph' | 'timeline' => {
+        try {
+          return (localStorage.getItem('whatifs:view') as 'graph' | 'timeline') || 'graph';
+        } catch {
+          return 'graph';
+        }
+      })(),
     };
   }
 
@@ -293,6 +302,15 @@ export class Store {
 
   setCompare(c: CompareState | null): void {
     this.set({ compare: c });
+  }
+
+  setViewMode(mode: 'graph' | 'timeline'): void {
+    this.set({ viewMode: mode });
+    try {
+      localStorage.setItem('whatifs:view', mode);
+    } catch {
+      // ignore
+    }
   }
 
   visible(): Set<NodeId> {
@@ -422,6 +440,20 @@ export class Store {
   renameTitle(title: string): void {
     if (this.titleBefore === null) this.titleBefore = this.state.doc.title;
     this.set({ doc: { ...this.state.doc, title } });
+  }
+
+  /** Update user notes for a node. */
+  setNodeNotes(nodeId: string, userNotes: string): void {
+    const node = this.state.doc.nodes[nodeId];
+    if (!node) return;
+    this.run(`Update notes for “${node.title}”`, {
+      ...this.state.doc,
+      nodes: {
+        ...this.state.doc.nodes,
+        [nodeId]: { ...node, userNotes },
+      },
+      updatedAt: new Date().toISOString(),
+    });
   }
 
   private titleBefore: string | null = null;

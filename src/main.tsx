@@ -15,6 +15,8 @@ import { ALL_PACKS } from './core/packs';
 import { randomSeed } from './core/rng';
 import { importFromText } from './core/importExport';
 import type { ScenarioPrompt, SimulationDoc } from './core/types';
+import { maybeStartTour } from './ui/tour';
+import { ErrorBoundary } from './ui/components/ErrorBoundary';
 
 const STORAGE_PREFIX = 'whatifs:doc:';
 
@@ -72,9 +74,14 @@ const container = document.getElementById('root');
 if (!container) throw new Error('Root container missing.');
 createRoot(container).render(
   <StrictMode>
-    <App store={store} />
+    <ErrorBoundary>
+      <App store={store} />
+    </ErrorBoundary>
   </StrictMode>,
 );
 
 // persist the camera when the window closes
 window.addEventListener('beforeunload', () => store.saveCamera());
+
+// Start onboarding tour on first run
+maybeStartTour();

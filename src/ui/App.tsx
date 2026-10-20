@@ -7,6 +7,8 @@ import { Stage } from './components/Stage';
 import { LeftPanel } from './components/LeftPanel';
 import { Inspector } from './components/Inspector';
 import { ModalHost } from './components/Modals';
+import { TimelineView } from './components/TimelineView';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 export function App({ store }: { store: Store }) {
   const state = useAppState(store);
@@ -57,6 +59,11 @@ export function App({ store }: { store: Store }) {
       }
       if (e.key.toLowerCase() === 'f') {
         window.dispatchEvent(new CustomEvent('whatifs:fit'));
+        return;
+      }
+      if (mod && e.key === '/') {
+        e.preventDefault();
+        store.openModal({ kind: 'shortcuts' });
         return;
       }
       if (state.selected && (e.key === 'ArrowDown' || e.key === 'ArrowRight')) {
@@ -144,6 +151,21 @@ export function App({ store }: { store: Store }) {
         <span style={{ width: 1, height: 22, background: 'var(--line)' }} />
 
         <div className="btn-row">
+          <button
+            className={`btn ${state.viewMode === 'graph' ? 'btn-primary' : 'btn-ghost'}`}
+            onClick={() => store.setViewMode('graph')}
+            title="Graph view"
+          >
+            Graph
+          </button>
+          <button
+            className={`btn ${state.viewMode === 'timeline' ? 'btn-primary' : 'btn-ghost'}`}
+            onClick={() => store.setViewMode('timeline')}
+            title="Timeline view"
+          >
+            Timeline
+          </button>
+          <span style={{ width: 1, height: 22, background: 'var(--line)' }} />
           <button className="btn btn-ghost" onClick={() => store.openModal({ kind: 'library' })} title="Saved universes">
             ▤ Library
           </button>
@@ -156,6 +178,9 @@ export function App({ store }: { store: Store }) {
           <button className="btn btn-ghost" onClick={() => store.openModal({ kind: 'settings' })} title="Settings">
             ⚙ Settings
           </button>
+          <button className="btn btn-ghost" onClick={() => store.openModal({ kind: 'shortcuts' })} title="Keyboard shortcuts (Ctrl+/)">
+            ⌨
+          </button>
           <button className="btn btn-ghost" onClick={() => store.openModal({ kind: 'about' })} title="About">
             ⓘ
           </button>
@@ -164,8 +189,12 @@ export function App({ store }: { store: Store }) {
 
       {/* ---------------- panels ---------------- */}
       <LeftPanel store={store} />
-      <Stage store={store} />
-      <Inspector store={store} />
+      <ErrorBoundary>
+        {state.viewMode === 'timeline' ? <TimelineView store={store} /> : <Stage store={store} />}
+      </ErrorBoundary>
+      <ErrorBoundary>
+        <Inspector store={store} />
+      </ErrorBoundary>
 
       {/* ---------------- status bar ---------------- */}
       <footer className="status">

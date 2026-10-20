@@ -95,6 +95,21 @@ export function Inspector({ store }: { store: Store }) {
           )}
         </div>
 
+        {/* ---------- user notes ---------- */}
+        <div className="section">
+          <h3 className="section-title">Notes</h3>
+          <textarea
+            className="textarea"
+            placeholder="Your thoughts about this node (markdown supported)..."
+            value={node.userNotes ?? ''}
+            onChange={(e) => store.setNodeNotes(node.id, e.target.value)}
+            style={{ minHeight: 100, fontSize: 11.5, lineHeight: 1.6 }}
+          />
+          <div style={{ fontSize: 10.5, color: 'var(--text-faint)', marginTop: 4 }}>
+            Saved automatically as part of your universe.
+          </div>
+        </div>
+
         {/* ---------- actions ---------- */}
         <div className="section">
           <div className="btn-row">
@@ -111,6 +126,22 @@ export function Inspector({ store }: { store: Store }) {
             </button>
             <button className="btn btn-ghost" onClick={() => store.centerOn(node.id)}>
               ◎ Center
+            </button>
+            <button
+              className="btn btn-ghost"
+              onClick={async () => {
+                try {
+                  const { exportPathAsMarkdown, downloadMarkdown } = await import('../utils/exportPath');
+                  const md = exportPathAsMarkdown(state.doc, node.id);
+                  downloadMarkdown(md, state.doc.title);
+                  store.toast('Path exported as Markdown', 'success');
+                } catch {
+                  store.toast('Failed to export path', 'error');
+                }
+              }}
+              title="Export this path as Markdown report"
+            >
+              📄 Export path
             </button>
           </div>
           <div className="btn-row" style={{ marginTop: 6 }}>
