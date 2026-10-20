@@ -6,6 +6,30 @@
   "author": "What If? Labs",
   "license": "MIT",
   "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/YOUR_USERNAME/what-if-infinite-lives-engine.git"
+  },
+  "bugs": {
+    "url": "https://github.com/YOUR_USERNAME/what-if-infinite-lives-engine/issues"
+  },
+  "homepage": "https://github.com/YOUR_USERNAME/what-if-infinite-lives-engine#readme",
+  "keywords": [
+    "electron",
+    "react",
+    "typescript",
+    "simulation",
+    "counterfactual",
+    "decision-tree",
+    "timeline",
+    "multiverse",
+    "what-if",
+    "desktop-app"
+  ],
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
   "main": "dist-electron/main.js",
   "scripts": {
     "dev": "vite",
