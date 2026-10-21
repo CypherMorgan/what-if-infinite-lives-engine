@@ -19,7 +19,7 @@ export function BranchDiffView({ store }: { store: Store }) {
 
   if (!pair) {
     return (
-      <div className="dossier-shell">
+      <main className="dossier-shell" aria-label="Comparing two paths">
         <div className="dossier-empty">
           <h2 className="dossier-empty-title">No paths chosen</h2>
           <p className="dossier-empty-body">
@@ -30,7 +30,7 @@ export function BranchDiffView({ store }: { store: Store }) {
             Choose two paths
           </button>
         </div>
-      </div>
+      </main>
     );
   }
 
@@ -38,7 +38,7 @@ export function BranchDiffView({ store }: { store: Store }) {
 
   if (!diff) {
     return (
-      <div className="dossier-shell">
+      <main className="dossier-shell" aria-label="Comparing two paths">
         <div className="dossier-empty">
           <h2 className="dossier-empty-title">Those paths cannot be compared</h2>
           <p className="dossier-empty-body">
@@ -48,7 +48,7 @@ export function BranchDiffView({ store }: { store: Store }) {
             Choose two paths
           </button>
         </div>
-      </div>
+      </main>
     );
   }
 
@@ -59,14 +59,14 @@ function DiffBody({ store, diff }: { store: Store; diff: BranchDiff }) {
   const rows = Math.max(diff.a.steps.length, diff.b.steps.length);
 
   return (
-    <div className="dossier-shell">
+    <main className="dossier-shell" aria-label="Comparing two paths">
       <div className="dossier">
         <header className="dossier-head">
           <div className="dossier-kicker">Comparing two paths</div>
-          <h1 className="dossier-title">
+          <h2 className="dossier-title">
             <SideName side={diff.a} /> <span className="dossier-vs">versus</span>{' '}
             <SideName side={diff.b} />
-          </h1>
+          </h2>
           <p className="dossier-headline">{diff.headline}</p>
           <p className="dossier-confidence">{diff.verdict}</p>
           {diff.divergedAt && (
@@ -88,7 +88,7 @@ function DiffBody({ store, diff }: { store: Store; diff: BranchDiff }) {
 
         {/* ---------- the two paths, side by side ---------- */}
         <section className="dossier-card dossier-paths">
-          <h2 className="dossier-card-title">The two paths</h2>
+          <h3 className="dossier-card-title">The two paths</h3>
           <p className="dossier-card-sub">
             The steps the model built for each path, in the order they happen. Rows line up by
             position, not by date — the paths rarely take the same number of steps.
@@ -101,7 +101,7 @@ function DiffBody({ store, diff }: { store: Store; diff: BranchDiff }) {
 
         {/* ---------- the numbers ---------- */}
         <section className="dossier-card">
-          <h2 className="dossier-card-title">What ends up different</h2>
+          <h3 className="dossier-card-title">What ends up different</h3>
           <p className="dossier-card-sub">
             Both paths are projected forward to {diff.compareLabel} before they are compared, so
             every difference below is a difference in the path rather than in the timing.
@@ -162,7 +162,7 @@ function DiffBody({ store, diff }: { store: Store; diff: BranchDiff }) {
           </div>
         </footer>
       </div>
-    </div>
+    </main>
   );
 }
 

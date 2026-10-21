@@ -81,7 +81,7 @@ export function LeftPanel({ store }: { store: Store }) {
         </div>
 
         <div className="section">
-          <h3 className="section-title">Paths</h3>
+          <h2 className="section-title">Paths</h2>
           <div className="node-list">
             {branches.map((b) => {
               const collapsed = state.doc.collapsed.includes(b.id);
@@ -137,7 +137,7 @@ export function LeftPanel({ store }: { store: Store }) {
         </div>
 
         <div className="section">
-          <h3 className="section-title">{hits ? `Matches (${listed.length})` : 'Steps'}</h3>
+          <h2 className="section-title">{hits ? `Matches (${listed.length})` : 'Steps'}</h2>
           {listed.length === 0 ? (
             <div className="empty">
               <div className="empty-title">Nothing matches “{state.query}”</div>

@@ -78,13 +78,17 @@ The release that turned a capable tool into one a person can actually use.
 
 ### v1.2.0 — reach and report
 
+Two of the four are done and waiting on the next release:
+
+- **A visual branch diff.** ✓ Done. Two paths side by side, the point where
+  they diverge, and what changes from there — compared at a common moment, so
+  the difference is in the path and not in the timing.
+- **Accessibility pass.** ✓ Done. Keyboard reachability for every control,
+  focus that moves into a dialog and comes back out of it, a live status
+  line, one `h1` and no skipped heading levels, a canvas that describes
+  itself, and a contrast check on the palette.
 - **PDF export.** The Markdown path report becomes a document somebody can
   print and share: the dossier, the timeline, and the graph itself.
-- **A visual branch diff.** Two paths side by side, with the point where they
-  diverge and what changes from there.
-- **Accessibility pass.** Keyboard reachability for every control, focus
-  order through the graph, live regions for the status line, and a contrast
-  check on the palette.
 - **A printable dossier.** The same brief as the view, laid out for paper.
 
 ### v1.3.0 — depth

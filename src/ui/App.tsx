@@ -58,14 +58,20 @@ export function App({ store }: { store: Store }) {
         window.dispatchEvent(new CustomEvent('whatifs:focus-search'));
         return;
       }
-      if (typing) return;
-
       if (e.key === 'Escape') {
-        if (state.modal) store.openModal(null);
-        else if (state.compare) store.setCompare(null);
+        // A modal closes on Escape whatever has the focus, including a text
+        // field inside it — otherwise you have to reach for the mouse to get
+        // out of a dialog you opened by typing.
+        if (state.modal) {
+          store.openModal(null);
+          return;
+        }
+        if (typing) return;
+        if (state.compare) store.setCompare(null);
         else store.select(null);
         return;
       }
+      if (typing) return;
       if (e.key === 'e' || e.key === 'E') {
         if (state.selected) store.expandNode(state.selected);
         return;
@@ -127,12 +133,12 @@ export function App({ store }: { store: Store }) {
     <div className={state.settings.reducedMotion ? 'app reduced-motion' : 'app'}>
       {/* ---------------- top bar ---------------- */}
       <header className="topbar">
-        <div className="brand">
+        <h1 className="brand">
           <span className="brand-mark">
             WHAT <span className="q">IF?</span>
           </span>
           <span className="brand-sub">infinite lives engine</span>
-        </div>
+        </h1>
 
         <input
           className="title-input"
@@ -292,7 +298,9 @@ export function App({ store }: { store: Store }) {
       {/* ---------------- status bar ---------------- */}
       <footer className="status">
         <span className={`status-dot ${state.busy ? 'busy-dot' : ''}`} />
-        <span className="status-text">{state.status}</span>
+        <span className="status-text" role="status" aria-live="polite">
+          {state.status}
+        </span>
         <span className="chip">{nodeCount} steps</span>
         <span className="chip">{edgeCount} connections</span>
         <span className="chip">{pathCount(state.doc)} paths</span>

@@ -45,50 +45,46 @@ const SHORTCUTS = [
 
 export function ShortcutsModal({ store: _store, close }: { store: Store; close: () => void }) {
   return (
-    <div
-      className="modal-scrim"
-      onMouseDown={(e) => {
-        if (e.target === e.currentTarget) close();
-      }}
-    >
-      <div className="modal" style={{ width: 'min(720px, 92vw)' }} role="dialog" aria-modal="true">
-        <div className="modal-head">
-          <span className="modal-title">Keyboard Shortcuts</span>
-          <button className="btn btn-ghost btn-sm" onClick={close}>
-            ✕
-          </button>
-        </div>
-        <div className="modal-body">
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-              gap: 16,
-            }}
-          >
-            {SHORTCUTS.map((cat) => (
-              <div key={cat.category}>
-                <h3 className="section-title">{cat.category}</h3>
-                <table style={{ width: '100%', fontSize: 12 }}>
-                  <tbody>
-                    {cat.items.map(([key, desc]) => (
-                      <tr key={key}>
-                        <td style={{ padding: '4px 0', fontFamily: 'var(--font-mono)' }}>{key}</td>
-                        <td style={{ color: 'var(--text-dim)' }}>{desc}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ))}
-          </div>
-        </div>
-        <div className="modal-foot">
-          <button className="btn btn-primary" onClick={close}>
-            Close
-          </button>
+    <>
+      <div className="modal-head">
+        <h2 className="modal-title" id="modal-title">
+          Keyboard Shortcuts
+        </h2>
+        <button className="btn btn-ghost btn-sm" onClick={close} aria-label="Close">
+          ✕
+        </button>
+      </div>
+      <div className="modal-body">
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+            gap: 16,
+          }}
+        >
+          {SHORTCUTS.map((cat) => (
+            <div key={cat.category}>
+              <h3 className="section-title">{cat.category}</h3>
+              <table style={{ width: '100%', fontSize: 12 }}>
+                <caption className="sr-only">{cat.category} shortcuts</caption>
+                <tbody>
+                  {cat.items.map(([key, desc]) => (
+                    <tr key={key}>
+                      <td style={{ padding: '4px 0', fontFamily: 'var(--font-mono)' }}>{key}</td>
+                      <td style={{ color: 'var(--text-dim)' }}>{desc}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ))}
         </div>
       </div>
-    </div>
+      <div className="modal-foot">
+        <button className="btn btn-primary" onClick={close}>
+          Close
+        </button>
+      </div>
+    </>
   );
 }

@@ -13,11 +13,19 @@
   --bg-hover: #1c2440;
   --line: #1e2742;
   --line-strong: #2b3760;
+  /*
+   * The edge of a control a person has to find and click.
+   *
+   * WCAG 2.1 asks for 3:1 here: for an empty text field or a switch that is
+   * switched off, the outline is the only thing that says the control is
+   * there at all. Panel dividers do not need it and are left quiet.
+   */
+  --line-control: #5466b8;
 
   /* text */
   --text: #e8edf9;
   --text-dim: #9aa6c4;
-  --text-faint: #62709a;
+  --text-faint: #808eb8;
 
   /* signal colours */
   --cyan: #4fd8ff;
@@ -100,7 +108,7 @@ body::before {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--line-strong);
+  background: var(--line-control);
   border-radius: 99px;
   border: 3px solid transparent;
   background-clip: content-box;
@@ -144,6 +152,7 @@ body::before {
   font-family: var(--font-display);
   letter-spacing: 0.02em;
   white-space: nowrap;
+  margin: 0;
 }
 .brand-mark {
   font-size: 15px;
@@ -294,6 +303,20 @@ body::before {
   outline-offset: 2px;
 }
 
+/*
+ * A visible focus ring on anything else a keyboard can reach.
+ *
+ * The rule is written with :where() so it carries no specificity of its own.
+ * Anything that already has a deliberate focus treatment — the buttons
+ * above, the input fields below — keeps it, and everything else that was
+ * relying on whatever the browser happened to draw gets the same ring the
+ * rest of the app uses.
+ */
+:where(button, a, select, textarea, input, [tabindex]):focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 2px;
+}
+
 .btn-primary {
   background: linear-gradient(180deg, rgba(79, 216, 255, 0.22), rgba(79, 216, 255, 0.1));
   border-color: var(--cyan-dim);
@@ -366,7 +389,7 @@ body::before {
 .select {
   width: 100%;
   background: var(--bg-panel);
-  border: 1px solid var(--line-strong);
+  border: 1px solid var(--line-control);
   border-radius: var(--r-sm);
   color: var(--text);
   font-family: var(--font-ui);
@@ -381,7 +404,7 @@ body::before {
 .select:focus {
   outline: none;
   border-color: var(--cyan-dim);
-  box-shadow: 0 0 0 3px rgba(79, 216, 255, 0.12);
+  box-shadow: 0 0 0 3px rgba(79, 216, 255, 0.3);
 }
 .textarea {
   resize: vertical;
@@ -418,7 +441,7 @@ body::before {
   appearance: none;
   height: 4px;
   border-radius: 99px;
-  background: var(--line-strong);
+  background: var(--line-control);
   cursor: pointer;
 }
 .range::-webkit-slider-thumb {
@@ -454,7 +477,7 @@ body::before {
   width: 34px;
   height: 18px;
   border-radius: 99px;
-  background: var(--line-strong);
+  background: var(--line-control);
   border: none;
   cursor: pointer;
   flex: 0 0 auto;
@@ -1660,6 +1683,7 @@ kbd {
   font-size: 15px;
   font-weight: 700;
   flex: 1;
+  margin: 0;
 }
 .modal-body {
   padding: 16px;

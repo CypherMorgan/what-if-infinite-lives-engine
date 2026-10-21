@@ -49,7 +49,7 @@ export function OrientationCard() {
   };
 
   return (
-    <div className="orientation" role="dialog" aria-label="How this app works">
+    <aside className="orientation" aria-label="How this app works">
       <div className="orientation-head">
         <h2 className="orientation-title">So — what is this?</h2>
         <button className="btn btn-sm btn-ghost" onClick={dismiss} aria-label="Close">
@@ -86,6 +86,6 @@ export function OrientationCard() {
           Start exploring
         </button>
       </div>
-    </div>
+    </aside>
   );
 }

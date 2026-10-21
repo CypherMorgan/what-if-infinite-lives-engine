@@ -20,7 +20,8 @@ export function TimelineView({ store }: { store: Store }) {
   const branches = state.doc.branches;
 
   return (
-    <div
+    <main
+      aria-label="The timeline"
       style={{
         gridArea: 'stage',
         background: 'var(--bg-void)',
@@ -175,6 +176,6 @@ export function TimelineView({ store }: { store: Store }) {
           })}
         </div>
       </div>
-    </div>
+    </main>
   );
 }

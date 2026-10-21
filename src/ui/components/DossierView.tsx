@@ -24,7 +24,7 @@ export function DossierView({ store }: { store: Store }) {
 
   if (!nodeId || !dossier) {
     return (
-      <div className="dossier-shell">
+      <main className="dossier-shell" aria-label="Path dossier">
         <div className="dossier-empty">
           <h2 className="dossier-empty-title">No path selected</h2>
           <p className="dossier-empty-body">
@@ -35,7 +35,7 @@ export function DossierView({ store }: { store: Store }) {
             Back to the graph
           </button>
         </div>
-      </div>
+      </main>
     );
   }
 
@@ -45,7 +45,7 @@ export function DossierView({ store }: { store: Store }) {
   const shown = moved.length > 0 ? moved.slice(0, 10) : dossier.metrics.slice(0, 8);
 
   return (
-    <div className="dossier-shell">
+    <main className="dossier-shell" aria-label="Path dossier">
       <div className="dossier">
         {/* ---------- header ---------- */}
         <header className="dossier-head">
@@ -59,7 +59,7 @@ export function DossierView({ store }: { store: Store }) {
             <span className="dossier-sep">·</span>
             {dossier.branchName}
           </div>
-          <h1 className="dossier-title">{dossier.title}</h1>
+          <h2 className="dossier-title">{dossier.title}</h2>
           <div className="dossier-meta">
             <span className="chip">{dossier.atLabel}</span>
             <span className="chip">reaches {dossier.projectedLabel} out</span>
@@ -75,7 +75,7 @@ export function DossierView({ store }: { store: Store }) {
         {/* ---------- body ---------- */}
         <div className="dossier-grid">
           <section className="dossier-card">
-            <h2 className="dossier-card-title">Where this leads</h2>
+            <h3 className="dossier-card-title">Where this leads</h3>
             <p className="dossier-card-sub">
               The model projects this path forward from here and compares it with where things stand
               at this point.
@@ -102,7 +102,7 @@ export function DossierView({ store }: { store: Store }) {
           </section>
 
           <section className="dossier-card">
-            <h2 className="dossier-card-title">How much it could wobble</h2>
+            <h3 className="dossier-card-title">How much it could wobble</h3>
             <p className="dossier-card-sub">{dossier.spreadNote}</p>
             {dossier.spread && dossier.headlineMetric ? (
               <div className="dossier-spread">
@@ -138,7 +138,7 @@ export function DossierView({ store }: { store: Store }) {
 
           {dossier.gains.length > 0 && (
             <section className="dossier-card dossier-card-good">
-              <h2 className="dossier-card-title">What it buys</h2>
+              <h3 className="dossier-card-title">What it buys</h3>
               <ul className="dossier-list">
                 {dossier.gains.map((g) => (
                   <li key={g}>{g}</li>
@@ -149,7 +149,7 @@ export function DossierView({ store }: { store: Store }) {
 
           {dossier.costs.length > 0 && (
             <section className="dossier-card dossier-card-bad">
-              <h2 className="dossier-card-title">What it costs</h2>
+              <h3 className="dossier-card-title">What it costs</h3>
               <ul className="dossier-list">
                 {dossier.costs.map((c) => (
                   <li key={c}>{c}</li>
@@ -160,7 +160,7 @@ export function DossierView({ store }: { store: Store }) {
 
           {dossier.reasons.length > 0 && (
             <section className="dossier-card">
-              <h2 className="dossier-card-title">How the model got here</h2>
+              <h3 className="dossier-card-title">How the model got here</h3>
               <ol className="dossier-steps">
                 {dossier.reasons.map((r, i) => (
                   <li key={`${i}-${r.slice(0, 24)}`}>{r}</li>
@@ -171,7 +171,7 @@ export function DossierView({ store }: { store: Store }) {
 
           {dossier.risks.length > 0 && (
             <section className="dossier-card dossier-card-warn">
-              <h2 className="dossier-card-title">What could go wrong</h2>
+              <h3 className="dossier-card-title">What could go wrong</h3>
               <ul className="dossier-list">
                 {dossier.risks.map((r) => (
                   <li key={r}>{r}</li>
@@ -182,7 +182,7 @@ export function DossierView({ store }: { store: Store }) {
 
           {dossier.nextSteps.length > 0 && (
             <section className="dossier-card">
-              <h2 className="dossier-card-title">What happens next</h2>
+              <h3 className="dossier-card-title">What happens next</h3>
               <ul className="dossier-list">
                 {dossier.nextSteps.map((s) => (
                   <li key={s}>{s}</li>
@@ -195,7 +195,7 @@ export function DossierView({ store }: { store: Store }) {
             dossier.moved.length > 0 ||
             dossier.sensitive.length > 0) && (
             <section className="dossier-card">
-              <h2 className="dossier-card-title">What has moved so far</h2>
+              <h3 className="dossier-card-title">What has moved so far</h3>
               <p className="dossier-card-sub">
                 Compared with where you started. These are the numbers this path has already changed
                 — and the ones it has left alone so far.
@@ -241,7 +241,7 @@ export function DossierView({ store }: { store: Store }) {
 
           {(dossier.assumptions.length > 0 || dossier.influentialInputs.length > 0) && (
             <section className="dossier-card">
-              <h2 className="dossier-card-title">What it rests on</h2>
+              <h3 className="dossier-card-title">What it rests on</h3>
               {dossier.assumptions.length > 0 && (
                 <ul className="dossier-list">
                   {dossier.assumptions.map((a) => (
@@ -284,7 +284,7 @@ export function DossierView({ store }: { store: Store }) {
           </div>
         </footer>
       </div>
-    </div>
+    </main>
   );
 }
 

@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Two paths, side by side** — the comparison view lines two paths up as the model actually built them, names the step where they part company, and lists what ends up different. The comparison is made at a common moment: both branches are projected forward to the horizon first, so the difference you see is a difference in the path rather than in the timing. "Favours" means the direction the model considers better for that variable; it is not a recommendation, and the view says so. The starting point is left out of it — it is where every path begins, not a path itself. The pair is remembered between sessions.
+
+### Changed
+
+- **The app can be used without a mouse, and read on a poor screen.** Focus moves into a dialog when it opens, lands on the field you would want to type into, stays inside while it is open, and returns to the control that opened it when it closes. `Esc` now closes a dialog from anywhere inside it, including from a text field. The app name is the only `h1`; every panel and card titles itself underneath it, and no heading level is skipped. The graph, the timeline, the dossier and the comparison are `main` regions, and the canvas describes itself in words with the same steps listed as text beside it. Every control has an accessible name — the on/off switches take theirs from the same string as their visible label, so the two cannot drift apart. `--text-faint` was below the 4.5:1 contrast threshold on every surface it was used on; it has been brought up, and the outline of a control now clears 3:1 against the background behind it.
+
+### Fixed
+
+- **The keyboard shortcuts modal was a dialog inside a dialog.** It rendered its own scrim and panel inside the one the modal host had already drawn, so there were two `aria-modal="true"` regions on the screen and the outer one had no name.
+- **The orientation card announced itself as a dialog** it never took focus into. It is a card that sits beside the graph, so it is a labelled region now.
+
 ## [1.1.0] - 2026-10-21
 
 The release that made the app usable by somebody who had never seen it.

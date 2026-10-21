@@ -7,7 +7,7 @@
 [![Electron](https://img.shields.io/badge/Electron-44-47848f?logo=electron&logoColor=white)](https://www.electronjs.org/)
 [![React](https://img.shields.io/badge/React-19-61dafb?logo=react&logoColor=white)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178c6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Tests](https://img.shields.io/badge/tests-146%20passing-b9f6a5.svg)](#testing)
+[![Tests](https://img.shields.io/badge/tests-264%20passing-b9f6a5.svg)](#testing)
 [![Local-first](https://img.shields.io/badge/local--first-offline%20by%20default-ffb74d.svg)](#privacy--security)
 
 <p align="center">
@@ -159,7 +159,7 @@ thewhatifs/
 │   │   └── theme.css
 │   ├── main.tsx
 │   └── ui/App.tsx
-└── tests/                    # 236 unit tests (engine, counterfactual, persistence, export format, AI, update, vars, dossier, store)
+└── tests/                    # 264 unit tests (engine, counterfactual, persistence, export format, AI, update, vars, dossier, branch diff, store, accessibility)
 ```
 
 ## Usage
@@ -190,7 +190,7 @@ thewhatifs/
 
 ## Testing
 
-All core logic is covered by unit tests (236 passing):
+All core logic is covered by unit tests (264 passing):
 
 - **engine.test.ts** — Determinism, expansion, layout, queries, forecast/spread, rule catalogue, derive clamping
 - **counterfactual.test.ts** — Assumption/decision counterfactuals, lineage, reroll, snapshots/diffs/stability
@@ -200,7 +200,9 @@ All core logic is covered by unit tests (236 passing):
 - **update.test.ts** — Release-channel parsing, version comparison, pre-release and draft exclusion
 - **vars.test.ts** — Variable registry integrity (no duplicate keys)
 - **dossier.test.ts** — Dossier construction, determinism, ordering, honesty of the prose
+- **branchDiff.test.ts** — Comparing two paths: the common moment, the divergence point, and which way "favours" points
 - **store.test.ts** — Selection, camera, expansion, undo/redo, branches, assumptions, import/export, settings
+- **accessibility.test.ts** — Colour contrast against the palette, and the markup that a screen reader depends on
 
 End-to-end smoke tests live in `e2e/` and run with Playwright:
 
@@ -215,6 +217,31 @@ npm run test:e2e
 - **Prettier** — formatting via `npm run format` / `npm run format:check`.
 - **Commitlint + Husky** — conventional-commit messages and a pre-commit typecheck/lint hook.
 - **Error boundaries** — the app and its panels fail soft with a recoverable UI.
+
+### Accessibility
+
+The app is built to be usable without a mouse and legible on a low-contrast
+screen. It is not certified against a particular accessibility standard — no
+audit was carried out with a screen reader or with people who use one — but
+the following are implemented and covered by `tests/accessibility.test.ts`:
+
+- **Every control has an accessible name.** Buttons that are only a symbol
+  carry an `aria-label`; the on/off switches take their name from the same
+  string as their visible label, so the two cannot drift apart.
+- **Dialogs behave.** Focus moves into a dialog when it opens, lands on the
+  field you would want to type into, stays inside while it is open, and
+  returns to the control that opened it when it closes. `Esc` closes a dialog
+  from anywhere inside it, including from a text field.
+- **One `h1`, no skipped levels.** The app name is the only `h1`; every panel
+  and card titles itself underneath it.
+- **Landmarks.** The graph, the timeline, the dossier and the comparison are
+  `main` regions; the two side panels are `aside`s. The canvas describes
+  itself in words and the same steps are listed as text beside it.
+- **Contrast.** Every text colour clears 4.5:1 against every surface it is
+  used on, and the outline of a control clears 3:1 against the background
+  behind it.
+- **A visible focus ring** on anything a keyboard can reach, in the same
+  colour everywhere.
 
 ## Documentation
 

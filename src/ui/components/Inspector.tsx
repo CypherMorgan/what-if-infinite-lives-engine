@@ -144,9 +144,10 @@ export function Inspector({ store }: { store: Store }) {
 
         {/* ---------- user notes ---------- */}
         <div className="section">
-          <h3 className="section-title">Notes</h3>
+          <h2 className="section-title">Notes</h2>
           <textarea
             className="textarea"
+            aria-label="Your notes on this step"
             placeholder="Your thoughts about this node (markdown supported)..."
             value={node.userNotes ?? ''}
             onChange={(e) => store.setNodeNotes(node.id, e.target.value)}
@@ -238,7 +239,7 @@ export function Inspector({ store }: { store: Store }) {
         {/* ---------- path explanation ---------- */}
         {showPath && (
           <div className="section">
-            <h3 className="section-title">Why this path</h3>
+            <h2 className="section-title">Why this path</h2>
             <div className="note note-violet">
               {why.length === 0 ? (
                 'No causal chain recorded for this node.'
@@ -258,7 +259,7 @@ export function Inspector({ store }: { store: Store }) {
         {/* ---------- state ---------- */}
         {node.state && (
           <div className="section">
-            <h3 className="section-title">State at this node</h3>
+            <h2 className="section-title">State at this node</h2>
             <div className="metric-grid" style={{ gridTemplateColumns: 'repeat(2, 1fr)' }}>
               {primaryVars.map((v) => {
                 const value = node.state?.[v.key];
@@ -287,7 +288,7 @@ export function Inspector({ store }: { store: Store }) {
         {/* ---------- forecast & spread ---------- */}
         {node.state && (
           <div className="section">
-            <h3 className="section-title">Model outlook</h3>
+            <h2 className="section-title">Model outlook</h2>
             <div className="btn-row">
               <button
                 className="btn btn-sm"
@@ -389,7 +390,7 @@ export function Inspector({ store }: { store: Store }) {
         {/* ---------- decision ---------- */}
         {node.decision && (
           <div className="section">
-            <h3 className="section-title">Decision here</h3>
+            <h2 className="section-title">Decision here</h2>
             <div className="note note-amber">
               <strong>{node.decision.question}</strong>
             </div>
@@ -416,7 +417,7 @@ export function Inspector({ store }: { store: Store }) {
         {/* ---------- trade-offs ---------- */}
         {node.tradeoffs && (node.tradeoffs.gains.length > 0 || node.tradeoffs.costs.length > 0) && (
           <div className="section">
-            <h3 className="section-title">Trade-offs</h3>
+            <h2 className="section-title">Trade-offs</h2>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
               <div className="note" style={{ borderLeftColor: 'rgba(92,230,168,0.6)' }}>
                 <strong>Gains</strong>
@@ -441,7 +442,7 @@ export function Inspector({ store }: { store: Store }) {
         {/* ---------- evidence ---------- */}
         {node.evidence.length > 0 && (
           <div className="section">
-            <h3 className="section-title">Evidence</h3>
+            <h2 className="section-title">Evidence</h2>
             <div className="tag-row">
               {node.evidence.map((t, i) => (
                 <span
@@ -461,7 +462,7 @@ export function Inspector({ store }: { store: Store }) {
           <div className="section">
             {node.assumptions.length > 0 && (
               <>
-                <h3 className="section-title">Rests on</h3>
+                <h2 className="section-title">Rests on</h2>
                 <div className="tag-row" style={{ marginBottom: 8 }}>
                   {node.assumptions.map((a, i) => (
                     <span key={i} className="chip chip-amber">
@@ -473,7 +474,7 @@ export function Inspector({ store }: { store: Store }) {
             )}
             {node.uncertainties.length > 0 && (
               <>
-                <h3 className="section-title">Uncertain because</h3>
+                <h2 className="section-title">Uncertain because</h2>
                 <div className="tag-row">
                   {node.uncertainties.map((u, i) => (
                     <span key={i} className="chip chip-rose">
@@ -493,7 +494,7 @@ export function Inspector({ store }: { store: Store }) {
           <div className="section">
             {node.failurePoints && node.failurePoints.length > 0 && (
               <>
-                <h3 className="section-title">Failure points</h3>
+                <h2 className="section-title">Failure points</h2>
                 <div className="note note-amber" style={{ marginBottom: 8 }}>
                   <ul style={{ margin: 0, paddingLeft: 16 }}>
                     {node.failurePoints.map((f, i) => (
@@ -505,7 +506,7 @@ export function Inspector({ store }: { store: Store }) {
             )}
             {node.nextSteps && node.nextSteps.length > 0 && (
               <>
-                <h3 className="section-title">Next steps</h3>
+                <h2 className="section-title">Next steps</h2>
                 <div className="note" style={{ marginBottom: 8 }}>
                   <ul style={{ margin: 0, paddingLeft: 16 }}>
                     {node.nextSteps.map((f, i) => (
@@ -517,7 +518,7 @@ export function Inspector({ store }: { store: Store }) {
             )}
             {node.resources && node.resources.length > 0 && (
               <>
-                <h3 className="section-title">Resources involved</h3>
+                <h2 className="section-title">Resources involved</h2>
                 <div className="tag-row">
                   {node.resources.map((f, i) => (
                     <span key={i} className="chip">
@@ -532,7 +533,7 @@ export function Inspector({ store }: { store: Store }) {
 
         {/* ---------- assumptions of the universe ---------- */}
         <div className="section">
-          <h3 className="section-title">Universe assumptions</h3>
+          <h2 className="section-title">Universe assumptions</h2>
           {state.doc.assumptions.map((a) => (
             <AssumptionRow
               key={a.id}
@@ -667,9 +668,9 @@ function Comparison({ store }: { store: Store }) {
       className="section"
       style={{ border: '1px solid var(--amber-dim)', borderRadius: 'var(--r)', padding: 10 }}
     >
-      <h3 className="section-title" style={{ color: 'var(--amber)' }}>
+      <h2 className="section-title" style={{ color: 'var(--amber)' }}>
         Comparison
-      </h3>
+      </h2>
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>
         <span className="chip chip-cyan" title={cmp.a.title}>
           {cmp.a.title}

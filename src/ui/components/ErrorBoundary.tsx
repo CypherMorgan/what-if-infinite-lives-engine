@@ -48,9 +48,9 @@ export class ErrorBoundary extends Component<Props, State> {
           }}
         >
           <div style={{ fontSize: 48, marginBottom: 16 }}>⚠️</div>
-          <h1 style={{ fontSize: 24, marginBottom: 8, fontFamily: 'var(--font-display)' }}>
+          <h2 style={{ fontSize: 24, marginBottom: 8, fontFamily: 'var(--font-display)' }}>
             Something went wrong
-          </h1>
+          </h2>
           <p style={{ color: 'var(--text-dim)', marginBottom: 24, maxWidth: 500 }}>
             The application encountered an unexpected error. You can try reloading or report this
             issue.

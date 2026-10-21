@@ -3,6 +3,7 @@
  * counterfactual creation and about.
  */
 import { useEffect, useRef, useState } from 'react';
+import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
 import type { Store } from '../state/store';
 import { useAppState } from '../state/store';
 import { PROVIDER_PRESETS, type ProviderSettings } from '../../ai/provider';
@@ -13,11 +14,92 @@ import { ShortcutsModal } from './ShortcutsModal';
 import { UpdateSection } from './UpdateSection';
 import { startTour } from '../tour';
 
+/** Everything a keyboard can reach, in the order the eye would reach it. */
+const FOCUSABLE =
+  'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
 export function ModalHost({ store }: { store: Store }) {
   const state = useAppState(store);
   const modal = state.modal;
+  const dialogRef = useRef<HTMLDivElement | null>(null);
+  const triggerRef = useRef<HTMLElement | null>(null);
+  const wasOpenRef = useRef(false);
+  const kind = modal?.kind ?? null;
+
+  /**
+   * Remembers the control that opened the dialog.
+   *
+   * The dialog cannot work this out for itself when it opens: a child of the
+   * dialog may focus itself on mount, and child effects run before parent
+   * ones, so by the time the parent looks, the focus has already moved
+   * inside. The store tells us the moment a dialog is opened — before React
+   * has rendered any of it — so the focus is still where the person left it.
+   */
+  useEffect(() => {
+    wasOpenRef.current = store.getState().modal !== null;
+    return store.subscribe(() => {
+      const isOpen = store.getState().modal !== null;
+      if (isOpen && !wasOpenRef.current) {
+        const active = document.activeElement as HTMLElement | null;
+        if (active && active !== document.body) triggerRef.current = active;
+      }
+      wasOpenRef.current = isOpen;
+    });
+  }, [store]);
+
+  /**
+   * Focus goes into the dialog when it opens and back to whatever opened it
+   * when it closes. Without this, a keyboard user is left tabbing through the
+   * page behind the dialog, which is the single most common way an app
+   * becomes unusable without a mouse.
+   */
+  useEffect(() => {
+    if (!kind) return;
+    const node = dialogRef.current;
+    // Prefer the first field a person would want to type into, then the first
+    // control in the body, then anything at all. The close button in the
+    // header is a poor place to land.
+    const body = node?.querySelector('.modal-body');
+    const target =
+      body?.querySelector<HTMLElement>(
+        'input:not([disabled]), select:not([disabled]), textarea:not([disabled])'
+      ) ??
+      body?.querySelector<HTMLElement>(FOCUSABLE) ??
+      node?.querySelector<HTMLElement>(FOCUSABLE) ??
+      node;
+    target?.focus();
+    return () => {
+      triggerRef.current?.focus?.();
+    };
+  }, [kind]);
+
   if (!modal) return null;
   const close = (): void => store.openModal(null);
+
+  /** Keeps Tab inside the dialog while it is open. */
+  const onKeyDown = (e: ReactKeyboardEvent<HTMLDivElement>): void => {
+    if (e.key !== 'Tab') return;
+    const node = dialogRef.current;
+    if (!node) return;
+    const items = [...node.querySelectorAll<HTMLElement>(FOCUSABLE)].filter(
+      (el) => el.offsetParent !== null || el === document.activeElement
+    );
+    if (items.length === 0) {
+      e.preventDefault();
+      node.focus();
+      return;
+    }
+    const first = items[0]!;
+    const last = items[items.length - 1]!;
+    const active = document.activeElement;
+    if (e.shiftKey && (active === first || !node.contains(active))) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && active === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  };
 
   return (
     <div
@@ -26,7 +108,15 @@ export function ModalHost({ store }: { store: Store }) {
         if (e.target === e.currentTarget) close();
       }}
     >
-      <div className="modal" role="dialog" aria-modal="true">
+      <div
+        className="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-title"
+        ref={dialogRef}
+        tabIndex={-1}
+        onKeyDown={onKeyDown}
+      >
         {modal.kind === 'new' && <NewUniverse store={store} close={close} />}
         {modal.kind === 'import' && <ImportModal store={store} close={close} />}
         {modal.kind === 'export' && <ExportModal store={store} close={close} />}
@@ -46,11 +136,42 @@ export function ModalHost({ store }: { store: Store }) {
 function Head({ title, close, hint }: { title: string; close: () => void; hint?: string }) {
   return (
     <div className="modal-head">
-      <span className="modal-title">{title}</span>
+      <h2 className="modal-title" id="modal-title">
+        {title}
+      </h2>
       {hint && <span className="chip">{hint}</span>}
       <button className="btn btn-ghost btn-sm" onClick={close} aria-label="Close">
         ✕
       </button>
+    </div>
+  );
+}
+
+/**
+ * A labelled on/off switch.
+ *
+ * The label is written once and used for both the visible text and the
+ * button's accessible name, so the two cannot drift apart.
+ */
+function Switch({
+  label,
+  checked,
+  onChange,
+}: {
+  label: string;
+  checked: boolean;
+  onChange: () => void;
+}) {
+  return (
+    <div className="switch-row">
+      <span>{label}</span>
+      <button
+        className="switch"
+        role="switch"
+        aria-checked={checked}
+        aria-label={label}
+        onClick={onChange}
+      />
     </div>
   );
 }
@@ -255,6 +376,7 @@ function ImportModal({ store, close }: { store: Store; close: () => void }) {
           ref={fileInputRef}
           type="file"
           accept=".json,.whatif.json,application/json"
+          aria-label="Choose a universe file to import"
           style={{ display: 'none' }}
           onChange={async (e) => {
             const file = e.target.files?.[0];
@@ -266,6 +388,7 @@ function ImportModal({ store, close }: { store: Store; close: () => void }) {
         />
         <textarea
           className="textarea"
+          aria-label="Paste a universe file"
           style={{ minHeight: 260, fontFamily: 'var(--font-mono)', fontSize: 11 }}
           placeholder="{ … }"
           value={text}
@@ -480,24 +603,16 @@ function SettingsModal({ store, close }: { store: Store; close: () => void }) {
                 </span>
               </label>
 
-              <div className="switch-row">
-                <span>Keyless endpoint (Ollama, llama.cpp, LM Studio)</span>
-                <button
-                  className="switch"
-                  role="switch"
-                  aria-checked={draft.keyless}
-                  onClick={() => patch({ keyless: !draft.keyless })}
-                />
-              </div>
-              <div className="switch-row">
-                <span>Strict — fail instead of falling back to the built-in engine</span>
-                <button
-                  className="switch"
-                  role="switch"
-                  aria-checked={draft.strict}
-                  onClick={() => patch({ strict: !draft.strict })}
-                />
-              </div>
+              <Switch
+                label="Keyless endpoint (Ollama, llama.cpp, LM Studio)"
+                checked={draft.keyless}
+                onChange={() => patch({ keyless: !draft.keyless })}
+              />
+              <Switch
+                label="Strict — fail instead of falling back to the built-in engine"
+                checked={draft.strict}
+                onChange={() => patch({ strict: !draft.strict })}
+              />
               <div
                 style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 8 }}
               >
@@ -532,42 +647,26 @@ function SettingsModal({ store, close }: { store: Store; close: () => void }) {
 
         <div className="section">
           <h3 className="section-title">Appearance & feedback</h3>
-          <div className="switch-row">
-            <span>Reduced motion (no growth animations, instant transitions)</span>
-            <button
-              className="switch"
-              role="switch"
-              aria-checked={state.settings.reducedMotion}
-              onClick={() => store.setSettings({ reducedMotion: !state.settings.reducedMotion })}
-            />
-          </div>
-          <div className="switch-row">
-            <span>Minimap</span>
-            <button
-              className="switch"
-              role="switch"
-              aria-checked={state.settings.showMinimap}
-              onClick={() => store.setSettings({ showMinimap: !state.settings.showMinimap })}
-            />
-          </div>
-          <div className="switch-row">
-            <span>Canvas grid</span>
-            <button
-              className="switch"
-              role="switch"
-              aria-checked={state.settings.showGrid}
-              onClick={() => store.setSettings({ showGrid: !state.settings.showGrid })}
-            />
-          </div>
-          <div className="switch-row">
-            <span>State chips on node cards</span>
-            <button
-              className="switch"
-              role="switch"
-              aria-checked={state.settings.showSpread}
-              onClick={() => store.setSettings({ showSpread: !state.settings.showSpread })}
-            />
-          </div>
+          <Switch
+            label="Reduced motion (no growth animations, instant transitions)"
+            checked={state.settings.reducedMotion}
+            onChange={() => store.setSettings({ reducedMotion: !state.settings.reducedMotion })}
+          />
+          <Switch
+            label="Minimap"
+            checked={state.settings.showMinimap}
+            onChange={() => store.setSettings({ showMinimap: !state.settings.showMinimap })}
+          />
+          <Switch
+            label="Canvas grid"
+            checked={state.settings.showGrid}
+            onChange={() => store.setSettings({ showGrid: !state.settings.showGrid })}
+          />
+          <Switch
+            label="State chips on node cards"
+            checked={state.settings.showSpread}
+            onChange={() => store.setSettings({ showSpread: !state.settings.showSpread })}
+          />
         </div>
 
         <div className="section">

@@ -4,10 +4,10 @@
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Store } from '../state/store';
-import { useAppState } from '../state/store';
+import { useAppState, type AppState } from '../state/store';
 import { GraphRenderer, type Camera } from '../graph/GraphRenderer';
 import { boundsOf } from '../../core/layout';
-import { visibleNodes } from '../../core/graph';
+import { pathCount, visibleNodes } from '../../core/graph';
 import { exportCanvasAsPng } from '../utils/exportCanvas';
 import { GraphKey } from './GraphKey';
 import { OrientationCard } from './OrientationCard';
@@ -365,7 +365,8 @@ export function Stage({ store }: { store: Store }) {
   const onlyStart = Object.keys(state.doc.nodes).length <= 1;
 
   return (
-    <div className="stage">
+    <main className="stage" aria-label="The universe graph">
+      <h2 className="sr-only">The graph</h2>
       <div
         ref={hostRef}
         className={`canvas-host ${pointerMode === 'drag' ? 'dragging' : ''} ${pointerMode === 'pan' ? 'panning' : ''}`}
@@ -376,13 +377,13 @@ export function Stage({ store }: { store: Store }) {
         onDoubleClick={onDoubleClick}
         onContextMenu={(e) => e.preventDefault()}
       >
-        <canvas ref={canvasRef} />
+        <canvas ref={canvasRef} role="img" aria-label={graphDescription(state)} />
       </div>
 
       {onlyStart && (
         <div className="stage-empty">
           <div className="stage-empty-card">
-            <h2 className="stage-empty-title">There is only one thing here so far</h2>
+            <h3 className="stage-empty-title">There is only one thing here so far</h3>
             <p className="stage-empty-body">
               The blue diamond is where you stand today. Nothing has branched out from it yet.
               Expand it and the engine will work out what could realistically follow.
@@ -450,6 +451,7 @@ export function Stage({ store }: { store: Store }) {
         <div className="minimap">
           <canvas
             ref={miniRef}
+            aria-label="A small map of the whole graph. Click or drag to move around."
             onPointerDown={onMiniPointer}
             onPointerMove={(e) => {
               if (e.buttons === 1) onMiniPointer(e);
@@ -457,7 +459,7 @@ export function Stage({ store }: { store: Store }) {
           />
         </div>
       )}
-    </div>
+    </main>
   );
 }
 
@@ -466,4 +468,17 @@ function rContentW(r: GraphRenderer): number {
 }
 function rContentH(r: GraphRenderer): number {
   return r.height;
+}
+
+/**
+ * A text description of the graph, for anything that cannot see the canvas.
+ *
+ * The same steps are listed in the panel on the left and laid out in the
+ * timeline, so this is a summary and a pointer rather than the only route to
+ * the content.
+ */
+function graphDescription(state: AppState): string {
+  const steps = Object.keys(state.doc.nodes).length;
+  const paths = pathCount(state.doc);
+  return `A graph of ${steps} steps across ${paths} paths, with time running from left to right. The same steps are listed in the panel on the left.`;
 }
