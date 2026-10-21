@@ -141,7 +141,7 @@ Both artifacts are produced by a single `npm run dist`. Releases are published a
 thewhatifs/
 ├── .github/                  # CI, release workflow, issue/PR templates
 ├── build/                    # Icon source (icon.ico, icon-256.png)
-├── docs/                     # ARCHITECTURE.md + screenshots/
+├── docs/                     # ARCHITECTURE.md, EXPORT_FORMAT.md, screenshots/
 ├── e2e/                      # Playwright smoke tests
 ├── electron/                 # Main + preload (contextBridge API)
 │   ├── main.ts
@@ -149,7 +149,7 @@ thewhatifs/
 ├── scripts/                  # Build helpers (icon generator, screenshot capture)
 ├── src/
 │   ├── ai/                   # Provider interface, offline/HTTP adapters, orchestrator, schema
-│   ├── core/                 # Engine, graph, layout, rules, counterfactuals, migration/import/export
+│   ├── core/                 # Engine, graph, layout, rules, counterfactuals, dossier, migration/import/export
 │   │   ├── packs/            # Rule packs + variables
 │   │   └── ...
 │   ├── ui/                   # React app, Canvas renderer, state store, theme
@@ -159,7 +159,7 @@ thewhatifs/
 │   │   └── theme.css
 │   ├── main.tsx
 │   └── ui/App.tsx
-└── tests/                    # 146 unit tests (engine, counterfactual, persistence, AI)
+└── tests/                    # 236 unit tests (engine, counterfactual, persistence, export format, AI, update, vars, dossier, store)
 ```
 
 ## Usage
@@ -190,12 +190,17 @@ thewhatifs/
 
 ## Testing
 
-All core logic is covered by unit tests (146 passing):
+All core logic is covered by unit tests (236 passing):
 
 - **engine.test.ts** — Determinism, expansion, layout, queries, forecast/spread, rule catalogue, derive clamping
 - **counterfactual.test.ts** — Assumption/decision counterfactuals, lineage, reroll, snapshots/diffs/stability
 - **persistence.test.ts** — Export envelope round-trip, all typed import failures, v1→v3 migrations
+- **exportFormat.test.ts** — The documented `.whatif.json` contract, and what a hand-written file may omit
 - **ai.test.ts** — JSON extraction/parse, HTTP provider (fallback/strict/redaction/cancellation), document coercion
+- **update.test.ts** — Release-channel parsing, version comparison, pre-release and draft exclusion
+- **vars.test.ts** — Variable registry integrity (no duplicate keys)
+- **dossier.test.ts** — Dossier construction, determinism, ordering, honesty of the prose
+- **store.test.ts** — Selection, camera, expansion, undo/redo, branches, assumptions, import/export, settings
 
 End-to-end smoke tests live in `e2e/` and run with Playwright:
 
@@ -210,6 +215,13 @@ npm run test:e2e
 - **Prettier** — formatting via `npm run format` / `npm run format:check`.
 - **Commitlint + Husky** — conventional-commit messages and a pre-commit typecheck/lint hook.
 - **Error boundaries** — the app and its panels fail soft with a recoverable UI.
+
+## Documentation
+
+- **[docs/EXPORT_FORMAT.md](docs/EXPORT_FORMAT.md)** — the `.whatif.json` format, in full: the envelope, every field of the document, the migration chain, the validation and repair rules, and the limits.
+- **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** — how the engine, the renderer, the persistence layer and the AI bridge fit together.
+- **[ROADMAP.md](ROADMAP.md)** — what has shipped, what is being built, and what is deliberately not planned.
+- **[CHANGELOG.md](CHANGELOG.md)** — every release, with the reasoning behind the notable fixes.
 
 ## Privacy & Security
 
