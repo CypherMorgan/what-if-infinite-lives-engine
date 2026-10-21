@@ -1405,6 +1405,180 @@ body::before {
 }
 
 /* =================================================================
+   Comparing two paths
+   ================================================================= */
+
+/* Content for screen readers only. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.dossier-vs {
+  font-size: 0.55em;
+  font-weight: 500;
+  color: var(--text-faint);
+  vertical-align: middle;
+  margin: 0 2px;
+}
+
+.diff-side-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dossier-divergence {
+  margin-top: 12px;
+  padding: 9px 12px;
+  border-left: 2px solid var(--violet);
+  background: rgba(124, 108, 255, 0.07);
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text-dim);
+  border-radius: 0 6px 6px 0;
+}
+
+.dossier-divergence strong {
+  color: var(--text);
+}
+
+.dossier-paths {
+  margin-bottom: 14px;
+}
+
+.diff-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.diff-column {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.diff-column-head {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0 0 8px;
+  margin-bottom: 4px;
+  border-bottom: 2px solid var(--line);
+}
+
+.diff-column-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.diff-column-desc {
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--text-faint);
+}
+
+.diff-step {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  width: 100%;
+  text-align: left;
+  padding: 7px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--text-dim);
+  font-family: inherit;
+  cursor: pointer;
+  transition:
+    border-color 0.14s ease,
+    background 0.14s ease;
+}
+
+.diff-step:hover {
+  border-color: var(--cyan-dim);
+  background: rgba(79, 216, 255, 0.06);
+}
+
+.diff-step:focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 1px;
+}
+
+.diff-step-empty {
+  border-style: dashed;
+  border-color: rgba(255, 255, 255, 0.06);
+  background: transparent;
+  cursor: default;
+  min-height: 42px;
+}
+
+.diff-step-time {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-faint);
+  text-transform: lowercase;
+}
+
+.diff-step-title {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.35;
+}
+
+.diff-step-type {
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.diff-favours {
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.diff-favours-a {
+  color: var(--cyan);
+}
+
+.diff-favours-b {
+  color: var(--violet);
+}
+
+.diff-tone-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+.diff-tone-good-a {
+  background: var(--cyan);
+}
+.diff-tone-good-b {
+  background: var(--violet);
+}
+.diff-tone-flat {
+  background: var(--text-faint);
+}
+
+/* =================================================================
    Status bar
    ================================================================= */
 

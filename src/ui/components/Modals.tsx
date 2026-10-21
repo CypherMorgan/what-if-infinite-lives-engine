@@ -37,6 +37,7 @@ export function ModalHost({ store }: { store: Store }) {
         )}
         {modal.kind === 'about' && <AboutModal store={store} close={close} />}
         {modal.kind === 'shortcuts' && <ShortcutsModal store={store} close={close} />}
+        {modal.kind === 'compare' && <CompareModal store={store} close={close} />}
       </div>
     </div>
   );
@@ -775,6 +776,122 @@ function CounterfactualModal({
         </button>
         <button className="btn btn-violet" onClick={create}>
           Create counterfactual →
+        </button>
+      </div>
+    </>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Compare two paths                                                   */
+/* ------------------------------------------------------------------ */
+
+function CompareModal({ store, close }: { store: Store; close: () => void }) {
+  const state = useAppState(store);
+  const branches = store.comparableBranches();
+  const current = state.diffBranches;
+
+  const [a, setA] = useState(current?.a ?? branches[0]?.id ?? '');
+  const [b, setB] = useState(
+    current?.b ?? branches.find((x) => x.id !== (current?.a ?? branches[0]?.id))?.id ?? ''
+  );
+
+  if (branches.length < 2) {
+    return (
+      <>
+        <Head title="Compare two paths" close={close} />
+        <div className="modal-body">
+          <div className="empty">
+            <div className="empty-title">Not enough paths yet</div>
+            This universe has {branches.length === 0 ? 'no paths' : 'only one path'}. Expand a step
+            to create more, then come back.
+          </div>
+        </div>
+        <div className="modal-foot">
+          <button className="btn btn-ghost" onClick={close}>
+            Close
+          </button>
+        </div>
+      </>
+    );
+  }
+
+  const valid = a !== '' && b !== '' && a !== b;
+
+  const swap = (): void => {
+    setA(b);
+    setB(a);
+  };
+
+  const compare = (): void => {
+    if (!valid) return;
+    store.setDiffBranches({ a, b });
+    store.setViewMode('diff');
+    close();
+  };
+
+  return (
+    <>
+      <Head title="Compare two paths" close={close} hint={`${branches.length} paths`} />
+      <div className="modal-body">
+        <div className="hero" style={{ marginBottom: 14 }}>
+          <div className="hero-title">Which two do you want to see side by side?</div>
+          <div className="hero-sub">
+            The comparison lines each path up against the other, shows where they part company, and
+            lists what ends up different. It does not tell you which to choose.
+          </div>
+        </div>
+
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr auto 1fr',
+            gap: 12,
+            alignItems: 'end',
+          }}
+        >
+          <label className="field">
+            <span className="field-label">First path</span>
+            <select className="select" value={a} onChange={(e) => setA(e.target.value)}>
+              {branches.map((br) => (
+                <option key={br.id} value={br.id}>
+                  {br.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <button className="btn btn-ghost" onClick={swap} aria-label="Swap the two paths">
+            ⇄
+          </button>
+          <label className="field">
+            <span className="field-label">Second path</span>
+            <select className="select" value={b} onChange={(e) => setB(e.target.value)}>
+              {branches.map((br) => (
+                <option key={br.id} value={br.id}>
+                  {br.name}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+
+        {a === b && a !== '' && (
+          <div className="note" style={{ marginTop: 12, borderLeftColor: 'var(--amber)' }}>
+            Pick two different paths to compare.
+          </div>
+        )}
+
+        <div className="note" style={{ marginTop: 12 }}>
+          Both paths are projected to the end of the horizon before they are compared, so the
+          difference you see is a difference in the path and not in the timing.
+        </div>
+      </div>
+      <div className="modal-foot">
+        <button className="btn btn-ghost" onClick={close}>
+          Cancel
+        </button>
+        <button className="btn btn-primary" disabled={!valid} onClick={compare}>
+          Compare →
         </button>
       </div>
     </>

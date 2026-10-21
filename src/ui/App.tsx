@@ -9,6 +9,7 @@ import { Inspector } from './components/Inspector';
 import { ModalHost } from './components/Modals';
 import { TimelineView } from './components/TimelineView';
 import { DossierView } from './components/DossierView';
+import { BranchDiffView } from './components/BranchDiffView';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { pathCount } from '../core/graph';
 
@@ -213,6 +214,18 @@ export function App({ store }: { store: Store }) {
           >
             Dossier
           </button>
+          <button
+            className={`btn ${state.viewMode === 'diff' ? 'btn-primary' : 'btn-ghost'}`}
+            onClick={() => {
+              // The first time, the app asks which two. After that it takes
+              // you straight back to the comparison you were reading.
+              if (state.diffBranches) store.openDiff();
+              else store.openModal({ kind: 'compare' });
+            }}
+            title="Put two paths side by side"
+          >
+            ⇄ Compare
+          </button>
           <span style={{ width: 1, height: 22, background: 'var(--line)' }} />
           <button
             className="btn btn-ghost"
@@ -266,6 +279,8 @@ export function App({ store }: { store: Store }) {
           <TimelineView store={store} />
         ) : state.viewMode === 'dossier' ? (
           <DossierView store={store} />
+        ) : state.viewMode === 'diff' ? (
+          <BranchDiffView store={store} />
         ) : (
           <Stage store={store} />
         )}

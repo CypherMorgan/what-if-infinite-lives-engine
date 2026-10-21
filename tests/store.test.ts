@@ -384,3 +384,58 @@ describe('Store — settings and view', () => {
     expect(storage.getItem('whatifs:view')).toBe('dossier');
   });
 });
+
+describe('Store — comparing two paths', () => {
+  it('leaves the starting point out of the paths that can be compared', () => {
+    const store = makeStore();
+    const startBranch = Object.values(store.getState().doc.nodes).find(
+      (n) => n.type === 'start'
+    )?.branch;
+    const comparable = store.comparableBranches();
+    expect(comparable.length).toBeGreaterThanOrEqual(2);
+    expect(comparable.some((b) => b.id === startBranch)).toBe(false);
+  });
+
+  it('opens the diff on a pair of paths', () => {
+    const store = makeStore();
+    store.openDiff();
+    const pair = store.getState().diffBranches;
+    expect(pair).not.toBeNull();
+    expect(store.getState().viewMode).toBe('diff');
+    if (!pair) return;
+    expect(pair.a).not.toBe(pair.b);
+  });
+
+  it('builds the diff for a pair and caches it', () => {
+    const store = makeStore();
+    const comparable = store.comparableBranches();
+    const a = comparable[0]!.id;
+    const b = comparable[1]!.id;
+    const first = store.diffFor(a, b);
+    expect(first).not.toBeNull();
+    expect(store.diffFor(a, b)).toBe(first);
+  });
+
+  it('returns nothing for a path that does not exist', () => {
+    const store = makeStore();
+    expect(store.diffFor('nope', 'also-nope')).toBeNull();
+  });
+
+  it('remembers the pair so a reopened app does not lose it', () => {
+    const store = makeStore();
+    store.setDiffBranches({ a: 'b1', b: 'b2' });
+    expect(storage.getItem('whatifs:diff')).toContain('b1');
+  });
+
+  it('falls back to the first two paths when the remembered pair no longer exists', () => {
+    const store = makeStore();
+    store.setDiffBranches({ a: 'gone-a', b: 'gone-b' });
+    store.openDiff();
+    const pair = store.getState().diffBranches;
+    expect(pair).not.toBeNull();
+    if (!pair) return;
+    const ids = store.comparableBranches().map((b) => b.id);
+    expect(ids).toContain(pair.a);
+    expect(ids).toContain(pair.b);
+  });
+});

@@ -43,6 +43,7 @@ import {
 } from '../../core/counterfactual';
 import { visibleNodes } from '../../core/graph';
 import { buildDossier, type Dossier } from '../../core/dossier';
+import { buildBranchDiff, type BranchDiff } from '../../core/branchDiff';
 import { randomSeed } from '../../core/rng';
 import { detectArchetypes } from '../../core/archetypes';
 import { exportFileName, exportToText, importFromText, summarise } from '../../core/importExport';
@@ -76,6 +77,27 @@ const DEFAULT_UI: UiSettings = {
 
 const LS_UI = 'whatifs:ui';
 const LS_INDEX = 'whatifs:index';
+const LS_DIFF = 'whatifs:diff';
+
+/**
+ * The pair of paths last compared.
+ *
+ * Remembered so that reopening the app does not lose the comparison a person
+ * was in the middle of reading.
+ */
+function loadDiffPair(): { a: string; b: string } | null {
+  try {
+    const raw = localStorage.getItem(LS_DIFF);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as { a?: unknown; b?: unknown };
+    if (typeof parsed.a === 'string' && typeof parsed.b === 'string') {
+      return { a: parsed.a, b: parsed.b };
+    }
+  } catch {
+    /* corrupted pair falls back to none */
+  }
+  return null;
+}
 
 function loadUi(): UiSettings {
   try {
@@ -145,7 +167,9 @@ export interface AppState {
   modal: ModalState | null;
   compare: CompareState | null;
   library: SimulationSummary[];
-  viewMode: 'graph' | 'timeline' | 'dossier';
+  viewMode: 'graph' | 'timeline' | 'dossier' | 'diff';
+  /** The two branches being compared in the diff view. */
+  diffBranches: { a: string; b: string } | null;
 }
 
 export type ModalState =
@@ -156,7 +180,8 @@ export type ModalState =
   | { kind: 'about' }
   | { kind: 'counterfactual'; assumptionId: string }
   | { kind: 'library' }
-  | { kind: 'shortcuts' };
+  | { kind: 'shortcuts' }
+  | { kind: 'compare' };
 
 export interface CompareState {
   a: BranchSnapshot;
@@ -178,6 +203,8 @@ export class Store {
    * so they are cached per node until the document changes.
    */
   private dossierCache = new Map<NodeId, Dossier | null>();
+  /** Diffs are cached per pair of branches, on the same terms as dossiers. */
+  private diffCache = new Map<string, BranchDiff | null>();
 
   constructor(doc: SimulationDoc) {
     // The path is derived from the selected node, so it has to be filled in
@@ -202,10 +229,11 @@ export class Store {
       modal: null,
       compare: null,
       library: loadIndex(),
-      viewMode: ((): 'graph' | 'timeline' | 'dossier' => {
+      diffBranches: loadDiffPair(),
+      viewMode: ((): 'graph' | 'timeline' | 'dossier' | 'diff' => {
         try {
           const saved = localStorage.getItem('whatifs:view');
-          if (saved === 'timeline' || saved === 'dossier') return saved;
+          if (saved === 'timeline' || saved === 'dossier' || saved === 'diff') return saved;
           return 'graph';
         } catch {
           return 'graph';
@@ -284,6 +312,7 @@ export class Store {
         ? this.state.selected
         : firstNodeId(scored);
     this.dossierCache.clear();
+    this.diffCache.clear();
     this.set({
       doc: scored,
       selected,
@@ -352,13 +381,68 @@ export class Store {
     this.set({ compare: c });
   }
 
-  setViewMode(mode: 'graph' | 'timeline' | 'dossier'): void {
+  setViewMode(mode: 'graph' | 'timeline' | 'dossier' | 'diff'): void {
     this.set({ viewMode: mode });
     try {
       localStorage.setItem('whatifs:view', mode);
     } catch {
       // ignore
     }
+  }
+
+  /* ---------------- branch comparison ---------------- */
+
+  /**
+   * The branches that can be compared.
+   *
+   * The starting point is not a path — it is where every path begins — so it
+   * is left out. Comparing it against a path would answer "what does three
+   * years of anything do to me", which is a different question.
+   */
+  comparableBranches(): { id: string; name: string; hue: number }[] {
+    const startBranch = Object.values(this.state.doc.nodes).find((n) => n.type === 'start')?.branch;
+    return Object.values(this.state.doc.branches)
+      .filter((b) => b.id !== startBranch)
+      .map((b) => ({ id: b.id, name: b.name, hue: b.hue }));
+  }
+
+  /** Opens the diff on a pair of branches, defaulting to the first two paths. */
+  openDiff(a?: string, b?: string): void {
+    const branches = this.comparableBranches();
+    if (branches.length < 2) {
+      this.toast('There are not two paths to compare yet.', 'info');
+      return;
+    }
+    // A pair remembered from an earlier session may name paths this universe
+    // does not have. In that case fall back to the first two real paths.
+    const current = this.state.diffBranches;
+    const usable =
+      current !== null &&
+      branches.some((x) => x.id === current.a) &&
+      branches.some((x) => x.id === current.b);
+    const first = a ?? (usable ? current!.a : branches[0]!.id);
+    const second =
+      b ?? (usable ? current!.b : (branches.find((x) => x.id !== first)?.id ?? branches[1]!.id));
+    this.setDiffBranches({ a: first, b: second });
+    this.setViewMode('diff');
+  }
+
+  setDiffBranches(pair: { a: string; b: string }): void {
+    this.set({ diffBranches: pair });
+    try {
+      localStorage.setItem('whatifs:diff', JSON.stringify(pair));
+    } catch {
+      // ignore
+    }
+  }
+
+  /** The diff for a pair of branches. Cached until the document changes. */
+  diffFor(a: string, b: string): BranchDiff | null {
+    const key = `${a}|${b}`;
+    if (this.diffCache.has(key)) return this.diffCache.get(key) ?? null;
+    const built = buildBranchDiff(this.state.doc, a, b, ALL_PACKS);
+    this.diffCache.set(key, built);
+    return built;
   }
 
   visible(): Set<NodeId> {
