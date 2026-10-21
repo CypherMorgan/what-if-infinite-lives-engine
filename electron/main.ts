@@ -406,6 +406,76 @@ ipcMain.handle('secret:delete', async (_e, key: string) => {
 ipcMain.handle('app:version', () => app.getVersion());
 
 /* ------------------------------------------------------------------ */
+/* IPC: updates                                                       */
+/* ------------------------------------------------------------------ */
+
+/**
+ * The public release feed for this project.
+ *
+ * The app checks this only when the user asks it to. It never phones home on
+ * startup, sends no telemetry, and the request carries nothing but the URL.
+ */
+const RELEASES_FEED =
+  'https://api.github.com/repos/CypherMorgan/what-if-infinite-lives-engine/releases/latest';
+
+/**
+ * Look up the newest published release.
+ *
+ * This deliberately returns the raw payload and lets the renderer decide what
+ * it means: the main process stays a thin, auditable bridge, and the
+ * interpretation lives in `src/core/update.ts` where it can be unit-tested.
+ */
+ipcMain.handle('update:check', async (): Promise<unknown> => {
+  try {
+    const response = await fetch(RELEASES_FEED, {
+      headers: {
+        Accept: 'application/vnd.github+json',
+        'User-Agent': 'what-if-infinite-lives-engine',
+      },
+      signal: AbortSignal.timeout(15_000),
+    });
+    if (!response.ok) {
+      return {
+        error:
+          response.status === 403
+            ? 'GitHub is rate-limiting anonymous requests. Try again in a few minutes.'
+            : `The release feed answered with status ${response.status}.`,
+      };
+    }
+    const text = await response.text();
+    if (text.length > 2_000_000) {
+      return { error: 'The release feed returned an unexpectedly large response.' };
+    }
+    return { payload: JSON.parse(text) as unknown };
+  } catch (err) {
+    return {
+      error:
+        err instanceof Error
+          ? `Could not reach the release feed: ${err.message}`
+          : 'Could not reach the release feed.',
+    };
+  }
+});
+
+/**
+ * Open the release page in the user's browser.
+ *
+ * Only GitHub release URLs are accepted — the renderer cannot use this to open
+ * arbitrary links, which keeps a compromised document from turning the app
+ * into a launcher for anything it likes.
+ */
+ipcMain.handle('update:open', async (_e, url: string): Promise<boolean> => {
+  if (
+    typeof url !== 'string' ||
+    !/^https:\/\/github\.com\/[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+\/releases\//i.test(url)
+  ) {
+    return false;
+  }
+  await shell.openExternal(url);
+  return true;
+});
+
+/* ------------------------------------------------------------------ */
 /* IPC: provider requests (authenticated here, never in the renderer)  */
 /* ------------------------------------------------------------------ */
 

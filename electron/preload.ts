@@ -36,6 +36,10 @@ const api = {
 
   appVersion: (): Promise<string> => ipcRenderer.invoke('app:version'),
 
+  /* updates — checked only when the user asks, never automatically */
+  checkForUpdate: (): Promise<unknown> => ipcRenderer.invoke('update:check'),
+  openReleasePage: (url: string): Promise<boolean> => ipcRenderer.invoke('update:open', url),
+
   /* provider requests — the main process attaches the credential */
   aiRequest: (request: {
     url: string;

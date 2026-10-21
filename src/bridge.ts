@@ -69,6 +69,10 @@ export interface WhatIfsBridge {
 
   appVersion(): Promise<string>;
 
+  /* updates — checked only when the user asks, never automatically */
+  checkForUpdate(): Promise<unknown>;
+  openReleasePage(url: string): Promise<boolean>;
+
   /* provider requests — authenticated in the main process */
   aiRequest(request: AiRequest): Promise<AiResponse>;
 }

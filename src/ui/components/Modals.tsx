@@ -10,6 +10,7 @@ import { IMPORT_LIMITS } from '../../core/validate';
 import { APP_VERSION } from '../../core/importExport';
 import { formatValue } from '../../core/vars';
 import { ShortcutsModal } from './ShortcutsModal';
+import { UpdateSection } from './UpdateSection';
 
 export function ModalHost({ store }: { store: Store }) {
   const state = useAppState(store);
@@ -565,6 +566,11 @@ function SettingsModal({ store, close }: { store: Store; close: () => void }) {
               onClick={() => store.setSettings({ showSpread: !state.settings.showSpread })}
             />
           </div>
+        </div>
+
+        <div className="section">
+          <h3 className="section-title">Updates</h3>
+          <UpdateSection />
         </div>
 
         <div className="note">
