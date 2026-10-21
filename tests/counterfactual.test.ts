@@ -14,6 +14,7 @@ import {
   snapshot,
   stabilityBetween,
   whyThisPath,
+  withSensitivity,
 } from '../src/core/counterfactual';
 import { ALL_PACKS } from '../src/core/packs';
 import { createUniverse, derive } from '../src/core/engine';
@@ -277,5 +278,46 @@ describe('previewAssumption', () => {
     const preview = previewAssumption(base, assumption, 5000, ['career']);
     expect(preview['income']).toBe(5000);
     expect(Object.values(preview).every((v) => Number.isFinite(v))).toBe(true);
+  });
+});
+
+describe('withSensitivity', () => {
+  it('scores editable assumptions and leaves non-editable ones alone', () => {
+    const doc = makeDoc();
+    const scored = withSensitivity(doc, ALL_PACKS);
+    expect(scored.assumptions).toHaveLength(doc.assumptions.length);
+    for (const a of scored.assumptions) {
+      expect(Number.isFinite(a.sensitivity)).toBe(true);
+      expect(a.sensitivity).toBeGreaterThanOrEqual(0);
+      expect(a.sensitivity).toBeLessThanOrEqual(1);
+    }
+  });
+
+  it('produces a non-zero spread, so the readout is not a dead zero', () => {
+    // Regression guard: the previous implementation perturbed the assumptions but
+    // measured a forecast that never read them, so every score was 0 and the UI
+    // displayed a meaningless "0%" on every assumption.
+    const doc = makeDoc();
+    const scored = withSensitivity(doc, ALL_PACKS);
+    const values = scored.assumptions.map((a) => a.sensitivity);
+    expect(Math.max(...values)).toBeGreaterThan(0);
+    // At least one assumption must be fully influential after normalisation.
+    expect(Math.max(...values)).toBeCloseTo(1, 6);
+  });
+
+  it('is deterministic for the same document', () => {
+    const doc = makeDoc();
+    const a = withSensitivity(doc, ALL_PACKS);
+    const b = withSensitivity(doc, ALL_PACKS);
+    expect(a.assumptions.map((x) => x.sensitivity)).toEqual(
+      b.assumptions.map((x) => x.sensitivity)
+    );
+  });
+
+  it('does not mutate the document it is given', () => {
+    const doc = makeDoc();
+    const before = JSON.stringify(doc.assumptions);
+    withSensitivity(doc, ALL_PACKS);
+    expect(JSON.stringify(doc.assumptions)).toBe(before);
   });
 });

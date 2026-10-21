@@ -36,6 +36,7 @@ import {
   snapshot,
   stabilityBetween,
   whyThisPath,
+  withSensitivity,
   type BranchSnapshot,
   type DiffEntry,
   type StabilityReport,
@@ -254,22 +255,26 @@ export class Store {
   }
 
   private commit(doc: SimulationDoc, status: string): void {
+    // Score assumption influence on every committed document. The score is derived
+    // from the document, so recomputing it here keeps it correct no matter which
+    // path produced the change (create, expand, assumption edit, undo, redo).
+    const scored = withSensitivity(doc, ALL_PACKS);
     const selected =
-      this.state.selected && doc.nodes[this.state.selected]
+      this.state.selected && scored.nodes[this.state.selected]
         ? this.state.selected
-        : firstNodeId(doc);
+        : firstNodeId(scored);
     this.set({
-      doc,
+      doc: scored,
       selected,
-      path: selected ? pathTo(doc, selected) : [],
+      path: selected ? pathTo(scored, selected) : [],
       canUndo: this.past.length > 0,
       canRedo: this.future.length > 0,
       undoLabel: this.past[this.past.length - 1]?.label ?? null,
       redoLabel: this.future[this.future.length - 1]?.label ?? null,
       status,
     });
-    this.saveLibraryEntry(doc);
-    this.persistDoc(doc);
+    this.saveLibraryEntry(scored);
+    this.persistDoc(scored);
   }
 
   undo(): void {

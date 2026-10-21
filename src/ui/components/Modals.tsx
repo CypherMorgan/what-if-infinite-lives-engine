@@ -764,7 +764,7 @@ function CounterfactualModal({
             }}
           >
             <span>{formatValue(lo, assumption.unit)}</span>
-            <span>sensitivity {Math.round(assumption.sensitivity * 100)}%</span>
+            <span>influence {Math.round(assumption.sensitivity * 100)}%</span>
             <span>{formatValue(hi, assumption.unit)}</span>
           </div>
         </div>

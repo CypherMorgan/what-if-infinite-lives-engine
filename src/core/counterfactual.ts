@@ -17,7 +17,7 @@
  */
 import { Rng } from './rng';
 import { applyEffects, type RulePack } from './rulePack';
-import { createUniverse, derive, forecastFrom, hashString } from './engine';
+import { createUniverse, derive, forecastFrom, hashString, updateAssumptions } from './engine';
 import { optionById } from './archetypes';
 import { ALL_VARS } from './packs/vars';
 import {
@@ -181,34 +181,98 @@ function currentDecisionLabels(doc: SimulationDoc): string[] {
  * This is a diagnostic, not a probability. It is only ever rendered as "how sensitive is this
  * result to this number", never as "this will happen".
  */
-export function withSensitivity(doc: SimulationDoc, packs: readonly RulePack[]): SimulationDoc {
-  const endpoints = Object.values(doc.nodes)
-    .filter((n) => n.children.length === 0 && n.state)
-    .slice(0, 20);
-  if (endpoints.length === 0) return doc;
+/**
+ * Headline measures used to score how much an assumption moves the outcome.
+ *
+ * These are the variables the UI itself shows as headline state, so the score
+ * answers the question the user is already asking: "if I change this number, how
+ * much does what I can see move?"
+ *
+ * Bounded variables (percent, level) are compared on their own 0-100 scale.
+ * Unbounded ones (currency, months) are compared relatively, against the
+ * baseline magnitude, so a 25% change in money reads the same whether that is
+ * $500 or $50,000.
+ */
+const SENSITIVITY_METRICS = [
+  'money',
+  'income',
+  'expenses',
+  'runway',
+  'goalProgress',
+  'wellbeing',
+  'optionality',
+] as const;
 
-  const assumptions = doc.assumptions.map((a) => {
-    if (!a.editable) return a;
-    const spread = Math.abs(a.value) > 0 ? Math.abs(a.value) * 0.25 : 500;
-    const perturbed: SimulationDoc = {
-      ...doc,
-      assumptions: doc.assumptions.map((x) =>
-        x.id === a.id ? { ...x, value: x.value + spread } : x
-      ),
-    };
+/** Relative perturbation used to probe an assumption. */
+const SENSITIVITY_SPREAD = 0.25;
+
+/** Normalised outcome movement for one variable, in 0..1. */
+function normalisedMove(baseline: number, moved: number, bounded: boolean): number {
+  if (moved === 0) return 0;
+  if (bounded) return Math.min(1, moved / 100);
+  const scale = Math.max(Math.abs(baseline), 1);
+  return Math.min(1, moved / scale);
+}
+
+/**
+ * Scores how much each editable assumption influences the modelled outcome.
+ *
+ * The measurement is a local derivative, taken symmetrically: each assumption is
+ * nudged up and down by 25% of its own magnitude and the universe is re-projected
+ * from the start node with the rule engine. The headline measures are compared
+ * before and after, and the mean normalised change becomes the sensitivity.
+ *
+ * Earlier revisions perturbed `doc.assumptions` and then called `forecastFrom`,
+ * which reads the state baked into a node and never consults the assumptions —
+ * so the comparison was always against itself and the score was always 0. This
+ * version re-derives the start state through `updateAssumptions` first, which is
+ * the same path the UI takes when the user edits a number, so the score reflects
+ * what the user would actually see.
+ */
+export function withSensitivity(doc: SimulationDoc, packs: readonly RulePack[]): SimulationDoc {
+  const startId = Object.values(doc.nodes).find((n) => n.type === 'start')?.id;
+  if (!startId) return doc;
+
+  const baseline = forecastFrom(doc, startId, packs, 0);
+  if (!baseline) return doc;
+
+  const bounded = new Set(
+    doc.vars.filter((v) => v.unit === 'percent' || v.unit === 'level').map((v) => v.key)
+  );
+
+  // Measure each assumption in absolute terms first.
+  const measured = doc.assumptions.map((a) => {
+    if (!a.editable) return { assumption: a, raw: 0 };
+
+    const magnitude = Math.abs(a.value);
+    const delta = magnitude > 0 ? magnitude * SENSITIVITY_SPREAD : 1;
+    const up = updateAssumptions(doc, { [a.id]: a.value + delta });
+    const down = updateAssumptions(doc, { [a.id]: Math.max(0, a.value - delta) });
+    const upState = forecastFrom(up, startId, packs, 0);
+    const downState = forecastFrom(down, startId, packs, 0);
+    if (!upState || !downState) return { assumption: a, raw: 0 };
 
     let total = 0;
-    let count = 0;
-    for (const endpoint of endpoints) {
-      const before = forecastFrom(doc, endpoint.id, packs, 0);
-      const after = forecastFrom(perturbed, endpoint.id, packs, 0);
-      if (!before || !after) continue;
-      total += Math.abs(getState(after, 'goalProgress') - getState(before, 'goalProgress'));
-      count += 1;
+    for (const key of SENSITIVITY_METRICS) {
+      const base = getState(baseline, key);
+      const hi = getState(upState, key);
+      const lo = getState(downState, key);
+      // Central difference: the average of the two one-sided movements.
+      const moved = (Math.abs(hi - base) + Math.abs(base - lo)) / 2;
+      total += normalisedMove(base, moved, bounded.has(key));
     }
-    if (count === 0) return a;
-    return { ...a, sensitivity: Math.min(1, total / count / 25) };
+    return { assumption: a, raw: total / SENSITIVITY_METRICS.length };
   });
+
+  // Report the score relative to the most influential assumption in this universe,
+  // so the number answers "which of these should I worry about?" on a 0-100 scale
+  // instead of a scale that depends on the absolute magnitude of the inputs.
+  const peak = measured.reduce((max, m) => Math.max(max, m.raw), 0);
+
+  const assumptions = measured.map(({ assumption, raw }) => ({
+    ...assumption,
+    sensitivity: peak > 0 ? Math.max(0, Math.min(1, raw / peak)) : 0,
+  }));
 
   return { ...doc, assumptions };
 }

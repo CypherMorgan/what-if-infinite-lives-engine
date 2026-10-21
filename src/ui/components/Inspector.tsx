@@ -607,9 +607,9 @@ function AssumptionRow({
         <span
           className="chip chip-cyan"
           style={{ flex: '0 0 auto' }}
-          title="Model-derived influence on headline outcomes"
+          title="How strongly this assumption moves the modelled outcome, relative to the most influential assumption in this universe. Change it by 25% and re-run the model to measure it."
         >
-          sens {Math.round(assumption.sensitivity * 100)}%
+          influence {Math.round(assumption.sensitivity * 100)}%
         </span>
       </div>
     </div>
