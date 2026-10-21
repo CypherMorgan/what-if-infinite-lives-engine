@@ -49,7 +49,7 @@
     "test:e2e": "playwright test",
     "dist": "npm run build && node scripts/make-icon.cjs && electron-builder --win --publish never",
     "dist:portable": "npm run build && node scripts/make-icon.cjs && electron-builder --win portable --publish never",
-    "release": "npm run build && node scripts/make-icon.cjs && electron-builder --win --publish always",
+    "package:win": "npm run build && node scripts/make-icon.cjs && electron-builder --win --publish never",
     "postinstall": "node scripts/ensure-electron.cjs && electron-builder install-app-deps",
     "prepare": "husky"
   },

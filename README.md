@@ -117,14 +117,14 @@ npm run screenshots:verify
 # Build renderer + Electron shell
 npm run build
 
-# Create NSIS installer + portable in release/
+# Create NSIS installer + portable in release/ (no publishing)
 npm run dist
+
+# Same as `dist`; used by the release workflow before it uploads artifacts
+npm run package:win
 
 # Portable only
 npm run dist:portable
-
-# Package and publish to GitHub Releases (requires GH_TOKEN; used by CI)
-npm run release
 ```
 
 Outputs:

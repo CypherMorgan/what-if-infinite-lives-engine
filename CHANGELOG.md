@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - App icon alpha channel was written on the wrong scale, rendering it invisible
 - NSIS installer and portable build collided on the same artifact filename
+- Release assets used spaces locally but hyphens on GitHub; names are now consistent
+- Release workflow produced duplicate GitHub releases (electron-builder published each asset batch separately; a single release step now attaches all assets)
 
 ## [1.0.0] - 2026-10-20
 
