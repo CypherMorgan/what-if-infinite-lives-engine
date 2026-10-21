@@ -8,9 +8,6 @@ the final choice was made. It is deliberately blunt about trade-offs and limitat
 | Probe             | Result                                        |
 | ----------------- | --------------------------------------------- |
 | OS                | Windows x64                                   |
-
-
-
 | Node.js           | v26.8.1                                       |
 | npm               | 11.19.0 (registry reachable, HTTP 200)        |
 | Python            | 3.11.9, pip 26.2.1 (PyPI reachable, HTTP 200) |
