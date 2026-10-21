@@ -119,7 +119,7 @@
       "requestedExecutionLevel": "asInvoker"
     },
     "nsis": {
-      "artifactName": "${productName}-Setup-${version}-${arch}.${ext}",
+      "artifactName": "what-if-infinite-lives-engine-Setup-${version}-${arch}.${ext}",
       "oneClick": false,
       "perMachine": false,
       "allowToChangeInstallationDirectory": true,
@@ -128,7 +128,7 @@
       "shortcutName": "What If?"
     },
     "portable": {
-      "artifactName": "${productName}-Portable-${version}-${arch}.${ext}"
+      "artifactName": "what-if-infinite-lives-engine-Portable-${version}-${arch}.${ext}"
     },
     "compression": "normal",
     "asar": true

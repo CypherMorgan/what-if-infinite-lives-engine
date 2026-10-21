@@ -65,8 +65,8 @@ Core modules have no Electron imports so the simulation/graph/AI logic runs in N
 
 Grab a prebuilt binary from the [Releases page](https://github.com/CypherMorgan/what-if-infinite-lives-engine/releases):
 
-- **`What If Infinite Lives Engine-Setup-<version>-x64.exe`** — NSIS installer (per-user, choose your install folder, adds Start Menu + desktop shortcuts).
-- **`What If Infinite Lives Engine-Portable-<version>-x64.exe`** — single-file portable build; no installation required.
+- **`what-if-infinite-lives-engine-Setup-<version>-x64.exe`** — NSIS installer (per-user, choose your install folder, adds Start Menu + desktop shortcuts).
+- **`what-if-infinite-lives-engine-Portable-<version>-x64.exe`** — single-file portable build; no installation required.
 
 No runtime, toolchain, or account is needed to run either build.
 
@@ -129,8 +129,8 @@ npm run release
 
 Outputs:
 
-- `release/What If Infinite Lives Engine-Setup-<version>-x64.exe` — NSIS installer
-- `release/What If Infinite Lives Engine-Portable-<version>-x64.exe` — single-file portable build
+- `release/what-if-infinite-lives-engine-Setup-<version>-x64.exe` — NSIS installer
+- `release/what-if-infinite-lives-engine-Portable-<version>-x64.exe` — single-file portable build
 - `release/win-unpacked/` — unpacked application directory (used while packaging)
 
 Both artifacts are produced by a single `npm run dist`. Releases are published automatically by [`.github/workflows/release.yml`](.github/workflows/release.yml) when a `v*` tag is pushed.
