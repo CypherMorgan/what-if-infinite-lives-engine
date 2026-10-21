@@ -122,6 +122,9 @@ npm run dist
 
 # Portable only
 npm run dist:portable
+
+# Package and publish to GitHub Releases (requires GH_TOKEN; used by CI)
+npm run release
 ```
 
 Outputs:
