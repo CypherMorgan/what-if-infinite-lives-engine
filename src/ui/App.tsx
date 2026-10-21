@@ -8,6 +8,7 @@ import { LeftPanel } from './components/LeftPanel';
 import { Inspector } from './components/Inspector';
 import { ModalHost } from './components/Modals';
 import { TimelineView } from './components/TimelineView';
+import { DossierView } from './components/DossierView';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { pathCount } from '../core/graph';
 
@@ -204,6 +205,14 @@ export function App({ store }: { store: Store }) {
           >
             Timeline
           </button>
+          <button
+            className={`btn ${state.viewMode === 'dossier' ? 'btn-primary' : 'btn-ghost'}`}
+            onClick={() => store.setViewMode('dossier')}
+            disabled={!state.selected}
+            title="A plain-language brief on the selected path"
+          >
+            Dossier
+          </button>
           <span style={{ width: 1, height: 22, background: 'var(--line)' }} />
           <button
             className="btn btn-ghost"
@@ -253,7 +262,13 @@ export function App({ store }: { store: Store }) {
       {/* ---------------- panels ---------------- */}
       <LeftPanel store={store} />
       <ErrorBoundary>
-        {state.viewMode === 'timeline' ? <TimelineView store={store} /> : <Stage store={store} />}
+        {state.viewMode === 'timeline' ? (
+          <TimelineView store={store} />
+        ) : state.viewMode === 'dossier' ? (
+          <DossierView store={store} />
+        ) : (
+          <Stage store={store} />
+        )}
       </ErrorBoundary>
       <ErrorBoundary>
         <Inspector store={store} />

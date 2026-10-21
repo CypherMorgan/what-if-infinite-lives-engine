@@ -30,6 +30,7 @@ import {
   type StateVector,
 } from './types';
 import { formatValue, getState } from './vars';
+import { describeHorizon } from './graphLegend';
 
 export interface DiffEntry {
   key: string;
@@ -472,12 +473,13 @@ export function whyThisPath(doc: SimulationDoc, nodeId: NodeId): string[] {
       continue;
     }
     const incoming = edgeList(doc).find((e) => e.to === id);
+    const when = node.t === 0 ? '' : ` at ${describeHorizon(node.t)}`;
     if (incoming && incoming.kind === 'choice') {
-      reasons.push(`A deliberate choice at ${node.horizon}: ${node.title}.`);
+      reasons.push(`A deliberate choice${when}: ${node.title}.`);
     } else if (incoming) {
       const rule = node.ruleId ? ` (rule ${node.ruleId})` : '';
       reasons.push(
-        `At ${node.horizon}: ${node.title}, triggered by the state reached earlier${rule}.`
+        `${when === '' ? 'Right away' : `At ${describeHorizon(node.t)}`}: ${node.title}, triggered by the state reached earlier${rule}.`
       );
     }
     if (node.assumptions.length > 0) {

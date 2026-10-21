@@ -42,6 +42,7 @@ import {
   type StabilityReport,
 } from '../../core/counterfactual';
 import { visibleNodes } from '../../core/graph';
+import { buildDossier, type Dossier } from '../../core/dossier';
 import { randomSeed } from '../../core/rng';
 import { detectArchetypes } from '../../core/archetypes';
 import { exportFileName, exportToText, importFromText, summarise } from '../../core/importExport';
@@ -144,7 +145,7 @@ export interface AppState {
   modal: ModalState | null;
   compare: CompareState | null;
   library: SimulationSummary[];
-  viewMode: 'graph' | 'timeline';
+  viewMode: 'graph' | 'timeline' | 'dossier';
 }
 
 export type ModalState =
@@ -172,6 +173,11 @@ export class Store {
   private past: HistoryEntry[] = [];
   private future: HistoryEntry[] = [];
   private toastSeq = 0;
+  /**
+   * Dossiers are expensive to build (a projection plus a spread of samples),
+   * so they are cached per node until the document changes.
+   */
+  private dossierCache = new Map<NodeId, Dossier | null>();
 
   constructor(doc: SimulationDoc) {
     this.state = {
@@ -192,9 +198,11 @@ export class Store {
       modal: null,
       compare: null,
       library: loadIndex(),
-      viewMode: ((): 'graph' | 'timeline' => {
+      viewMode: ((): 'graph' | 'timeline' | 'dossier' => {
         try {
-          return (localStorage.getItem('whatifs:view') as 'graph' | 'timeline') || 'graph';
+          const saved = localStorage.getItem('whatifs:view');
+          if (saved === 'timeline' || saved === 'dossier') return saved;
+          return 'graph';
         } catch {
           return 'graph';
         }
@@ -264,6 +272,7 @@ export class Store {
       this.state.selected && scored.nodes[this.state.selected]
         ? this.state.selected
         : firstNodeId(scored);
+    this.dossierCache.clear();
     this.set({
       doc: scored,
       selected,
@@ -332,7 +341,7 @@ export class Store {
     this.set({ compare: c });
   }
 
-  setViewMode(mode: 'graph' | 'timeline'): void {
+  setViewMode(mode: 'graph' | 'timeline' | 'dossier'): void {
     this.set({ viewMode: mode });
     try {
       localStorage.setItem('whatifs:view', mode);
@@ -686,6 +695,14 @@ export class Store {
 
   spreadFor(nodeId: NodeId, metricKey: string) {
     return outcomeSpread(this.state.doc, nodeId, ALL_PACKS, metricKey, 16);
+  }
+
+  /** The plain-language brief for a path. Cached until the document changes. */
+  dossierFor(nodeId: NodeId): Dossier | null {
+    if (this.dossierCache.has(nodeId)) return this.dossierCache.get(nodeId) ?? null;
+    const built = buildDossier(this.state.doc, nodeId, ALL_PACKS, { samples: 24 });
+    this.dossierCache.set(nodeId, built);
+    return built;
   }
 
   forecastFor(nodeId: NodeId, months: number): StateVector | null {

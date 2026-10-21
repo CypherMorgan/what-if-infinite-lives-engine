@@ -5,6 +5,8 @@ import type { SimulationDoc } from '../../core/types';
 import { pathTo } from '../../core/engine';
 import { formatValue } from '../../core/vars';
 import { APP_VERSION } from '../../core/importExport';
+import { ALL_PACKS } from '../../core/packs';
+import { buildDossier } from '../../core/dossier';
 
 export function exportPathAsMarkdown(doc: SimulationDoc, nodeId: string): string {
   const path = pathTo(doc, nodeId);
@@ -16,6 +18,67 @@ export function exportPathAsMarkdown(doc: SimulationDoc, nodeId: string): string
   lines.push(`**Selected node:** ${doc.nodes[nodeId]?.title ?? nodeId}`);
   lines.push(`**Path length:** ${path.length} nodes`);
   lines.push('');
+
+  // The dossier is the readable summary; the timeline below it is the detail.
+  const dossier = buildDossier(doc, nodeId, ALL_PACKS, { samples: 24 });
+  if (dossier) {
+    lines.push('## The short version');
+    lines.push('');
+    lines.push(
+      `**${dossier.branchName}** — ${dossier.atLabel}, reaching ${dossier.projectedLabel}.`
+    );
+    lines.push('');
+    lines.push(dossier.headline);
+    lines.push('');
+    lines.push(`_${dossier.confidence}_`);
+    lines.push('');
+
+    const moved = dossier.metrics.filter((m) => m.tone !== 'flat');
+    if (moved.length > 0) {
+      lines.push('**Where this leads:**');
+      lines.push('');
+      lines.push('| What | Now | Later | Change |');
+      lines.push('| --- | --- | --- | --- |');
+      for (const m of moved) {
+        lines.push(`| ${m.label} | ${m.nowText} | ${m.projectedText} | ${m.deltaText} |`);
+      }
+      lines.push('');
+    }
+
+    if (dossier.gains.length > 0) {
+      lines.push('**What it buys:**');
+      for (const g of dossier.gains) lines.push(`- ${g}`);
+      lines.push('');
+    }
+    if (dossier.costs.length > 0) {
+      lines.push('**What it costs:**');
+      for (const c of dossier.costs) lines.push(`- ${c}`);
+      lines.push('');
+    }
+    if (dossier.risks.length > 0) {
+      lines.push('**What could go wrong:**');
+      for (const r of dossier.risks) lines.push(`- ${r}`);
+      lines.push('');
+    }
+    if (dossier.reasons.length > 0) {
+      lines.push('**How the model got here:**');
+      for (const r of dossier.reasons) lines.push(`- ${r}`);
+      lines.push('');
+    }
+    if (dossier.spread && dossier.headlineMetric) {
+      lines.push(
+        `**How much ${dossier.headlineMetric.label} could wobble:** low ${formatValue(
+          dossier.spread.p10,
+          dossier.headlineMetric.unit
+        )}, typical ${formatValue(dossier.spread.p50, dossier.headlineMetric.unit)}, high ${formatValue(
+          dossier.spread.p90,
+          dossier.headlineMetric.unit
+        )} (${dossier.spread.samples} runs). ${dossier.spreadNote}`
+      );
+      lines.push('');
+    }
+  }
+
   lines.push('## Timeline');
   lines.push('');
 

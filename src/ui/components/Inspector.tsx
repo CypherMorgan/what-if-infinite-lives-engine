@@ -177,6 +177,13 @@ export function Inspector({ store }: { store: Store }) {
             <button className="btn btn-violet" onClick={() => setShowPath((v) => !v)}>
               {showPath ? 'Hide' : '⟂'} Why this path?
             </button>
+            <button
+              className="btn btn-violet"
+              onClick={() => store.setViewMode('dossier')}
+              title="A plain-language brief on where this path leads"
+            >
+              📑 Dossier
+            </button>
             <button className="btn btn-ghost" onClick={() => store.centerOn(node.id)}>
               ◎ Center
             </button>
