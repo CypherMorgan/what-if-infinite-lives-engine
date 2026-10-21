@@ -180,11 +180,15 @@ export class Store {
   private dossierCache = new Map<NodeId, Dossier | null>();
 
   constructor(doc: SimulationDoc) {
+    // The path is derived from the selected node, so it has to be filled in
+    // here too. Leaving it empty meant a freshly opened universe showed a
+    // selected starting point with an empty path behind it.
+    const selected = doc.focusNode ?? firstNodeId(doc);
     this.state = {
       doc,
-      selected: doc.focusNode ?? firstNodeId(doc),
+      selected,
       selectedEdge: null,
-      path: doc.focusNode ? pathTo(doc, doc.focusNode) : [],
+      path: selected ? pathTo(doc, selected) : [],
       query: '',
       camera: doc.camera ?? { x: 0, y: 0, scale: 1 },
       settings: loadUi(),
@@ -231,7 +235,14 @@ export class Store {
   toast(text: string, kind: ToastKind = 'info'): void {
     const t: Toast = { id: ++this.toastSeq, kind, text };
     this.set({ toasts: [...this.state.toasts, t] });
-    window.setTimeout(
+    // The timer is scheduled through whichever timer exists. The store is
+    // renderer code, but keeping it free of a hard `window` dependency means it
+    // can be exercised directly by the tests.
+    const schedule =
+      typeof window !== 'undefined' && typeof window.setTimeout === 'function'
+        ? window.setTimeout.bind(window)
+        : setTimeout;
+    schedule(
       () => {
         this.set({ toasts: this.state.toasts.filter((x) => x.id !== t.id) });
       },
