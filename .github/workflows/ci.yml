@@ -68,3 +68,32 @@ jobs:
 
       - name: End-to-end tests
         run: npm run test:e2e
+
+  # The packaged Windows app must actually open.
+  #
+  # Version 1.0.0 shipped an installer that could not launch: the application
+  # name contained a `?`, illegal in a Windows path, so Chromium aborted during
+  # startup. The e2e suite only exercises the browser build, so nothing caught
+  # it and the broken build reached a public download. This job packages the
+  # real executable and launches it.
+  windows-launch:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install
+        run: npm ci
+
+      - name: Package Windows build
+        run: npm run package:win
+
+      - name: Launch smoke test
+        run: node scripts/launch-smoke.cjs "release/win-unpacked/What If Infinite Lives Engine.exe" 120000

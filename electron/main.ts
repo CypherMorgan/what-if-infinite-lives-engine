@@ -17,6 +17,21 @@ const DEV_URL = process.env.WHATIFS_DEV_URL ?? '';
 const isDev = DEV_URL.length > 0;
 
 /**
+ * Optional path the app writes a readiness marker to once the renderer has
+ * finished loading.
+ *
+ * This exists for the automated launch smoke test. Version 1.0.0 shipped a build
+ * that aborted during startup, so the app never showed a window — and nothing in
+ * the pipeline noticed, because the end-to-end suite only exercised the browser
+ * build, never the packaged Electron app. The smoke test launches the real
+ * executable and waits for this marker, so a launch failure fails the build
+ * instead of reaching a download.
+ *
+ * It is opt-in via an environment variable and costs nothing when unset.
+ */
+const SMOKE_MARKER = process.env.WHATIFS_SMOKE_MARKER ?? '';
+
+/**
  * Filesystem-safe application name.
  *
  * Electron derives `app.getPath('userData')` from `app.getName()`, which falls
@@ -86,6 +101,29 @@ async function createWindow(): Promise<void> {
   });
 
   mainWindow.once('ready-to-show', () => mainWindow?.show());
+
+  // Signal readiness for the automated launch smoke test (see SMOKE_MARKER).
+  if (SMOKE_MARKER) {
+    mainWindow.webContents.once('did-finish-load', () => {
+      void (async () => {
+        try {
+          await fs.mkdir(path.dirname(SMOKE_MARKER), { recursive: true });
+          await fs.writeFile(
+            SMOKE_MARKER,
+            JSON.stringify({
+              ok: true,
+              version: app.getVersion(),
+              title: mainWindow?.getTitle() ?? '',
+              pid: process.pid,
+            }),
+            'utf8'
+          );
+        } catch {
+          // The smoke test will time out and report the failure.
+        }
+      })();
+    });
+  }
 
   // Block external navigation; route real links to the OS browser.
   mainWindow.webContents.on('will-navigate', (event, url) => {
