@@ -30,7 +30,7 @@ export interface ExportEnvelope {
   checksum: string;
 }
 
-export const APP_VERSION = '1.0.0';
+export const APP_VERSION = __APP_VERSION__;
 
 function fnv1a(input: string): string {
   let h = 2166136261 >>> 0;
