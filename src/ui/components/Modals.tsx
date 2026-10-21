@@ -11,29 +11,6 @@ import { APP_VERSION } from '../../core/importExport';
 import { formatValue } from '../../core/vars';
 import { ShortcutsModal } from './ShortcutsModal';
 
-declare global {
-  interface Window {
-    whatifs?: {
-      platform: string;
-      openFile(
-        filters?: { name: string; extensions: string[] }[]
-      ): Promise<{ path: string; text: string } | null>;
-      saveFile(
-        defaultName: string,
-        text: string,
-        filters?: { name: string; extensions: string[] }[]
-      ): Promise<string | null>;
-      writeText(text: string): Promise<string>;
-      readText(): Promise<string | null>;
-      setSecret(key: string, value: string): Promise<boolean>;
-      getSecret(key: string): Promise<string | null>;
-      deleteSecret(key: string): Promise<boolean>;
-      remoteGenerate(request: unknown, settings: unknown): Promise<unknown>;
-      appVersion(): Promise<string>;
-    };
-  }
-}
-
 export function ModalHost({ store }: { store: Store }) {
   const state = useAppState(store);
   const modal = state.modal;

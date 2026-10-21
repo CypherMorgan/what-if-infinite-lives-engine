@@ -35,6 +35,20 @@ const api = {
   },
 
   appVersion: (): Promise<string> => ipcRenderer.invoke('app:version'),
+
+  /* provider requests — the main process attaches the credential */
+  aiRequest: (request: {
+    url: string;
+    body: string;
+    timeoutMs: number;
+    keyless?: boolean;
+  }): Promise<{
+    ok: boolean;
+    status: number;
+    text: string;
+    transportError?: 'no_key' | 'network' | 'timeout' | 'blocked';
+    message?: string;
+  }> => ipcRenderer.invoke('ai:request', request),
 };
 
 contextBridge.exposeInMainWorld('whatifs', api);

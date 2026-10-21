@@ -83,6 +83,50 @@ export type FetchLike = (
   json: () => Promise<unknown>;
 }>;
 
+/**
+ * A transport that owns authentication.
+ *
+ * The packaged desktop app must never hold the provider key in the renderer —
+ * it is encrypted by `safeStorage` in the main process and is deliberately
+ * unreadable from the UI. A `ProviderTransport` therefore performs the request
+ * itself, attaches the credential on the far side of the bridge, and returns
+ * only the response body. The renderer never sees the key.
+ *
+ * This is also what makes the provider actually usable: routing the request
+ * through the renderer with no key would be rejected by every provider that
+ * requires one.
+ */
+export interface ProviderTransportRequest {
+  /** Fully-formed endpoint URL. */
+  url: string;
+  /** Serialised JSON request body. */
+  body: string;
+  /** Milliseconds before the request is abandoned. */
+  timeoutMs: number;
+  /** Whether this provider needs no credential at all, such as a local Ollama server. */
+  keyless?: boolean;
+}
+
+export interface ProviderTransportResponse {
+  /** True when the provider answered with a success status. */
+  ok: boolean;
+  /** HTTP status, or 0 when the request never reached the provider. */
+  status: number;
+  /** The response body, already size-capped by the transport. */
+  text: string;
+  /** Set when the request failed before the provider could answer. */
+  transportError?: 'no_key' | 'network' | 'timeout' | 'blocked';
+  /** Human-readable detail, already redacted of any credential. */
+  message?: string;
+}
+
+export interface ProviderTransport {
+  request(
+    input: ProviderTransportRequest,
+    signal?: AbortSignal
+  ): Promise<ProviderTransportResponse>;
+}
+
 export const DEFAULT_SETTINGS: ProviderSettings = {
   id: 'offline',
   label: 'Built-in engine',

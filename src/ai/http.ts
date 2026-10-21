@@ -21,6 +21,8 @@ import {
   type GenerationRequest,
   type GenerationResult,
   type ProviderSettings,
+  type ProviderTransport,
+  type ProviderTransportResponse,
   type ScenarioProvider,
 } from './provider';
 import { composeScenario } from './offline';
@@ -138,6 +140,12 @@ function extractContent(payload: unknown): string | null {
 
 export interface HttpProviderDeps {
   fetchImpl?: FetchLike;
+  /**
+   * Transport that owns authentication. When present it performs the request
+   * and adds the credential itself, so the provider must not insist on finding
+   * an API key in `settings`.
+   */
+  transport?: ProviderTransport;
   /** Test hook: the offline fallback can be disabled to assert on error paths. */
   allowFallback?: boolean;
 }
@@ -152,6 +160,7 @@ export function createHttpProvider(
 ): ScenarioProvider {
   const fetchImpl: FetchLike =
     deps.fetchImpl ?? ((url, init) => fetch(url, init) as unknown as ReturnType<FetchLike>);
+  const transport = deps.transport;
   const allowFallback = deps.allowFallback !== false;
   const label =
     settings.model && settings.baseUrl
@@ -203,7 +212,7 @@ export function createHttpProvider(
           },
         };
       }
-      if (!settings.keyless && !settings.apiKey) {
+      if (!settings.keyless && !settings.apiKey && !transport) {
         return {
           ok: false,
           provider: 'openai-compatible',
@@ -238,25 +247,73 @@ export function createHttpProvider(
         request.onProgress?.('Contacting the provider');
         const url = `${settings.baseUrl.replace(/\/+$/, '')}/chat/completions`;
 
-        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-        if (settings.apiKey) headers['Authorization'] = `Bearer ${settings.apiKey}`;
+        // Two ways to make the request. The transport owns authentication and
+        // runs on the far side of the main-process bridge, so the credential
+        // never enters the renderer. The plain fetch path is for environments
+        // where the key is genuinely available in-process, such as tests.
+        let ok: boolean;
+        let status: number;
+        let raw: string;
+        let transportError: ProviderTransportResponse['transportError'];
+        let transportMessage: string | undefined;
 
-        const response = await fetchImpl(url, {
-          method: 'POST',
-          headers,
-          body,
-          signal: controller.signal,
-        });
+        if (transport) {
+          const response = await transport.request(
+            { url, body, timeoutMs: settings.timeoutMs, keyless: settings.keyless },
+            controller.signal
+          );
+          ok = response.ok;
+          status = response.status;
+          raw = response.text;
+          transportError = response.transportError;
+          transportMessage = response.message;
+        } else {
+          const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+          if (settings.apiKey) headers['Authorization'] = `Bearer ${settings.apiKey}`;
+          const response = await fetchImpl(url, {
+            method: 'POST',
+            headers,
+            body,
+            signal: controller.signal,
+          });
+          ok = response.ok;
+          status = response.status;
+          raw = await response.text().catch(() => '');
+        }
 
-        if (!response.ok) {
-          const raw = await response.text().catch(() => '');
+        if (transportError) {
+          const message =
+            transportError === 'no_key'
+              ? 'No API key is stored for this provider. Add one in Settings, or use the built-in engine.'
+              : transportError === 'timeout'
+                ? `The provider did not respond within ${Math.round(settings.timeoutMs / 1000)} seconds.`
+                : transportError === 'blocked'
+                  ? 'The request was blocked before it reached the provider.'
+                  : (transportMessage ?? 'The provider could not be reached.');
+          if (allowFallback && !settings.strict)
+            return fallback(request, started, transportError, message, transportMessage);
+          return {
+            ok: false,
+            provider: 'openai-compatible',
+            providerLabel: label,
+            notes: [],
+            elapsedMs: Date.now() - started,
+            error: {
+              code: transportError,
+              message,
+              ...(transportMessage ? { detail: transportMessage } : {}),
+            },
+          };
+        }
+
+        if (!ok) {
           const safe = redact(raw.slice(0, 600), settings.apiKey);
           const code =
-            response.status === 401 || response.status === 403
+            status === 401 || status === 403
               ? 'unauthorised'
-              : response.status === 429
+              : status === 429
                 ? 'rate_limited'
-                : response.status >= 500
+                : status >= 500
                   ? 'provider_error'
                   : 'request_rejected';
           const message =
@@ -265,8 +322,8 @@ export function createHttpProvider(
               : code === 'rate_limited'
                 ? 'The provider is rate limiting requests. Try again shortly.'
                 : code === 'provider_error'
-                  ? `The provider returned a server error (${response.status}).`
-                  : `The provider rejected the request (${response.status}).`;
+                  ? `The provider returned a server error (${status}).`
+                  : `The provider rejected the request (${status}).`;
           if (allowFallback && !settings.strict)
             return fallback(request, started, code, message, safe);
           return {
@@ -280,7 +337,7 @@ export function createHttpProvider(
         }
 
         request.onProgress?.('Reading the response');
-        const text = await response.text();
+        const text = raw;
         if (text.length > AI_LIMITS.maxResponseChars) {
           const message = 'The provider returned more data than the application will accept.';
           if (allowFallback && !settings.strict)

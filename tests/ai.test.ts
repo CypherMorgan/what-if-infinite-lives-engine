@@ -586,6 +586,109 @@ describe('HTTP provider', () => {
 });
 
 // ---------------------------------------------------------------------------
+// Authenticated transport
+//
+// The desktop app keeps the provider key in the main process, so the request
+// is made there. These tests cover the path that makes a configured provider
+// actually usable instead of silently falling back to the built-in engine.
+// ---------------------------------------------------------------------------
+
+describe('HTTP provider with an authenticated transport', () => {
+  it('works without a key in the settings, because the transport authenticates', async () => {
+    // Regression guard: the provider used to insist on `settings.apiKey`,
+    // which the renderer never has, so every keyed provider failed.
+    const provider = createHttpProvider(settings({ keyless: false, apiKey: undefined }), {
+      transport: {
+        request: () =>
+          Promise.resolve({
+            ok: true,
+            status: 200,
+            text: JSON.stringify({ choices: [{ message: { content: VALID_CONTENT } }] }),
+          }),
+      },
+    });
+    const result = await provider.generate(request());
+    expect(result.ok).toBe(true);
+    expect(result.data?.nodes).toHaveLength(3);
+  });
+
+  it('hands the transport the URL, body, timeout and keyless flag', async () => {
+    const captured: {
+      url: string;
+      body: string;
+      timeoutMs: number;
+      keyless?: boolean;
+    }[] = [];
+    const provider = createHttpProvider(settings({ timeoutMs: 1234, keyless: true }), {
+      transport: {
+        request: (input) => {
+          captured.push(input);
+          return Promise.resolve({
+            ok: true,
+            status: 200,
+            text: JSON.stringify({ choices: [{ message: { content: VALID_CONTENT } }] }),
+          });
+        },
+      },
+    });
+    await provider.generate(request());
+    expect(captured[0]?.url).toBe('https://example.test/v1/chat/completions');
+    expect(captured[0]?.timeoutMs).toBe(1234);
+    expect(captured[0]?.keyless).toBe(true);
+    expect(JSON.parse(captured[0]?.body ?? '{}')).toMatchObject({ model: 'test-model' });
+  });
+
+  it('explains a missing key instead of failing vaguely', async () => {
+    const provider = createHttpProvider(settings({ keyless: false, strict: true }), {
+      transport: {
+        request: () =>
+          Promise.resolve({
+            ok: false,
+            status: 0,
+            text: '',
+            transportError: 'no_key' as const,
+            message: 'No API key is stored for this provider.',
+          }),
+      },
+    });
+    const result = await provider.generate(request());
+    expect(result.ok).toBe(false);
+    expect(result.error?.code).toBe('no_key');
+    expect(result.error?.message).toContain('API key');
+  });
+
+  it('falls back to the built-in engine when the transport cannot connect', async () => {
+    const provider = createHttpProvider(settings(), {
+      transport: {
+        request: () =>
+          Promise.resolve({
+            ok: false,
+            status: 0,
+            text: '',
+            transportError: 'network' as const,
+            message: 'Could not reach the provider.',
+          }),
+      },
+    });
+    const result = await provider.generate(request());
+    expect(result.ok).toBe(true);
+    expect(result.provider).toBe('offline');
+    expect(result.notes.some((n) => n.includes('could not be used'))).toBe(true);
+  });
+
+  it('reports a provider rejection without falling back in strict mode', async () => {
+    const provider = createHttpProvider(settings({ strict: true }), {
+      transport: {
+        request: () => Promise.resolve({ ok: false, status: 429, text: 'slow down' }),
+      },
+    });
+    const result = await provider.generate(request());
+    expect(result.ok).toBe(false);
+    expect(result.error?.code).toBe('rate_limited');
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Provider selection
 // ---------------------------------------------------------------------------
 

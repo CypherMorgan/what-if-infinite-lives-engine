@@ -48,6 +48,7 @@ import { exportFileName, exportToText, importFromText, summarise } from '../../c
 import type { ProviderSettings } from '../../ai/provider';
 import { DEFAULT_SETTINGS } from '../../ai/provider';
 import { generateUniverse } from '../../ai/orchestrator';
+import { createDesktopTransport } from '../../ai/desktopTransport';
 
 /* ------------------------------------------------------------------ */
 /* Settings                                                            */
@@ -392,11 +393,17 @@ export class Store {
     this.setBusy(true);
     this.setStatus(`Generating via ${settings.provider.id}…`);
     try {
+      // In the desktop app the provider credential lives in the main process,
+      // so the request has to be made there too. Without this the provider
+      // would always be called without a key and every configured endpoint
+      // would fail.
+      const transport = createDesktopTransport();
       const outcome = await generateUniverse({
         prompt: doc.prompt,
         settings: settings.provider,
         seed: randomSeed(),
         id: doc.id,
+        ...(transport ? { deps: { http: { transport } } } : {}),
       });
       if (outcome.ok) {
         this.run(

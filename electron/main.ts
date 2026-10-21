@@ -370,6 +370,17 @@ function secretPath(key: string): string {
   return path.join(app.getPath('userData'), 'secrets', `${safe}.bin`);
 }
 
+/** Decrypt a stored secret, or null when there is none or it cannot be read. */
+async function readSecret(key: string): Promise<string | null> {
+  if (!safeStorage.isEncryptionAvailable()) return null;
+  try {
+    const buf = await fs.readFile(secretPath(key));
+    return safeStorage.decryptString(buf);
+  } catch {
+    return null;
+  }
+}
+
 ipcMain.handle('secret:set', async (_e, key: string, value: string) => {
   if (!safeStorage.isEncryptionAvailable()) return false;
   const encrypted = safeStorage.encryptString(value);
@@ -380,13 +391,7 @@ ipcMain.handle('secret:set', async (_e, key: string, value: string) => {
 });
 
 ipcMain.handle('secret:get', async (_e, key: string) => {
-  if (!safeStorage.isEncryptionAvailable()) return null;
-  try {
-    const buf = await fs.readFile(secretPath(key));
-    return safeStorage.decryptString(buf);
-  } catch {
-    return null;
-  }
+  return readSecret(key);
 });
 
 ipcMain.handle('secret:delete', async (_e, key: string) => {
@@ -399,6 +404,121 @@ ipcMain.handle('secret:delete', async (_e, key: string) => {
 });
 
 ipcMain.handle('app:version', () => app.getVersion());
+
+/* ------------------------------------------------------------------ */
+/* IPC: provider requests (authenticated here, never in the renderer)  */
+/* ------------------------------------------------------------------ */
+
+/** The key name the provider credential is stored under. */
+const PROVIDER_SECRET_KEY = 'whatifs:http';
+
+/** Largest provider response the app will read back. */
+const MAX_PROVIDER_RESPONSE_CHARS = 2_000_000;
+
+/**
+ * Perform an authenticated provider request.
+ *
+ * The API key is decrypted here, attached here, and never crosses the bridge.
+ * The renderer receives the status and the response body, nothing else. If the
+ * response text ever contained the key, it would be stripped before being
+ * returned, so an error message can never leak the credential into a log, a
+ * toast or an exported file.
+ */
+ipcMain.handle(
+  'ai:request',
+  async (
+    _e,
+    payload: { url?: unknown; body?: unknown; timeoutMs?: unknown; keyless?: unknown }
+  ): Promise<{
+    ok: boolean;
+    status: number;
+    text: string;
+    transportError?: 'no_key' | 'network' | 'timeout' | 'blocked';
+    message?: string;
+  }> => {
+    const url = typeof payload?.url === 'string' ? payload.url : '';
+    const body = typeof payload?.body === 'string' ? payload.body : '';
+    const timeoutMs =
+      typeof payload?.timeoutMs === 'number' && payload.timeoutMs > 0
+        ? Math.min(payload.timeoutMs, 120_000)
+        : 60_000;
+
+    let parsed: URL;
+    try {
+      parsed = new URL(url);
+    } catch {
+      return {
+        ok: false,
+        status: 0,
+        text: '',
+        transportError: 'blocked',
+        message: 'The provider URL was not a valid address.',
+      };
+    }
+    if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') {
+      return {
+        ok: false,
+        status: 0,
+        text: '',
+        transportError: 'blocked',
+        message: 'Only http and https provider addresses are allowed.',
+      };
+    }
+    if (body.length > 4_000_000) {
+      return {
+        ok: false,
+        status: 0,
+        text: '',
+        transportError: 'blocked',
+        message: 'The request was larger than the application will send.',
+      };
+    }
+
+    const secret = await readSecret(PROVIDER_SECRET_KEY);
+    const keyless = payload?.keyless === true;
+
+    if (!secret && !keyless) {
+      // Better to say this plainly than to send an unauthenticated request and
+      // let the provider return an opaque 401.
+      return {
+        ok: false,
+        status: 0,
+        text: '',
+        transportError: 'no_key',
+        message: 'No API key is stored for this provider.',
+      };
+    }
+
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (secret) headers['Authorization'] = `Bearer ${secret}`;
+
+    const started = Date.now();
+    try {
+      const response = await fetch(parsed.toString(), {
+        method: 'POST',
+        headers,
+        body,
+        signal: AbortSignal.timeout(timeoutMs),
+      });
+      let text = await response.text();
+      if (text.length > MAX_PROVIDER_RESPONSE_CHARS) {
+        text = text.slice(0, MAX_PROVIDER_RESPONSE_CHARS);
+      }
+      if (secret) text = text.split(secret).join('[redacted]');
+      return { ok: response.ok, status: response.status, text };
+    } catch (err) {
+      const timedOut = Date.now() - started >= timeoutMs - 250;
+      const message = err instanceof Error ? err.message : 'Unknown network error.';
+      return {
+        ok: false,
+        status: 0,
+        text: '',
+        transportError: timedOut ? 'timeout' : 'network',
+        message: secret ? message.split(secret).join('[redacted]') : message,
+      };
+    }
+  }
+);
 
 /* ------------------------------------------------------------------ */
 /* Lifecycle                                                           */
