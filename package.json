@@ -38,6 +38,8 @@
     "build:electron": "tsc -p tsconfig.electron.json",
     "icon": "node scripts/make-icon.cjs",
     "icon:verify": "node scripts/validate-ico.cjs",
+    "screenshots": "node --experimental-strip-types scripts/screenshots.ts",
+    "screenshots:verify": "node scripts/validate-screenshots.cjs",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -78,7 +80,14 @@
   "build": {
     "appId": "com.whatif.livesengine",
     "productName": "What If Infinite Lives Engine",
-    "artifactName": "${productName}-${version}-${os}-${arch}.${ext}",
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "CypherMorgan",
+        "repo": "what-if-infinite-lives-engine",
+        "releaseType": "release"
+      }
+    ],
     "directories": {
       "output": "release",
       "buildResources": "build"
@@ -109,12 +118,16 @@
       "requestedExecutionLevel": "asInvoker"
     },
     "nsis": {
+      "artifactName": "${productName}-Setup-${version}-${arch}.${ext}",
       "oneClick": false,
       "perMachine": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "What If?"
+    },
+    "portable": {
+      "artifactName": "${productName}-Portable-${version}-${arch}.${ext}"
     },
     "compression": "normal",
     "asar": true

@@ -48,5 +48,18 @@ export default tseslint.config(
       '@typescript-eslint/no-require-imports': 'off',
       'no-undef': 'off',
     },
+  },
+  {
+    // Node CLI helpers (e.g. screenshot capture) print progress to stdout by design.
+    files: ['scripts/**/*.ts'],
+    languageOptions: {
+      globals: {
+        console: 'readonly',
+        process: 'readonly',
+      },
+    },
+    rules: {
+      'no-console': 'off',
+    },
   }
 );

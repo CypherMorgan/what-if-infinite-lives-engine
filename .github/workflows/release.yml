@@ -5,6 +5,10 @@ on:
     tags:
       - 'v*'
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g. 1.0.1). Must match package.json.'
+        required: false
 
 permissions:
   contents: write
@@ -30,18 +34,19 @@ jobs:
         run: |
           npm run typecheck
           npm run lint
+          npm run format:check
           npm test
 
-      - name: Build and publish
+      - name: Build, package, and publish
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npm run dist -- --publish always
 
-      - name: Upload artifacts
+      - name: Upload workflow artifacts
         uses: actions/upload-artifact@v4
         with:
           name: windows-build
           path: |
             release/*.exe
             release/*.7z
-          if-no-files-found: warn
+          if-no-files-found: error

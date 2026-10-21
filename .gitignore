@@ -8,3 +8,6 @@ Thumbs.db
 coverage/
 .vite/
 *.tsbuildinfo
+test-results/
+playwright-report/
+blob-report/

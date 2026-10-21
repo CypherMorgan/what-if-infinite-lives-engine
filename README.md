@@ -16,6 +16,18 @@
 
 A local-first Windows desktop application for exploring plausible alternative life paths through interactive branching timelines, decisions, counterfactuals, and deterministic simulations. It runs fully offline with a built-in rules engine and has an optional OpenAI-compatible provider for richer prose — without sending anything to the network unless you explicitly configure one.
 
+## Screenshots
+
+| Multiverse graph                                                               | Node inspector                                                                             |
+| ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------ |
+| ![Multiverse graph with branching timelines](docs/screenshots/01-overview.png) | ![Node inspector showing state, evidence and tradeoffs](docs/screenshots/02-inspector.png) |
+
+| Timeline view                                                    | Keyboard shortcuts                                                 |
+| ---------------------------------------------------------------- | ------------------------------------------------------------------ |
+| ![Chronological timeline view](docs/screenshots/04-timeline.png) | ![Keyboard shortcuts reference](docs/screenshots/03-shortcuts.png) |
+
+> Screenshots are generated from the real app UI by `npm run screenshots` — they are not mockups.
+
 ## Features
 
 - **Interactive multiverse graph** — Pan, zoom, drag nodes, select paths, collapse branches, search, minimap, auto-layout. Animated branch growth with reduced-motion support.
@@ -48,6 +60,15 @@ Core modules have no Electron imports so the simulation/graph/AI logic runs in N
 - Windows 10/11 x64
 - Node.js 22+ (see [`.nvmrc`](.nvmrc); tested with 26.8.1)
 - npm 11+ (tested with 11.19.0)
+
+## Download
+
+Grab a prebuilt binary from the [Releases page](https://github.com/CypherMorgan/what-if-infinite-lives-engine/releases):
+
+- **`What If Infinite Lives Engine-Setup-<version>-x64.exe`** — NSIS installer (per-user, choose your install folder, adds Start Menu + desktop shortcuts).
+- **`What If Infinite Lives Engine-Portable-<version>-x64.exe`** — single-file portable build; no installation required.
+
+No runtime, toolchain, or account is needed to run either build.
 
 ## Installation & Development
 
@@ -84,6 +105,10 @@ npm run test:e2e
 # Regenerate the app icon (build/icon.ico + build/icon-256.png)
 npm run icon
 npm run icon:verify
+
+# Regenerate the README screenshots (starts the dev server automatically)
+npm run screenshots
+npm run screenshots:verify
 ```
 
 ## Building for Windows
@@ -101,11 +126,11 @@ npm run dist:portable
 
 Outputs:
 
-- `release/win-unpacked/` — Unpacked portable app (`What If Infinite Lives Engine.exe`)
-- `release/what-if-infinite-lives-engine-1.0.0-x64.nsis.7z` — NSIS archive
-- `release/*.exe` — NSIS installer (when completed)
+- `release/What If Infinite Lives Engine-Setup-<version>-x64.exe` — NSIS installer
+- `release/What If Infinite Lives Engine-Portable-<version>-x64.exe` — single-file portable build
+- `release/win-unpacked/` — unpacked application directory (used while packaging)
 
-Releases are published automatically by [`.github/workflows/release.yml`](.github/workflows/release.yml) when a `v*` tag is pushed.
+Both artifacts are produced by a single `npm run dist`. Releases are published automatically by [`.github/workflows/release.yml`](.github/workflows/release.yml) when a `v*` tag is pushed.
 
 ## Project Structure
 
@@ -113,12 +138,12 @@ Releases are published automatically by [`.github/workflows/release.yml`](.githu
 thewhatifs/
 ├── .github/                  # CI, release workflow, issue/PR templates
 ├── build/                    # Icon source (icon.ico, icon-256.png)
-├── docs/ARCHITECTURE.md      # Stack rationale
+├── docs/                     # ARCHITECTURE.md + screenshots/
 ├── e2e/                      # Playwright smoke tests
 ├── electron/                 # Main + preload (contextBridge API)
 │   ├── main.ts
 │   └── preload.ts
-├── scripts/                  # Build helpers (icon generator, electron pin)
+├── scripts/                  # Build helpers (icon generator, screenshot capture)
 ├── src/
 │   ├── ai/                   # Provider interface, offline/HTTP adapters, orchestrator, schema
 │   ├── core/                 # Engine, graph, layout, rules, counterfactuals, migration/import/export

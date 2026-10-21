@@ -41,6 +41,9 @@ jobs:
       - name: Verify icon generation
         run: npm run icon && npm run icon:verify
 
+      - name: Verify screenshots
+        run: npm run screenshots:verify
+
   e2e:
     runs-on: ubuntu-latest
 
