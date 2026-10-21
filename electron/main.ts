@@ -16,6 +16,23 @@ import path from 'node:path';
 const DEV_URL = process.env.WHATIFS_DEV_URL ?? '';
 const isDev = DEV_URL.length > 0;
 
+/**
+ * Filesystem-safe application name.
+ *
+ * Electron derives `app.getPath('userData')` from `app.getName()`, which falls
+ * back to `productName` in package.json. That value is
+ * "What If? — The Infinite Lives Engine", and the `?` is an illegal character in
+ * a Windows path. Chromium aborts the process while resolving the (invalid)
+ * userData directory, so the app died on launch with exit code -36861 before a
+ * window could ever appear, packaged or in dev.
+ *
+ * Everything user-visible keeps the styled title; only the on-disk name is
+ * sanitised. This must run before any call that touches userData (the secret
+ * store, the "Open app data folder" menu item, and the single-instance lock).
+ */
+const APP_FS_NAME = 'What If Infinite Lives Engine';
+app.setName(APP_FS_NAME);
+
 /** Security: never allow the window to navigate away from the app. */
 const ALLOWED_PROTOCOLS = new Set(['file:', 'http://localhost', 'http://127.0.0.1']);
 

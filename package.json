@@ -38,6 +38,7 @@
     "build:electron": "tsc -p tsconfig.electron.json",
     "icon": "node scripts/make-icon.cjs",
     "icon:verify": "node scripts/validate-ico.cjs",
+    "appname:verify": "node scripts/validate-app-name.cjs",
     "screenshots": "node --experimental-strip-types scripts/screenshots.ts",
     "screenshots:verify": "node scripts/validate-screenshots.cjs",
     "typecheck": "tsc -p tsconfig.json --noEmit",

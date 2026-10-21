@@ -31,6 +31,7 @@ jobs:
           npm run typecheck
           npm run lint
           npm run format:check
+          npm run appname:verify
           npm test
 
       # Package only. electron-builder still writes latest.yml and the blockmap

@@ -11,10 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Automated Windows release workflow (installer + portable attached to GitHub Releases)
 - README screenshot gallery generated from the real UI (`npm run screenshots`)
-- `icon:verify` and `screenshots:verify` integrity checks, wired into CI
+- `icon:verify`, `appname:verify` and `screenshots:verify` integrity checks, wired into CI
 
 ### Fixed
 
+- **The installed app would not start.** Electron derives `userData` from `productName`, and `"What If? — The Infinite Lives Engine"` contains a `?`, which Windows forbids in a path. Chromium aborted during startup (exit code `-36861`), so no window appeared and no data folder was created. The main process now sets a filesystem-safe app name before anything touches `userData`; the styled title is kept for the window and menus. `npm run appname:verify` now guards this in CI.
 - App icon alpha channel was written on the wrong scale, rendering it invisible
 - NSIS installer and portable build collided on the same artifact filename
 - Release assets used spaces locally but hyphens on GitHub; names are now consistent
