@@ -83,6 +83,7 @@ npm run test:e2e
 
 # Regenerate the app icon (build/icon.ico + build/icon-256.png)
 npm run icon
+npm run icon:verify
 ```
 
 ## Building for Windows

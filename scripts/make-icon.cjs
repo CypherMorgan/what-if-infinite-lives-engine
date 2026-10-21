@@ -25,17 +25,25 @@ function canvas(size) {
   return { size, data: new Float64Array(size * size * 4) };
 }
 
+/**
+ * Composite a source colour over the canvas.
+ *
+ * The buffer stores every channel — including alpha — in 0–255 units so the
+ * box-filter downsample can average all four channels uniformly. `a` is a
+ * 0–1 coverage value; it is scaled to 0–255 internally. Colours are stored
+ * un-premultiplied (straight alpha), which is what the PNG encoder expects.
+ */
 function blend(c, x, y, r, g, b, a) {
   if (x < 0 || y < 0 || x >= c.size || y >= c.size || a <= 0) return;
   const i = (y * c.size + x) * 4;
   const d = c.data;
-  const sa = Math.min(1, a);
-  const da = d[i + 3];
-  const outA = sa + da * (1 - sa);
+  const sa = Math.min(1, a) * 255; // source alpha, 0–255
+  const da = d[i + 3]; // destination alpha, 0–255
+  const outA = sa + (da * (255 - sa)) / 255;
   if (outA <= 0) return;
-  d[i] = (r * sa + d[i] * da * (1 - sa)) / outA;
-  d[i + 1] = (g * sa + d[i + 1] * da * (1 - sa)) / outA;
-  d[i + 2] = (b * sa + d[i + 2] * da * (1 - sa)) / outA;
+  d[i] = (r * sa + (d[i] * da * (255 - sa)) / 255) / outA;
+  d[i + 1] = (g * sa + (d[i + 1] * da * (255 - sa)) / 255) / outA;
+  d[i + 2] = (b * sa + (d[i + 2] * da * (255 - sa)) / 255) / outA;
   d[i + 3] = outA;
 }
 
@@ -154,6 +162,8 @@ function render(size, ss = 4) {
   }
 
   // ---- downsample with box filter ----
+  // Average in premultiplied space, then un-premultiply, so partially covered
+  // edge pixels do not bleed dark halos from transparent neighbours.
   const out = Buffer.alloc(size * size * 4);
   const n = ss * ss;
   for (let y = 0; y < size; y++) {
@@ -165,17 +175,29 @@ function render(size, ss = 4) {
       for (let sy = 0; sy < ss; sy++) {
         for (let sx = 0; sx < ss; sx++) {
           const i = ((y * ss + sy) * big + (x * ss + sx)) * 4;
-          r0 += c.data[i];
-          g0 += c.data[i + 1];
-          b0 += c.data[i + 2];
-          a0 += c.data[i + 3];
+          const alpha = c.data[i + 3];
+          const af = alpha / 255;
+          r0 += c.data[i] * af;
+          g0 += c.data[i + 1] * af;
+          b0 += c.data[i + 2] * af;
+          a0 += alpha;
         }
       }
+      const avgA = a0 / n; // 0–255
       const o = (y * size + x) * 4;
-      out[o] = Math.round(Math.min(255, r0 / n));
-      out[o + 1] = Math.round(Math.min(255, g0 / n));
-      out[o + 2] = Math.round(Math.min(255, b0 / n));
-      out[o + 3] = Math.round(Math.min(255, a0 / n));
+      if (avgA <= 0) {
+        out[o] = 0;
+        out[o + 1] = 0;
+        out[o + 2] = 0;
+        out[o + 3] = 0;
+        continue;
+      }
+      // r0/g0/b0 are premultiplied sums; divide by n then un-premultiply.
+      const af = avgA / 255;
+      out[o] = Math.round(Math.min(255, r0 / n / af));
+      out[o + 1] = Math.round(Math.min(255, g0 / n / af));
+      out[o + 2] = Math.round(Math.min(255, b0 / n / af));
+      out[o + 3] = Math.round(Math.min(255, avgA));
     }
   }
   return out;

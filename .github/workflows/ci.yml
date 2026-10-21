@@ -39,7 +39,7 @@ jobs:
         run: npm run build
 
       - name: Verify icon generation
-        run: npm run icon
+        run: npm run icon && npm run icon:verify
 
   e2e:
     runs-on: ubuntu-latest
