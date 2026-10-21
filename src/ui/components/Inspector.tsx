@@ -5,8 +5,9 @@
 import { useMemo, useState } from 'react';
 import type { Store } from '../state/store';
 import { useAppState } from '../state/store';
-import { NODE_TYPE_LABEL, EVIDENCE_LABEL, type EvidenceClass } from '../../core/types';
+import { EVIDENCE_LABEL, type EvidenceClass } from '../../core/types';
 import { formatDelta, formatValue, isBetter } from '../../core/vars';
+import { NODE_TYPE_GUIDE } from '../../core/graphLegend';
 
 const EVIDENCE_CHIP: Record<EvidenceClass, string> = {
   'user-fact': 'chip-cyan',
@@ -32,13 +33,13 @@ export function Inspector({ store }: { store: Store }) {
     return (
       <aside className="panel panel-right">
         <div className="panel-head">
-          <span className="panel-title">Inspector</span>
+          <span className="panel-title">Details</span>
         </div>
         <div className="panel-body">
           <div className="empty">
-            <div className="empty-title">No node selected</div>
-            Click a node on the canvas — or search for one on the left — to inspect its state,
-            evidence and consequences.
+            <div className="empty-title">Nothing selected yet</div>
+            Click any card on the graph and this panel explains it: what it is, what it changes,
+            what it costs, and how confident the model is about it.
           </div>
         </div>
       </aside>
@@ -46,6 +47,7 @@ export function Inspector({ store }: { store: Store }) {
   }
 
   const branch = state.doc.branches[node.branch];
+  const guide = NODE_TYPE_GUIDE[node.type];
   const typeChip =
     node.type === 'start'
       ? 'chip-cyan'
@@ -73,9 +75,9 @@ export function Inspector({ store }: { store: Store }) {
   return (
     <aside className="panel panel-right">
       <div className="panel-head">
-        <span className="panel-title">Inspector</span>
+        <span className="panel-title">What this is</span>
         <span className="spacer" />
-        <span className={`chip ${typeChip}`}>{NODE_TYPE_LABEL[node.type]}</span>
+        <span className={`chip ${typeChip}`}>{guide.name}</span>
       </div>
 
       <div className="panel-body">
@@ -101,10 +103,34 @@ export function Inspector({ store }: { store: Store }) {
             >
               {branch?.name ?? node.branch}
             </span>
-            <span className="chip">{node.horizon}</span>
-            <span className="chip">t = {node.t} mo</span>
-            <span className="chip">depth {node.depth}</span>
-            {node.expanded && <span className="chip chip-green">expanded</span>}
+            {node.horizon && node.horizon.toLowerCase() !== 'now' && (
+              <span className="chip">{node.horizon}</span>
+            )}
+            <span className="chip">{node.t === 0 ? 'now' : `month ${node.t}`}</span>
+            {node.depth > 0 && (
+              <span className="chip">
+                {node.depth} step{node.depth === 1 ? '' : 's'} from the start
+              </span>
+            )}
+            {node.expanded && <span className="chip chip-green">already explored</span>}
+          </div>
+          <div
+            style={{
+              marginTop: 9,
+              fontSize: 11.5,
+              color: 'var(--text-faint)',
+              lineHeight: 1.55,
+              borderLeft: '2px solid var(--line)',
+              paddingLeft: 8,
+            }}
+          >
+            {guide.name === node.title ? (
+              guide.meaning
+            ) : (
+              <>
+                <strong style={{ color: 'var(--text-dim)' }}>{guide.name}.</strong> {guide.meaning}
+              </>
+            )}
           </div>
           <p style={{ fontSize: 12.5, color: 'var(--text-dim)', marginTop: 9, lineHeight: 1.6 }}>
             {node.summary}

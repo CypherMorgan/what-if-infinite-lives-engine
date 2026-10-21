@@ -361,6 +361,9 @@ export function Stage({ store }: { store: Store }) {
         ).length
       : 0;
 
+  /** True when there is nothing but the starting point to look at. */
+  const onlyStart = Object.keys(state.doc.nodes).length <= 1;
+
   return (
     <div className="stage">
       <div
@@ -375,6 +378,27 @@ export function Stage({ store }: { store: Store }) {
       >
         <canvas ref={canvasRef} />
       </div>
+
+      {onlyStart && (
+        <div className="stage-empty">
+          <div className="stage-empty-card">
+            <h2 className="stage-empty-title">There is only one thing here so far</h2>
+            <p className="stage-empty-body">
+              The blue diamond is where you stand today. Nothing has branched out from it yet.
+              Expand it and the engine will work out what could realistically follow.
+            </p>
+            <button
+              className="btn btn-primary"
+              onClick={() => {
+                const first = Object.values(state.doc.nodes)[0];
+                if (first) store.expandNode(first.id);
+              }}
+            >
+              ⤢ Expand the starting point
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="stage-overlay">
         <div className="stage-top-left">

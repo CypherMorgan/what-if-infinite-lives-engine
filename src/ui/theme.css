@@ -627,6 +627,45 @@ body::before {
 }
 
 /* ------------------------------------------------------------------ */
+/* Empty stage                                                        */
+/* ------------------------------------------------------------------ */
+
+.stage-empty {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  padding: 24px;
+}
+
+.stage-empty-card {
+  pointer-events: auto;
+  max-width: 420px;
+  text-align: center;
+  background: linear-gradient(180deg, rgba(16, 21, 40, 0.95), rgba(10, 14, 28, 0.95));
+  border: 1px solid rgba(79, 216, 255, 0.24);
+  border-radius: 14px;
+  padding: 20px 22px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+}
+
+.stage-empty-title {
+  margin: 0 0 8px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.stage-empty-body {
+  margin: 0 0 16px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text-dim);
+}
+
+/* ------------------------------------------------------------------ */
 /* The key to the graph                                                */
 /*                                                                     */
 /* The single most important thing a newcomer needs: a legend that says  */

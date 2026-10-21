@@ -4,7 +4,7 @@
 import { useMemo } from 'react';
 import type { Store } from '../state/store';
 import { useAppState } from '../state/store';
-import { NODE_TYPE_LABEL } from '../../core/types';
+import { NODE_TYPE_GUIDE } from '../../core/graphLegend';
 
 const HUE_DOT = (hue: number): string => `hsl(${((hue % 360) + 360) % 360} 70% 62%)`;
 
@@ -43,7 +43,8 @@ export function TimelineView({ store }: { store: Store }) {
             Timeline
           </h2>
           <p style={{ color: 'var(--text-dim)', margin: 0, fontSize: 13 }}>
-            Chronological view sorted by time elapsed ({nodes.length} nodes)
+            Every step in order of when it happens — {nodes.length} step
+            {nodes.length === 1 ? '' : 's'} in total.
           </p>
         </div>
 
@@ -112,11 +113,15 @@ export function TimelineView({ store }: { store: Store }) {
                         fontWeight: 600,
                       }}
                     >
-                      +{node.t} mo
+                      {node.t === 0 ? 'now' : `month ${node.t}`}
                     </span>
-                    <span style={{ fontSize: 11, color: 'var(--text-faint)' }}>{node.horizon}</span>
+                    {node.horizon && node.horizon.toLowerCase() !== 'now' && (
+                      <span style={{ fontSize: 11, color: 'var(--text-faint)' }}>
+                        {node.horizon}
+                      </span>
+                    )}
                     <span className="chip" style={{ marginLeft: 'auto' }}>
-                      {NODE_TYPE_LABEL[node.type]}
+                      {NODE_TYPE_GUIDE[node.type].short}
                     </span>
                     <span
                       className="chip"

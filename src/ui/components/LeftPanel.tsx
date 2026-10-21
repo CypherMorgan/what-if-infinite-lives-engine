@@ -5,7 +5,12 @@ import { useMemo } from 'react';
 import type { Store } from '../state/store';
 import { useAppState } from '../state/store';
 import { searchNodes, visibleNodes } from '../../core/graph';
-import { NODE_TYPE_LABEL } from '../../core/types';
+import {
+  NODE_TYPE_GUIDE,
+  describeHorizon,
+  describeImagination,
+  imaginationLabel,
+} from '../../core/graphLegend';
 
 const HUE_DOT = (hue: number): string => `hsl(${((hue % 360) + 360) % 360} 70% 62%)`;
 
@@ -44,16 +49,19 @@ export function LeftPanel({ store }: { store: Store }) {
       <div className="panel-head">
         <span className="panel-title">Universe</span>
         <span className="spacer" />
-        <span className="chip">{Object.keys(state.doc.nodes).length} nodes</span>
+        <span className="chip">{Object.keys(state.doc.nodes).length} steps</span>
       </div>
 
       <div className="panel-body">
         <div className="section">
           <div className="note" style={{ marginBottom: 10 }}>
             <strong>{state.doc.prompt.decision || state.doc.title}</strong>
-            <div style={{ marginTop: 4, color: 'var(--text-faint)', fontSize: 11 }}>
-              Horizon {prompt.horizon} months · {prompt.branchCount} branches · imagination{' '}
-              {Math.round(prompt.imagination * 100)}%
+            <div
+              style={{ marginTop: 4, color: 'var(--text-faint)', fontSize: 11 }}
+              title={describeImagination(prompt.imagination)}
+            >
+              Looking ahead {describeHorizon(prompt.horizon)} · {prompt.branchCount} possible path
+              {prompt.branchCount === 1 ? '' : 's'} · {imaginationLabel(prompt.imagination)} reach
             </div>
           </div>
 
@@ -61,7 +69,7 @@ export function LeftPanel({ store }: { store: Store }) {
             <span className="search-icon">⌕</span>
             <input
               className="input"
-              placeholder="Search nodes, evidence, uncertainties…"
+              placeholder="Search steps, evidence, uncertainties…"
               value={state.query}
               onChange={(e) => store.setQuery(e.target.value)}
               onKeyDown={(e) => {
@@ -73,7 +81,7 @@ export function LeftPanel({ store }: { store: Store }) {
         </div>
 
         <div className="section">
-          <h3 className="section-title">Branches</h3>
+          <h3 className="section-title">Paths</h3>
           <div className="node-list">
             {branches.map((b) => {
               const collapsed = state.doc.collapsed.includes(b.id);
@@ -129,7 +137,7 @@ export function LeftPanel({ store }: { store: Store }) {
         </div>
 
         <div className="section">
-          <h3 className="section-title">{hits ? `Matches (${listed.length})` : 'Nodes'}</h3>
+          <h3 className="section-title">{hits ? `Matches (${listed.length})` : 'Steps'}</h3>
           {listed.length === 0 ? (
             <div className="empty">
               <div className="empty-title">Nothing matches “{state.query}”</div>
@@ -151,9 +159,7 @@ export function LeftPanel({ store }: { store: Store }) {
                     style={{ background: HUE_DOT(state.doc.branches[n.branch]?.hue ?? 200) }}
                   />
                   <span className="label">{n.title}</span>
-                  <span className="kind">
-                    {NODE_TYPE_LABEL[n.type].split(' ')[0]?.toLowerCase() ?? n.type}
-                  </span>
+                  <span className="kind">{NODE_TYPE_GUIDE[n.type].short}</span>
                 </button>
               ))}
             </div>

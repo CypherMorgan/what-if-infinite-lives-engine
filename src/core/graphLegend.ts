@@ -152,6 +152,14 @@ export function describeHorizon(months: number): string {
   return `${yearText} ${leftover} month${leftover === 1 ? '' : 's'}`;
 }
 
+/** A short word for how far the model reaches. */
+export function imaginationLabel(value: number): string {
+  const pct = Math.round(value * 100);
+  if (pct <= 33) return 'grounded';
+  if (pct <= 66) return 'balanced';
+  return 'imaginative';
+}
+
 /**
  * A plain-English description of the imagination setting.
  *
@@ -159,7 +167,10 @@ export function describeHorizon(months: number): string {
  */
 export function describeImagination(value: number): string {
   const pct = Math.round(value * 100);
-  if (pct <= 33) return `Grounded — ${pct}% reach. Mostly ordinary, defensible developments.`;
-  if (pct <= 66) return `Balanced — ${pct}% reach. Grounded paths, plus a few less obvious ones.`;
+  const label = imaginationLabel(value);
+  if (label === 'grounded')
+    return `Grounded — ${pct}% reach. Mostly ordinary, defensible developments.`;
+  if (label === 'balanced')
+    return `Balanced — ${pct}% reach. Grounded paths, plus a few less obvious ones.`;
   return `Imaginative — ${pct}% reach. Less likely, but internally coherent possibilities.`;
 }

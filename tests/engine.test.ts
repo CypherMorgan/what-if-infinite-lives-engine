@@ -22,6 +22,7 @@ import {
   visibleNodes,
   ancestorsOf,
   descendantsOf,
+  pathCount,
   searchNodes,
 } from '../src/core/graph';
 import { runLayout, boundsOf, layoutAdded, LAYOUT } from '../src/core/layout';
@@ -365,6 +366,14 @@ describe('graph queries', () => {
     const hits = searchNodes(doc, word.toLowerCase());
     expect(hits.length).toBeGreaterThan(0);
     expect(searchNodes(doc, 'a')).toEqual([]);
+  });
+
+  it('pathCount excludes the branch the starting point sits on', () => {
+    const doc = makeDoc();
+    // The start node lives on a branch of its own ("Where you are now"),
+    // so the number of paths is one fewer than the number of branches.
+    expect(pathCount(doc)).toBe(Object.keys(doc.branches).length - 1);
+    expect(pathCount(doc)).toBe(doc.prompt.branchCount);
   });
 });
 

@@ -210,6 +210,19 @@ export function visibleNodes(doc: SimulationDoc): SimNode[] {
   return nodeList(doc).filter((n) => !collapsed.has(n.branch));
 }
 
+/**
+ * How many distinct paths the universe contains.
+ *
+ * The starting point lives on a branch of its own — "Where you are now" —
+ * so a naive branch count is one higher than the number of paths a person
+ * would say they are choosing between. This counts the paths only.
+ */
+export function pathCount(doc: SimulationDoc): number {
+  const startBranch = nodeList(doc).find((n) => n.type === 'start')?.branch;
+  if (startBranch === undefined) return Object.keys(doc.branches).length;
+  return Object.keys(doc.branches).filter((id) => id !== startBranch).length;
+}
+
 export function ancestorsOf(doc: SimulationDoc, nodeId: NodeId): NodeId[] {
   const out: NodeId[] = [];
   const seen = new Set<NodeId>();

@@ -9,6 +9,7 @@ import { Inspector } from './components/Inspector';
 import { ModalHost } from './components/Modals';
 import { TimelineView } from './components/TimelineView';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { pathCount } from '../core/graph';
 
 export function App({ store }: { store: Store }) {
   const state = useAppState(store);
@@ -262,11 +263,9 @@ export function App({ store }: { store: Store }) {
       <footer className="status">
         <span className={`status-dot ${state.busy ? 'busy-dot' : ''}`} />
         <span className="status-text">{state.status}</span>
-        <span className="chip">{nodeCount} nodes</span>
-        <span className="chip">{edgeCount} edges</span>
-        <span className="chip">
-          {state.doc.branches && Object.keys(state.doc.branches).length} branches
-        </span>
+        <span className="chip">{nodeCount} steps</span>
+        <span className="chip">{edgeCount} connections</span>
+        <span className="chip">{pathCount(state.doc)} paths</span>
         <span
           className={`chip ${state.settings.provider.id === 'offline' ? 'chip-cyan' : 'chip-violet'}`}
         >
