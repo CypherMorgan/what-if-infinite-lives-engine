@@ -9,6 +9,7 @@
 import type { NodeId, SimEdge, SimNode, SimulationDoc } from '../../core/types';
 import { visibleNodes } from '../../core/graph';
 import { LAYOUT } from '../../core/layout';
+import { NODE_TYPE_GUIDE } from '../../core/graphLegend';
 
 export interface Camera {
   x: number;
@@ -43,30 +44,6 @@ export interface NodeView {
 
 export const NODE_W = 286;
 export const NODE_H = 104;
-
-const TYPE_MARK: Record<SimNode['type'], string> = {
-  start: '◆',
-  decision: '◈',
-  event: '●',
-  opportunity: '▲',
-  setback: '▼',
-  milestone: '✦',
-  consequence: '»',
-  alternative: '❖',
-  ending: '■',
-};
-
-const TYPE_TINT: Record<SimNode['type'], [number, number, number]> = {
-  start: [79, 216, 255],
-  decision: [255, 183, 77],
-  event: [177, 140, 255],
-  opportunity: [92, 230, 168],
-  setback: [255, 125, 156],
-  milestone: [255, 224, 130],
-  consequence: [154, 166, 196],
-  alternative: [126, 200, 255],
-  ending: [232, 237, 249],
-};
 
 function hueRgb(hue: number, s = 0.62, l = 0.62): [number, number, number] {
   return hslToRgb((((hue % 360) + 360) % 360) / 360, s, l);
@@ -306,6 +283,53 @@ export class GraphRenderer {
       if (!v) continue;
       this.paintNode(n, v, matching.has(n.id));
     }
+
+    this.paintBranchLabels();
+  }
+
+  /**
+   * Labels each branch above the card where it begins.
+   *
+   * The branch colour on its own is not decodable — a newcomer cannot tell
+   * which coloured rail means what. Naming the branch at its root makes the
+   * colour a supporting cue rather than the only clue.
+   */
+  private paintBranchLabels(): void {
+    const ctx = this.ctx;
+    const doc = this.doc;
+    if (!doc) return;
+    if (this.camera.scale < 0.28) return;
+
+    for (const branch of Object.values(doc.branches)) {
+      const rootId = branch.root;
+      const view = this.views.get(rootId);
+      const node = doc.nodes[rootId];
+      if (!view || !node) continue;
+
+      const isOrigin = node.type === 'start';
+      const tint = isOrigin ? NODE_TYPE_GUIDE.start.tint : hueRgb(branch.hue, 0.7, 0.66);
+      const text = isOrigin ? 'YOU ARE HERE' : branch.name;
+      const scale = Math.min(1, Math.max(0.7, this.camera.scale));
+
+      ctx.save();
+      ctx.font = `700 ${9.5 * scale}px ${uiFont()}`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      const tw = ctx.measureText(text).width;
+      const cx = view.box.x + view.box.w / 2;
+      const [sx, sy] = this.toScreen(cx, view.box.y - 13 * scale);
+
+      ctx.fillStyle = 'rgba(6, 9, 17, 0.88)';
+      roundRect(ctx, sx - tw / 2 - 8, sy - 9, tw + 16, 18, 9);
+      ctx.fill();
+      ctx.strokeStyle = rgba(tint, 0.55);
+      ctx.lineWidth = 1;
+      roundRect(ctx, sx - tw / 2 - 8, sy - 9, tw + 16, 18, 9);
+      ctx.stroke();
+      ctx.fillStyle = rgba(tint, 0.98);
+      ctx.fillText(text, sx, sy + 0.5);
+      ctx.restore();
+    }
   }
 
   private paintGrid(): void {
@@ -430,7 +454,8 @@ export class GraphRenderer {
     const hover = this.opts.hover === n.id;
     const compare = this.opts.compareNodeId === n.id;
     const branchColour = hueRgb(v.hue, 0.68, 0.6);
-    const typeColour = TYPE_TINT[n.type];
+    const guide = NODE_TYPE_GUIDE[n.type];
+    const typeColour = guide.tint;
 
     const cx = v.box.x + v.box.w / 2;
     const cy = v.box.y + v.box.h / 2;
@@ -493,31 +518,16 @@ export class GraphRenderer {
     roundRect(ctx, x + 1, y + 3, 3.5 * s, h - 6, 2);
     ctx.fill();
 
-    // type mark
-    ctx.font = `${13 * s}px ${uiFont()}`;
+    // type mark + the plain-English kind of thing this is
+    ctx.font = `${12 * s}px ${uiFont()}`;
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
     ctx.fillStyle = `rgb(${typeColour[0]}, ${typeColour[1]}, ${typeColour[2]})`;
-    ctx.fillText(TYPE_MARK[n.type], x + 12 * s, y + 17 * s);
+    ctx.fillText(guide.glyph, x + 12 * s, y + 16 * s);
 
-    // title
-    ctx.font = `600 ${12.5 * s}px ${uiFont()}`;
-    ctx.fillStyle = '#e8edf9';
-    ctx.fillText(ellipsize(ctx, n.title, w - 52 * s), x + 28 * s, y + 17 * s);
-
-    // summary line
-    if (this.camera.scale > 0.42) {
-      ctx.font = `400 ${10.2 * s}px ${uiFont()}`;
-      ctx.fillStyle = 'rgba(154, 166, 196, 0.92)';
-      ctx.fillText(ellipsize(ctx, n.summary, w - 26 * s), x + 12 * s, y + 38 * s);
-    }
-
-    // horizon + branch
-    const branchName = this.doc?.branches[n.branch]?.name ?? n.branch;
-    ctx.font = `500 ${9.4 * s}px ${monoFont()}`;
-    ctx.fillStyle = rgba(branchColour, 0.85);
-    const foot = `${n.horizon}  ·  ${ellipsize(ctx, branchName, 110)}`;
-    ctx.fillText(ellipsize(ctx, foot, w - 60 * s), x + 12 * s, y + h - 12 * s);
+    ctx.font = `700 ${8.6 * s}px ${uiFont()}`;
+    ctx.fillStyle = `rgba(${typeColour[0]}, ${typeColour[1]}, ${typeColour[2]}, 0.92)`;
+    ctx.fillText(guide.short.toUpperCase(), x + 25 * s, y + 16.5 * s);
 
     // right-side flags
     ctx.textAlign = 'right';
@@ -525,11 +535,54 @@ export class GraphRenderer {
     const flagX = x + w - 12 * s;
     if (n.expanded) {
       ctx.fillStyle = 'rgba(154, 166, 196, 0.5)';
-      ctx.fillText('EXPANDED', flagX, y + 17 * s);
+      ctx.fillText('EXPANDED', flagX, y + 16.5 * s);
     } else if (n.expandable) {
       ctx.fillStyle = 'rgba(79, 216, 255, 0.9)';
-      ctx.fillText('+ EXPAND', flagX, y + 17 * s);
+      ctx.fillText('+ EXPAND', flagX, y + 16.5 * s);
     }
+
+    // title
+    ctx.textAlign = 'left';
+    ctx.font = `600 ${13 * s}px ${uiFont()}`;
+    ctx.fillStyle = '#e8edf9';
+    ctx.fillText(ellipsize(ctx, n.title, w - 26 * s), x + 12 * s, y + 36 * s);
+
+    // summary line — two lines where the card has room for them
+    if (this.camera.scale > 0.42) {
+      ctx.font = `400 ${10.2 * s}px ${uiFont()}`;
+      ctx.fillStyle = 'rgba(154, 166, 196, 0.92)';
+      const lines = wrapLines(ctx, n.summary, w - 26 * s, 2);
+      for (let i = 0; i < lines.length; i += 1) {
+        ctx.fillText(lines[i]!, x + 12 * s, y + (54 + i * 14) * s);
+      }
+    }
+
+    // when + which branch
+    const branchName = this.doc?.branches[n.branch]?.name ?? n.branch;
+    ctx.font = `500 ${9.4 * s}px ${monoFont()}`;
+    const footY = y + h - 11 * s;
+
+    // hairline above the footer, so the card reads as two zones
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(x + 12 * s, footY - 10 * s);
+    ctx.lineTo(x + w - 12 * s, footY - 10 * s);
+    ctx.stroke();
+
+    const monthText = n.t === 0 ? 'now' : `month ${n.t}`;
+    ctx.fillStyle = 'rgba(154, 166, 196, 0.95)';
+    ctx.fillText(monthText, x + 12 * s, footY);
+    const monthW = ctx.measureText(monthText).width;
+
+    const bandText = n.horizon;
+    ctx.fillStyle = 'rgba(120, 132, 162, 0.9)';
+    ctx.fillText(ellipsize(ctx, bandText, 96 * s), x + 20 * s + monthW, footY);
+
+    ctx.textAlign = 'right';
+    ctx.fillStyle = rgba(branchColour, 0.85);
+    ctx.fillText(ellipsize(ctx, branchName, 96 * s), x + w - 12 * s, footY);
+    ctx.textAlign = 'left';
 
     // state chips (spread)
     if (this.opts.showSpread && this.camera.scale > 0.55 && n.state) {
@@ -613,6 +666,53 @@ function ellipsize(ctx: CanvasRenderingContext2D, text: string, maxW: number): s
     else hi = mid - 1;
   }
   return text.slice(0, lo) + '…';
+}
+
+/**
+ * Breaks text into at most `maxLines` lines that each fit `maxW`.
+ *
+ * The final line is ellipsized when the text runs on, so a card never spills
+ * outside its own rectangle. Two lines of summary tell a newcomer a great deal
+ * more than one truncated line does.
+ */
+function wrapLines(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  maxW: number,
+  maxLines: number
+): string[] {
+  const words = text.split(/\s+/).filter(Boolean);
+  if (words.length === 0) return [];
+
+  const lines: string[] = [];
+  let current = '';
+  let used = 0;
+  let truncated = false;
+
+  for (let i = 0; i < words.length; i += 1) {
+    const word = words[i]!;
+    const candidate = current.length === 0 ? word : `${current} ${word}`;
+    if (ctx.measureText(candidate).width <= maxW || current.length === 0) {
+      current = candidate;
+      used = i + 1;
+      continue;
+    }
+    lines.push(current);
+    current = word;
+    used = i + 1;
+    if (lines.length === maxLines) {
+      truncated = true;
+      break;
+    }
+  }
+
+  if (!truncated && current.length > 0) lines.push(current);
+  if (truncated && lines.length > 0) {
+    const leftover = words.slice(used).join(' ');
+    const last = lines[lines.length - 1] ?? '';
+    lines[lines.length - 1] = ellipsize(ctx, `${last} ${leftover}`, maxW);
+  }
+  return lines;
 }
 
 function shortKey(key: string): string {

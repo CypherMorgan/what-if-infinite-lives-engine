@@ -11,6 +11,7 @@ import { APP_VERSION } from '../../core/importExport';
 import { formatValue } from '../../core/vars';
 import { ShortcutsModal } from './ShortcutsModal';
 import { UpdateSection } from './UpdateSection';
+import { startTour } from '../tour';
 
 export function ModalHost({ store }: { store: Store }) {
   const state = useAppState(store);
@@ -826,6 +827,34 @@ function AboutModal({ store, close }: { store: Store; close: () => void }) {
           <div className="note">
             Local-first. No telemetry, no analytics, no crash reporting, no accounts. Network access
             happens only if you configure an HTTP provider yourself.
+          </div>
+        </div>
+
+        <div className="section">
+          <h3 className="section-title">Help</h3>
+          <div className="note">
+            The introduction explains what the graph means and how to read it. It is worth two
+            minutes if this is your first time here.
+          </div>
+          <div className="btn-row" style={{ marginTop: 8 }}>
+            <button
+              className="btn btn-ghost"
+              onClick={() => {
+                close();
+                window.dispatchEvent(new Event('whatifs:show-orientation'));
+              }}
+            >
+              Show the introduction
+            </button>
+            <button
+              className="btn btn-ghost"
+              onClick={() => {
+                close();
+                startTour();
+              }}
+            >
+              Walk through the controls
+            </button>
           </div>
         </div>
       </div>

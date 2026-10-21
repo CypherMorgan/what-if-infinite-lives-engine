@@ -9,6 +9,8 @@ import { GraphRenderer, type Camera } from '../graph/GraphRenderer';
 import { boundsOf } from '../../core/layout';
 import { visibleNodes } from '../../core/graph';
 import { exportCanvasAsPng } from '../utils/exportCanvas';
+import { GraphKey } from './GraphKey';
+import { OrientationCard } from './OrientationCard';
 
 export function Stage({ store }: { store: Store }) {
   const state = useAppState(store);
@@ -416,34 +418,8 @@ export function Stage({ store }: { store: Store }) {
           )}
         </div>
 
-        <div className="stage-bottom-left">
-          <div className="legend">
-            <span className="legend-item">
-              <span className="legend-dot" style={{ background: '#4fd8ff' }} />
-              start
-            </span>
-            <span className="legend-item">
-              <span className="legend-dot" style={{ background: '#ffb74d' }} />
-              decision
-            </span>
-            <span className="legend-item">
-              <span className="legend-dot" style={{ background: '#b18cff' }} />
-              event
-            </span>
-            <span className="legend-item">
-              <span className="legend-dot" style={{ background: '#5ce6a8' }} />
-              opportunity
-            </span>
-            <span className="legend-item">
-              <span className="legend-dot" style={{ background: '#ff7d9c' }} />
-              setback
-            </span>
-            <span className="legend-item">
-              <span className="legend-dot" style={{ background: '#e8edf9' }} />
-              future state
-            </span>
-          </div>
-        </div>
+        <GraphKey store={store} />
+        <OrientationCard />
       </div>
 
       {state.settings.showMinimap && (

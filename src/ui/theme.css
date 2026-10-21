@@ -625,6 +625,230 @@ body::before {
   font-size: 10.5px;
   color: var(--text-dim);
 }
+
+/* ------------------------------------------------------------------ */
+/* The key to the graph                                                */
+/*                                                                     */
+/* The single most important thing a newcomer needs: a legend that says  */
+/* what the shapes and colours mean, in words, next to the canvas.     */
+/* ------------------------------------------------------------------ */
+
+.graph-key {
+  width: 296px;
+  max-width: calc(100vw - 32px);
+  background: rgba(10, 14, 28, 0.93);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  padding: 10px 12px 12px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+  font-size: 11px;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+
+.graph-key-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.graph-key-title {
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text);
+}
+
+.graph-key-row {
+  display: grid;
+  grid-template-columns: 62px 1fr;
+  gap: 8px;
+  align-items: baseline;
+  margin-top: 6px;
+}
+.graph-key-row-block {
+  margin-top: 10px;
+}
+.graph-key-label {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+.graph-key-text {
+  color: var(--text-dim);
+}
+.graph-key-strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.graph-key-types {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 3px 8px;
+  margin-top: 6px;
+}
+.graph-key-type {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+}
+.graph-key-glyph {
+  font-size: 11px;
+  line-height: 1;
+  width: 12px;
+  text-align: center;
+  flex: 0 0 auto;
+}
+.graph-key-type-name {
+  color: var(--text-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.graph-key-branches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  margin-top: 5px;
+}
+.graph-key-branch {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--text-dim);
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.graph-key-toggle {
+  background: rgba(12, 16, 32, 0.86);
+  border: 1px solid var(--line);
+  backdrop-filter: blur(6px);
+  font-size: 10.5px;
+  padding: 4px 10px;
+}
+
+.graph-key-more {
+  margin-top: 10px;
+  width: 100%;
+  background: none;
+  border: 1px dashed var(--line);
+  border-radius: var(--r-sm, 6px);
+  color: var(--text-faint);
+  font-size: 10.5px;
+  font-family: inherit;
+  padding: 5px 8px;
+  cursor: pointer;
+  text-align: left;
+}
+.graph-key-more:hover {
+  color: var(--text);
+  border-color: rgba(79, 216, 255, 0.4);
+  background: rgba(79, 216, 255, 0.06);
+}
+
+/* ------------------------------------------------------------------ */
+/* The introduction                                                    */
+/* ------------------------------------------------------------------ */
+
+.orientation {
+  position: absolute;
+  top: 62px;
+  right: 16px;
+  width: 372px;
+  max-width: calc(100vw - 32px);
+  max-height: calc(100% - 96px);
+  overflow-y: auto;
+  background: linear-gradient(180deg, rgba(16, 21, 40, 0.97), rgba(10, 14, 28, 0.97));
+  border: 1px solid rgba(79, 216, 255, 0.28);
+  border-radius: 14px;
+  padding: 16px 18px 16px;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 22px 60px rgba(0, 0, 0, 0.6);
+  animation: orientation-in 260ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes orientation-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.orientation-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+.orientation-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+.orientation-lede {
+  margin: 8px 0 12px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text-dim);
+}
+.orientation-points {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.orientation-points li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-left: 14px;
+  position: relative;
+}
+.orientation-points li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 6px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent-cyan, #4fd8ff);
+  opacity: 0.75;
+}
+.orientation-points strong {
+  font-size: 11.5px;
+  color: var(--text);
+  font-weight: 600;
+}
+.orientation-points span {
+  font-size: 11px;
+  line-height: 1.55;
+  color: var(--text-faint);
+}
+.orientation-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
 .legend-item {
   display: flex;
   align-items: center;

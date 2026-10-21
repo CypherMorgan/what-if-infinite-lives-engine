@@ -15,7 +15,6 @@ import { ALL_PACKS } from './core/packs';
 import { randomSeed } from './core/rng';
 import { importFromText } from './core/importExport';
 import type { ScenarioPrompt, SimulationDoc } from './core/types';
-import { maybeStartTour } from './ui/tour';
 import { ErrorBoundary } from './ui/components/ErrorBoundary';
 
 const STORAGE_PREFIX = 'whatifs:doc:';
@@ -84,5 +83,8 @@ createRoot(container).render(
 // persist the camera when the window closes
 window.addEventListener('beforeunload', () => store.saveCamera());
 
-// Start onboarding tour on first run
-maybeStartTour();
+// The introduction card (see `ui/components/OrientationCard.tsx`) is the
+// first-run experience. It used to be a pop-up tour that pointed at panels and
+// named them; it never explained what the app was for. The card explains the
+// idea first and offers the tour to anyone who wants it, so the two no
+// longer fight over the first launch.

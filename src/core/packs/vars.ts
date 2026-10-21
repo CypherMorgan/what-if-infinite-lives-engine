@@ -211,14 +211,10 @@ export const ARCHETYPE_VARS: VarDef[] = [
   ),
 
   // --- Decision quality ----------------------------------------------------
-  level(
-    'information',
-    'Information',
-    'personal',
-    'progress',
-    'up',
-    'How much you know about what fits you, from evidence.'
-  ),
+  // 'information' is declared once, in BASE_VARS. It was repeated here, which
+  // put two entries with the same key into ALL_VARS — the second silently won
+  // in VAR_BY_KEY, and every list rendered from the registry showed a
+  // duplicate. `ALL_VARS` is now guarded by a test.
   level(
     'decisionConfidence',
     'Decision confidence',

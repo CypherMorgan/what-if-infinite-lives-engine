@@ -7,13 +7,13 @@ import 'driver.js/dist/driver.css';
 
 const TOUR_KEY = 'whatifs:tour:v1';
 
-export function maybeStartTour(): void {
-  try {
-    if (localStorage.getItem(TOUR_KEY)) return;
-  } catch {
-    return;
-  }
-
+/**
+ * Run the tour now, whether or not it has run before.
+ *
+ * The introduction card offers this to anyone who wants a guided look at the
+ * controls, so it must not be blocked by the "already toured" flag.
+ */
+export function startTour(): void {
   // Delay slightly so layout is rendered
   window.setTimeout(() => {
     const drv = driver({
