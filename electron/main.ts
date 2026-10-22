@@ -338,13 +338,106 @@ ipcMain.handle(
 );
 
 /** Write via a temporary file + rename so a crash never leaves a half-written save. */
-async function writeAtomic(target: string, text: string): Promise<void> {
+async function writeAtomic(target: string, data: string | Buffer): Promise<void> {
   const dir = path.dirname(target);
   await fs.mkdir(dir, { recursive: true });
   const tmp = path.join(dir, `.${path.basename(target)}.${process.pid}.tmp`);
-  await fs.writeFile(tmp, text, 'utf8');
+  await fs.writeFile(tmp, data, typeof data === 'string' ? 'utf8' : undefined);
   await fs.rename(tmp, target);
 }
+
+/* ------------------------------------------------------------------ */
+/* IPC: printing                                                       */
+/* ------------------------------------------------------------------ */
+
+/**
+ * The largest report the printer will be asked to render.
+ *
+ * A report is a few hundred kilobytes of markup at most, plus an optional
+ * picture of the graph. Anything larger than this is not a report.
+ */
+const MAX_REPORT_CHARS = 12_000_000;
+
+/**
+ * Print a report to PDF.
+ *
+ * The document arrives from the renderer as one self-contained HTML string.
+ * It is written to a temporary file and opened in an offscreen window with
+ * scripts disabled and no preload script, then printed by Chromium's own PDF
+ * writer. The window is destroyed and the temporary file removed whether the
+ * print succeeds or not.
+ *
+ * Two things make this safe to do with a document that contains whatever the
+ * user typed into the app: the temporary window has no Node, no preload and
+ * no JavaScript at all, and the document's own content security policy
+ * forbids every kind of network access. On top of that the shell refuses a
+ * document that contains a script tag outright, which cannot happen by
+ * accident — the report escapes everything it puts into markup.
+ */
+ipcMain.handle(
+  'pdf:export',
+  async (_e, request: { html?: unknown; defaultName?: unknown }): Promise<string | null> => {
+    const html = typeof request?.html === 'string' ? request.html : '';
+    if (html.length === 0) throw new Error('There was nothing to print.');
+    if (html.length > MAX_REPORT_CHARS) {
+      throw new Error('That report is too large to print.');
+    }
+    if (/<script/i.test(html)) {
+      throw new Error('The report contained something that should not be in a document.');
+    }
+
+    const defaultName =
+      typeof request?.defaultName === 'string' && request.defaultName.trim().length > 0
+        ? request.defaultName.trim()
+        : 'path-report.pdf';
+
+    const result = await dialog.showSaveDialog(mainWindow ?? undefined!, {
+      title: 'Export path report as PDF',
+      defaultPath: path.join(app.getPath('documents'), defaultName),
+      filters: [{ name: 'PDF document', extensions: ['pdf'] }],
+    });
+    if (result.canceled || !result.filePath) return null;
+
+    const tempDir = await fs.mkdtemp(path.join(app.getPath('temp'), 'whatifs-report-'));
+    const tempFile = path.join(tempDir, 'report.html');
+    let printer: BrowserWindow | null = null;
+    try {
+      await fs.writeFile(tempFile, html, 'utf8');
+
+      printer = new BrowserWindow({
+        show: false,
+        width: 1200,
+        height: 1600,
+        webPreferences: {
+          javascript: false,
+          sandbox: true,
+          contextIsolation: true,
+          nodeIntegration: false,
+          webviewTag: false,
+          devTools: false,
+        },
+      });
+
+      await printer.loadFile(tempFile);
+      const pdf = await printer.webContents.printToPDF({
+        printBackground: true,
+        pageSize: 'A4',
+        preferCSSPageSize: true,
+        // The same gutter the stylesheet asks for, in inches. Setting both
+        // means the margin is the same whichever of the two the printer
+        // decides to honour.
+        margins: { top: 0.59, bottom: 0.63, left: 0.55, right: 0.55 },
+      });
+
+      await writeAtomic(result.filePath, pdf);
+      return result.filePath;
+    } finally {
+      printer?.destroy();
+      printer = null;
+      await fs.rm(tempDir, { recursive: true, force: true }).catch(() => undefined);
+    }
+  }
+);
 
 /* ------------------------------------------------------------------ */
 /* IPC: clipboard                                                      */

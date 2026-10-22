@@ -17,6 +17,10 @@ const api = {
   saveFile: (defaultName: string, text: string, filters?: Filter[]): Promise<string | null> =>
     ipcRenderer.invoke('file:save', defaultName, text, filters),
 
+  /* printing */
+  exportPdf: (request: { html: string; defaultName: string }): Promise<string | null> =>
+    ipcRenderer.invoke('pdf:export', request),
+
   /* clipboard */
   writeText: (text: string): Promise<boolean> => ipcRenderer.invoke('clipboard:write', text),
   readText: (): Promise<string> => ipcRenderer.invoke('clipboard:read'),

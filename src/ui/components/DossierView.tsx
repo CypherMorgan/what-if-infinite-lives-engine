@@ -281,6 +281,18 @@ export function DossierView({ store }: { store: Store }) {
             <button className="btn btn-ghost" onClick={() => store.setViewMode('timeline')}>
               See the timeline
             </button>
+            <button
+              className="btn btn-primary"
+              onClick={async () => {
+                const { exportPathAsPdf, pdfExportMessage } = await import('../utils/exportPdf');
+                const result = await exportPathAsPdf(state.doc, nodeId);
+                const message = pdfExportMessage(result);
+                store.toast(message.text, message.tone);
+              }}
+              title="Save this brief as a printable PDF"
+            >
+              🖨 Export PDF
+            </button>
           </div>
         </footer>
       </div>

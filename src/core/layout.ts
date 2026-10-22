@@ -24,6 +24,16 @@ export const LAYOUT = {
   branchGap: 76,
 } as const;
 
+/**
+ * The size of a node card, in world units.
+ *
+ * The layout positions a card by its top-left corner, so anything that needs
+ * the centre of a node — the printable map, for one — needs this too. It lives
+ * here rather than in the renderer so the two cannot drift apart.
+ */
+export const NODE_CARD_W = 286;
+export const NODE_CARD_H = 104;
+
 interface RankEntry {
   id: NodeId;
   node: SimNode;

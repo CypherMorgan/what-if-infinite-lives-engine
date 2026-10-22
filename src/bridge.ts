@@ -47,6 +47,20 @@ export interface AiResponse {
   message?: string;
 }
 
+/**
+ * A printable report handed to the desktop shell.
+ *
+ * The document arrives as one self-contained HTML string. The shell does not
+ * interpret it: it prints it, with scripts turned off and no network access,
+ * and writes the result to a file the user chose.
+ */
+export interface PdfExportRequest {
+  /** The complete HTML document, with its own styles and nothing external. */
+  html: string;
+  /** Suggested file name, including the `.pdf` extension. */
+  defaultName: string;
+}
+
 export interface WhatIfsBridge {
   /** `process.platform`, so the UI can adapt to the host OS. */
   platform: string;
@@ -54,6 +68,9 @@ export interface WhatIfsBridge {
   /* files */
   openFile(filters?: FileFilter[]): Promise<{ path: string; text: string } | null>;
   saveFile(defaultName: string, text: string, filters?: FileFilter[]): Promise<string | null>;
+
+  /* printing */
+  exportPdf(request: PdfExportRequest): Promise<string | null>;
 
   /* clipboard */
   writeText(text: string): Promise<boolean>;

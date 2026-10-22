@@ -205,6 +205,18 @@ export function Inspector({ store }: { store: Store }) {
             >
               📄 Export path
             </button>
+            <button
+              className="btn btn-ghost"
+              onClick={async () => {
+                const { exportPathAsPdf, pdfExportMessage } = await import('../utils/exportPdf');
+                const result = await exportPathAsPdf(state.doc, node.id);
+                const message = pdfExportMessage(result);
+                store.toast(message.text, message.tone);
+              }}
+              title="Export this path as a printable PDF"
+            >
+              🖨 Export PDF
+            </button>
           </div>
           <div className="btn-row" style={{ marginTop: 6 }}>
             <select

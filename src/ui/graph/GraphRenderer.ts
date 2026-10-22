@@ -8,7 +8,7 @@
  */
 import type { NodeId, SimEdge, SimNode, SimulationDoc } from '../../core/types';
 import { visibleNodes } from '../../core/graph';
-import { LAYOUT } from '../../core/layout';
+import { LAYOUT, NODE_CARD_H, NODE_CARD_W } from '../../core/layout';
 import { NODE_TYPE_GUIDE } from '../../core/graphLegend';
 
 export interface Camera {
@@ -42,8 +42,8 @@ export interface NodeView {
   born: number;
 }
 
-export const NODE_W = 286;
-export const NODE_H = 104;
+export const NODE_W = NODE_CARD_W;
+export const NODE_H = NODE_CARD_H;
 
 function hueRgb(hue: number, s = 0.62, l = 0.62): [number, number, number] {
   return hslToRgb((((hue % 360) + 360) % 360) / 360, s, l);
