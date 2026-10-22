@@ -368,9 +368,66 @@ The `.whatif.json` file is the complete form. The app can also produce:
   future dossier: where the path leads, what it buys, what it costs, what
   could go wrong, and how much the model can wobble. Exported from the node
   inspector.
+- **A PDF path report** — the same material as the Markdown report, laid out
+  for paper rather than for a screen. See §6.1.
 - **A PNG of the graph canvas** — the picture of the universe as it stands.
 - **The library index** — a small list of saved universes, used by the app's
   own library screen. It is not meant to be shared.
+
+### 6.1 The PDF path report
+
+A PDF is not a format the app owns — it is what Chromium's print pipeline
+produces — but the document that goes into it is fixed, and worth describing.
+
+**The report.** One path, from the step you are standing on back to where
+every path begins. In order:
+
+1. **The masthead** — the app, the universe's title, the step, the path it
+   belongs to, and the date the report was made.
+2. **The situation** — the prompt the universe was built from: where you
+   are, the decision, what you want, what you are bound by, what you have to
+   work with, and how far ahead the model looks.
+3. **The map** — the whole universe as parallel timelines: one row per path,
+   one shared time axis, time running left to right. The path the report is
+   about is drawn in blue and its steps are numbered, and the same numbers
+   are used in the list below, so the picture and the text cannot drift
+   apart. It is drawn as a diagram rather than as a copy of the canvas
+   because the canvas is taller than a page.
+4. **The brief** — the future dossier: the headline, the confidence in it,
+   every variable the model moved, how much the headline number could wobble,
+   what it buys, what it costs, what could go wrong, how the model got there,
+   and what happens next.
+5. **The path, step by step** — every step in order: what happened, what it
+   cost and bought, what changed in the model and why, what happens next,
+   where it could go wrong, and your own notes.
+6. **What it rests on** — the assumptions the universe was built on, each one
+   with the value it was given and the value it started from.
+7. **The colophon** — the reminder that this is a model rather than a
+   prophecy, where the universe came from, and which version of the app made
+   the report.
+
+**The rules.** The report obeys the same rules as the rest of the app.
+
+- **Every figure is computed.** Nothing in it is typed by hand, and there
+  are no charts of invented data. Where the model has nothing to say, the
+  report says that too.
+- **It is one file.** The document carries its own styles and its own
+  diagram; it fetches nothing from anywhere and embeds no fonts.
+- **Nothing you typed can become markup.** Every piece of text that came
+  from you — the universe title, the situation, your notes on a step, the
+  name of a path — is escaped before it goes into the document. A note
+  reading `<img onerror=...>` appears in the report as the characters you
+  typed.
+- **It cannot reach the network.** The document's own content security
+  policy forbids every kind of it, and the window that prints it has no
+  scripting, no Node and no preload. The desktop shell additionally refuses
+  a document that contains a script tag outright.
+
+**Where it comes from.** `src/core/pdfReport.ts` builds the document from a
+simulation document and a step; it is pure, deterministic and has no
+knowledge of Electron. The desktop shell prints it through a hidden window
+(`pdf:export` in `electron/main.ts`); a browser, which has no such thing,
+opens it in a new window and lets the browser's own print dialog save it.
 
 ---
 

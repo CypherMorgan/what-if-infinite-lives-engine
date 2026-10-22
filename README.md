@@ -7,7 +7,7 @@
 [![Electron](https://img.shields.io/badge/Electron-44-47848f?logo=electron&logoColor=white)](https://www.electronjs.org/)
 [![React](https://img.shields.io/badge/React-19-61dafb?logo=react&logoColor=white)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178c6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Tests](https://img.shields.io/badge/tests-264%20passing-b9f6a5.svg)](#testing)
+[![Tests](https://img.shields.io/badge/tests-283%20passing-b9f6a5.svg)](#testing)
 [![Local-first](https://img.shields.io/badge/local--first-offline%20by%20default-ffb74d.svg)](#privacy--security)
 
 <p align="center">
@@ -35,7 +35,7 @@ A local-first Windows desktop application for exploring plausible alternative li
 - **Counterfactuals** — Change any assumption or choose a decision option to fork a new universe. Full lineage (parent/counterfactual metadata), snapshots, diffs, and stability analysis.
 - **Honest evidence model** — Every node carries evidence tags (`user-fact`, `research`, `assumption`, `speculation`) with provenance so you can tell stated facts from extrapolation.
 - **Local-first persistence** — Versioned JSON documents (`schemaVersion: 3`) with migrations, atomic writes, repair-on-import for recoverable issues (dangling edges/unreachable nodes are repaired with notes; structural failures are rejected), and a library index.
-- **Import/Export** — Self-contained `.whatif.json` envelope (`format: whatif.universe`) with checksum/hash, schema version, and app version for forward-compatible migration. Export any path as a **Markdown report**, and the graph canvas as a **PNG**.
+- **Import/Export** — Self-contained `.whatif.json` envelope (`format: whatif.universe`) with checksum/hash, schema version, and app version for forward-compatible migration. Export any path as a **Markdown report** or a **printable PDF**, and the graph canvas as a **PNG**.
 - **Timeline view** — Toggle between the graph and a chronological timeline sorted by elapsed time, with branch colours and per-node tradeoffs.
 - **Node notes** — Attach your own markdown notes to any node; they persist with the universe and appear in path exports.
 - **Guided onboarding** — A first-run tour (skippable, remembered) introduces the explorer, graph, and inspector.
@@ -159,7 +159,7 @@ thewhatifs/
 │   │   └── theme.css
 │   ├── main.tsx
 │   └── ui/App.tsx
-└── tests/                    # 264 unit tests (engine, counterfactual, persistence, export format, AI, update, vars, dossier, branch diff, store, accessibility)
+└── tests/                    # 283 unit tests (engine, counterfactual, persistence, export format, AI, update, vars, dossier, branch diff, PDF report, store, accessibility)
 ```
 
 ## Usage
@@ -169,7 +169,7 @@ thewhatifs/
 3. **Expand** — `Expand` generates the next plausible steps from a node using the rule catalogue.
 4. **Counterfactuals** — Tweak assumptions in the inspector or use "What if…" to fork a new universe. Choose decision options to explore alternatives.
 5. **Compare** — Compare any two nodes to see diffs, stability, and noise-sensitive variables.
-6. **Import/Export** — `Ctrl+S` / `Ctrl+O` to save/load `.whatif.json` files. Universes are also auto-saved to your library.
+6. **Import/Export** — `Ctrl+S` / `Ctrl+O` to save/load `.whatif.json` files. Universes are also auto-saved to your library. Any single path can also be exported as a **Markdown report** or a **printable PDF** (`🖨 Export PDF` in the inspector, or from the dossier).
 7. **Settings** — Configure an OpenAI-compatible provider (base URL/model/keyless). Keys are stored encrypted via `safeStorage` in the app data folder.
 
 ## Keyboard Shortcuts
@@ -190,7 +190,7 @@ thewhatifs/
 
 ## Testing
 
-All core logic is covered by unit tests (264 passing):
+All core logic is covered by unit tests (283 passing):
 
 - **engine.test.ts** — Determinism, expansion, layout, queries, forecast/spread, rule catalogue, derive clamping
 - **counterfactual.test.ts** — Assumption/decision counterfactuals, lineage, reroll, snapshots/diffs/stability
@@ -201,6 +201,7 @@ All core logic is covered by unit tests (264 passing):
 - **vars.test.ts** — Variable registry integrity (no duplicate keys)
 - **dossier.test.ts** — Dossier construction, determinism, ordering, honesty of the prose
 - **branchDiff.test.ts** — Comparing two paths: the common moment, the divergence point, and which way "favours" points
+- **pdfReport.test.ts** — The printable report: it is complete, deterministic, and nothing the user typed can escape into the markup
 - **store.test.ts** — Selection, camera, expansion, undo/redo, branches, assumptions, import/export, settings
 - **accessibility.test.ts** — Colour contrast against the palette, and the markup that a screen reader depends on
 
@@ -245,7 +246,7 @@ the following are implemented and covered by `tests/accessibility.test.ts`:
 
 ## Documentation
 
-- **[docs/EXPORT_FORMAT.md](docs/EXPORT_FORMAT.md)** — the `.whatif.json` format, in full: the envelope, every field of the document, the migration chain, the validation and repair rules, and the limits.
+- **[docs/EXPORT_FORMAT.md](docs/EXPORT_FORMAT.md)** — the `.whatif.json` format, in full: the envelope, every field of the document, the migration chain, the validation and repair rules, the limits, and what the PDF path report contains.
 - **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** — how the engine, the renderer, the persistence layer and the AI bridge fit together.
 - **[ROADMAP.md](ROADMAP.md)** — what has shipped, what is being built, and what is deliberately not planned.
 - **[CHANGELOG.md](CHANGELOG.md)** — every release, with the reasoning behind the notable fixes.

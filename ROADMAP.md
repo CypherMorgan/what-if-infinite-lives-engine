@@ -78,7 +78,7 @@ The release that turned a capable tool into one a person can actually use.
 
 ### v1.2.0 — reach and report
 
-Two of the four are done and waiting on the next release:
+Three of the four are done and waiting on the next release:
 
 - **A visual branch diff.** ✓ Done. Two paths side by side, the point where
   they diverge, and what changes from there — compared at a common moment, so
@@ -87,9 +87,15 @@ Two of the four are done and waiting on the next release:
   focus that moves into a dialog and comes back out of it, a live status
   line, one `h1` and no skipped heading levels, a canvas that describes
   itself, and a contrast check on the palette.
-- **PDF export.** The Markdown path report becomes a document somebody can
-  print and share: the dossier, the timeline, and the graph itself.
-- **A printable dossier.** The same brief as the view, laid out for paper.
+- **PDF export.** ✓ Done. A path becomes a document somebody can print and
+  share: the situation, a map of the whole universe drawn as parallel
+  timelines with the path picked out and its steps numbered, the brief,
+  every step in detail, and the assumptions the answer rests on. One
+  self-contained file — nothing fetched, no scripting, everything you typed
+  escaped — printed by Chromium's own PDF writer.
+- **A printable dossier.** ✓ Done, and it is the same thing: the brief in
+  the PDF is the brief from the view, laid out for paper rather than for a
+  screen.
 
 ### v1.3.0 — depth
 
