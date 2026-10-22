@@ -13,7 +13,11 @@
 [![Local-first](https://img.shields.io/badge/local--first-offline%20by%20default-ffb74d.svg?style=flat-square)](#privacy--security)
 
 <p align="center">
-  <img src="build/icon-256.png" alt="What If? app icon" width="160" />
+  <img src="docs/demo.gif" alt="What If? demo showing the graph, dossier, and side-by-side comparison" width="900" />
+</p>
+
+<p align="center">
+  <img src="build/icon-256.png" alt="What If? app icon" width="96" />
 </p>
 
 **Think through a big decision by exploring plausible alternatives. Compare them side by side. Take your answer home as a printable PDF.**
