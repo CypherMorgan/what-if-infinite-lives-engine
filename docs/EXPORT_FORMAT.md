@@ -24,7 +24,7 @@ and the migration chain is `src/core/migrations.ts`.
   "format": "whatif.universe",
   "formatVersion": 1,
   "schemaVersion": 3,
-  "appVersion": "1.0.1",
+  "appVersion": "1.2.0",
   "exportedAt": "2026-10-21T09:14:02.118Z",
   "document": { "…": "the simulation document, see §2" },
   "checksum": "3f2a91c4"
@@ -36,7 +36,7 @@ and the migration chain is `src/core/migrations.ts`.
 | `format`        | string | Always `"whatif.universe"`. A file whose `format` is anything else is treated as a bare document (§5). |
 | `formatVersion` | number | The layout version of this envelope. Currently `1`.                                                    |
 | `schemaVersion` | number | The schema version of the embedded document. Currently `3`.                                            |
-| `appVersion`    | string | The version of the app that wrote the file, e.g. `"1.0.1"`.                                            |
+| `appVersion`    | string | The version of the app that wrote the file, e.g. `"1.2.0"`.                                            |
 | `exportedAt`    | string | ISO-8601 timestamp of the export.                                                                      |
 | `document`      | object | The simulation document (§2).                                                                          |
 | `checksum`      | string | FNV-1a hash of the serialised document, as eight lowercase hex digits.                                 |

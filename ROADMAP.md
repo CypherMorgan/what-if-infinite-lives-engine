@@ -44,9 +44,12 @@ The guiding rule, in priority order:
 - Single release per tag, with all four assets attached to it.
 - Icon, artifact-name and screenshot integrity checks in CI.
 
-### v1.1.0 — making it legible
+### v1.2.0 — legible, and something to print
 
-The release that turned a capable tool into one a person can actually use.
+The release that turned a capable tool into one a person can actually use,
+gave them a second path to judge it against, and then let them take the
+answer away on paper. It is the first release since 1.0.1, so everything
+that was waiting to ship is in here.
 
 - **The graph got a vocabulary.** One source of truth (`src/core/graphLegend.ts`)
   describing every shape, every colour, which way time flows, and what each
@@ -69,33 +72,28 @@ The release that turned a capable tool into one a person can actually use.
   API, dependency-free, with no silent install.
 - **A working provider.** The credential never crosses the bridge, and the
   request is made where the credential can be attached.
+- **A visual branch diff.** Two paths side by side, the point where they
+  diverge, and what changes from there — compared at a common moment, so the
+  difference is in the path and not in the timing.
+- **Accessibility pass.** Keyboard reachability for every control, focus that
+  moves into a dialog and comes back out of it, a live status line, one `h1`
+  and no skipped heading levels, a canvas that describes itself, and a
+  contrast check on the palette.
+- **PDF export.** A path becomes a document somebody can print and share: the
+  situation, a map of the whole universe drawn as parallel timelines with the
+  path picked out and its steps numbered, the brief, every step in detail, and
+  the assumptions the answer rests on. One self-contained file — nothing
+  fetched, no scripting, everything you typed escaped — printed by Chromium's
+  own PDF writer.
+- **A printable dossier.** The brief in the PDF is the brief from the view,
+  laid out for paper rather than for a screen.
 - **A real test suite** over the engine, the counterfactual machinery, the
-  update channel, the variable registry, the dossier and the store.
+  update channel, the variable registry, the dossier, the PDF report, the
+  store and the accessibility contract.
 
 ---
 
 ## Being built
-
-### v1.2.0 — reach and report
-
-Three of the four are done and waiting on the next release:
-
-- **A visual branch diff.** ✓ Done. Two paths side by side, the point where
-  they diverge, and what changes from there — compared at a common moment, so
-  the difference is in the path and not in the timing.
-- **Accessibility pass.** ✓ Done. Keyboard reachability for every control,
-  focus that moves into a dialog and comes back out of it, a live status
-  line, one `h1` and no skipped heading levels, a canvas that describes
-  itself, and a contrast check on the palette.
-- **PDF export.** ✓ Done. A path becomes a document somebody can print and
-  share: the situation, a map of the whole universe drawn as parallel
-  timelines with the path picked out and its steps numbered, the brief,
-  every step in detail, and the assumptions the answer rests on. One
-  self-contained file — nothing fetched, no scripting, everything you typed
-  escaped — printed by Chromium's own PDF writer.
-- **A printable dossier.** ✓ Done, and it is the same thing: the brief in
-  the PDF is the brief from the view, laid out for paper rather than for a
-  screen.
 
 ### v1.3.0 — depth
 
