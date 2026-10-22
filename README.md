@@ -1,20 +1,26 @@
 # What If? — The Infinite Lives Engine
 
-[![CI](https://github.com/CypherMorgan/what-if-infinite-lives-engine/actions/workflows/ci.yml/badge.svg)](https://github.com/CypherMorgan/what-if-infinite-lives-engine/actions/workflows/ci.yml)
-[![Release](https://github.com/CypherMorgan/what-if-infinite-lives-engine/actions/workflows/release.yml/badge.svg)](https://github.com/CypherMorgan/what-if-infinite-lives-engine/actions/workflows/release.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-4fd8ff.svg)](LICENSE)
-[![Platform](https://img.shields.io/badge/platform-Windows%2010%2F11%20x64-7c5cff.svg)](#requirements)
-[![Electron](https://img.shields.io/badge/Electron-44-47848f?logo=electron&logoColor=white)](https://www.electronjs.org/)
-[![React](https://img.shields.io/badge/React-19-61dafb?logo=react&logoColor=white)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178c6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Tests](https://img.shields.io/badge/tests-283%20passing-b9f6a5.svg)](#testing)
-[![Local-first](https://img.shields.io/badge/local--first-offline%20by%20default-ffb74d.svg)](#privacy--security)
+[![Latest Release](https://img.shields.io/github/v/release/CypherMorgan/what-if-infinite-lives-engine?style=flat-square&logo=github)](https://github.com/CypherMorgan/what-if-infinite-lives-engine/releases/latest)
+[![Downloads](https://img.shields.io/github/downloads/CypherMorgan/what-if-infinite-lives-engine/total?style=flat-square)](https://github.com/CypherMorgan/what-if-infinite-lives-engine/releases)
+[![Stars](https://img.shields.io/github/stars/CypherMorgan/what-if-infinite-lives-engine?style=flat-square)](https://github.com/CypherMorgan/what-if-infinite-lives-engine/stargazers)
+[![CI](https://img.shields.io/github/actions/workflow/status/CypherMorgan/what-if-infinite-lives-engine/ci.yml?branch=main&style=flat-square&label=CI)](https://github.com/CypherMorgan/what-if-infinite-lives-engine/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-4fd8ff.svg?style=flat-square)](LICENSE)
+[![Platform](https://img.shields.io/badge/Windows%2010%2F11-x64-7c5cff.svg?style=flat-square)](#requirements)
+[![Electron](https://img.shields.io/badge/Electron-44-47848f?logo=electron&logoColor=white&style=flat-square)](https://www.electronjs.org/)
+[![React](https://img.shields.io/badge/React-19-61dafb?logo=react&logoColor=white&style=flat-square)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178c6?logo=typescript&logoColor=white&style=flat-square)](https://www.typescriptlang.org/)
+[![Tests](https://img.shields.io/badge/tests-283%20passing-b9f6a5.svg?style=flat-square)](#testing)
+[![Local-first](https://img.shields.io/badge/local--first-offline%20by%20default-ffb74d.svg?style=flat-square)](#privacy--security)
 
 <p align="center">
   <img src="build/icon-256.png" alt="What If? app icon" width="160" />
 </p>
 
-A local-first Windows desktop application for exploring plausible alternative life paths through interactive branching timelines, decisions, counterfactuals, and deterministic simulations. It runs fully offline with a built-in rules engine and has an optional OpenAI-compatible provider for richer prose — without sending anything to the network unless you explicitly configure one.
+**Think through a big decision by exploring plausible alternatives. Compare them side by side. Take your answer home as a printable PDF.**
+
+A local-first Windows desktop app for mapping alternative life paths through interactive branching timelines, counterfactuals, and a deterministic rules engine. Runs fully offline by default, keeps everything on your machine, and has an optional OpenAI-compatible provider only if you choose to use one.
+
+**[⬇️ Download the latest release](https://github.com/CypherMorgan/what-if-infinite-lives-engine/releases/latest)** — NSIS installer or portable build for Windows 10/11 x64.
 
 ## Screenshots
 
@@ -26,6 +32,10 @@ A local-first Windows desktop application for exploring plausible alternative li
 | ---------------------------------------------------------------- | ------------------------------------------------------------------ |
 | ![Chronological timeline view](docs/screenshots/04-timeline.png) | ![Keyboard shortcuts reference](docs/screenshots/03-shortcuts.png) |
 
+| Two paths compared                                                  | The dossier                                                       |
+| ------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| ![Two paths compared side by side](docs/screenshots/05-compare.png) | ![The future dossier for a step](docs/screenshots/06-dossier.png) |
+
 > Screenshots are generated from the real app UI by `npm run screenshots` — they are not mockups.
 
 ## Features
@@ -33,12 +43,15 @@ A local-first Windows desktop application for exploring plausible alternative li
 - **Interactive multiverse graph** — Pan, zoom, drag nodes, select paths, collapse branches, search, minimap, auto-layout. Animated branch growth with reduced-motion support.
 - **Deterministic simulation** — Pure rule-engine model over a typed variable/state system. No fake probabilities or hardcoded guesses. "Model spread" is labelled engine variance, not a real-world forecast.
 - **Counterfactuals** — Change any assumption or choose a decision option to fork a new universe. Full lineage (parent/counterfactual metadata), snapshots, diffs, and stability analysis.
+- **Compare two paths side by side** — See exactly where they diverge and what ends up different, compared at a common moment. "Favours" is direction, not a recommendation.
+- **Future dossier** — A plain-language brief for any step: where it leads, what it buys/costs, risks, how the model got there, and how much it could wobble.
+- **Print or export as PDF** — Turn any path into a clean, self-contained **PDF report** (situation, universe map, dossier, step-by-step, assumptions) with everything escaped and nothing fetched. Also export as **Markdown** or save the graph as **PNG**.
+- **Timeline view** — Toggle between the graph and a chronological timeline sorted by elapsed time, with branch colours and per-node tradeoffs.
 - **Honest evidence model** — Every node carries evidence tags (`user-fact`, `research`, `assumption`, `speculation`) with provenance so you can tell stated facts from extrapolation.
 - **Local-first persistence** — Versioned JSON documents (`schemaVersion: 3`) with migrations, atomic writes, repair-on-import for recoverable issues (dangling edges/unreachable nodes are repaired with notes; structural failures are rejected), and a library index.
-- **Import/Export** — Self-contained `.whatif.json` envelope (`format: whatif.universe`) with checksum/hash, schema version, and app version for forward-compatible migration. Export any path as a **Markdown report** or a **printable PDF**, and the graph canvas as a **PNG**.
-- **Timeline view** — Toggle between the graph and a chronological timeline sorted by elapsed time, with branch colours and per-node tradeoffs.
+- **Import/Export** — Self-contained `.whatif.json` envelope (`format: whatif.universe`) with checksum/hash, schema version, and app version for forward-compatible migration.
 - **Node notes** — Attach your own markdown notes to any node; they persist with the universe and appear in path exports.
-- **Guided onboarding** — A first-run tour (skippable, remembered) introduces the explorer, graph, and inspector.
+- **Accessible & keyboard-friendly** — Keyboard navigation, dialog focus management, ARIA landmarks, readable contrast, and works great without a mouse.
 - **Privacy by design** — No telemetry, analytics, crash reporting, or accounts. Network access only if you configure an HTTP provider. API keys go through Electron `safeStorage` (DPAPI on Windows), never written to renderer storage, logs, or exports.
 - **Windows-native** — Electron app with menus, shortcuts, file dialogs, DPI awareness, NSIS installer + portable build.
 
@@ -63,10 +76,10 @@ Core modules have no Electron imports so the simulation/graph/AI logic runs in N
 
 ## Download
 
-Grab a prebuilt binary from the [Releases page](https://github.com/CypherMorgan/what-if-infinite-lives-engine/releases):
+**[⬇️ Download the latest release](https://github.com/CypherMorgan/what-if-infinite-lives-engine/releases/latest)** for Windows 10/11 x64:
 
-- **`what-if-infinite-lives-engine-Setup-<version>-x64.exe`** — NSIS installer (per-user, choose your install folder, adds Start Menu + desktop shortcuts).
-- **`what-if-infinite-lives-engine-Portable-<version>-x64.exe`** — single-file portable build; no installation required.
+- **NSIS installer** (`*-Setup-*.exe`) — per-user, choose your install folder, adds Start Menu + desktop shortcuts.
+- **Portable build** (`*-Portable-*.exe`) — single file, no installation required. Great for a USB drive.
 
 No runtime, toolchain, or account is needed to run either build.
 

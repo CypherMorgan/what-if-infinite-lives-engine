@@ -40,6 +40,7 @@ async function ready(page: Page): Promise<void> {
   await page.evaluate(() => {
     try {
       localStorage.setItem('whatifs:tour:v1', '1');
+      localStorage.setItem('whatifs:key-open:v1', '0');
     } catch {
       // ignore
     }
@@ -94,7 +95,7 @@ async function main(): Promise<void> {
 
     // 2. Select a node so the inspector shows detail, then capture.
     const nodeCards = page.locator('.canvas-host canvas');
-    await nodeCards.click({ position: { x: 260, y: 450 } });
+    await nodeCards.click({ position: { x: 260, y: 450 }, force: true });
     await pause(900);
     await shoot(page, '02-inspector');
 
@@ -109,6 +110,33 @@ async function main(): Promise<void> {
     await page.getByRole('button', { name: 'Timeline' }).click();
     await pause(900);
     await shoot(page, '04-timeline');
+
+    // 5. Two paths compared side by side.
+    await page.getByRole('button', { name: 'Graph' }).first().click();
+    await pause(700);
+    await page
+      .getByRole('button', { name: /Compare/ })
+      .first()
+      .click();
+    await pause(700);
+    await page
+      .getByRole('button', { name: /Compare/ })
+      .last()
+      .click();
+    await pause(1400);
+    await shoot(page, '05-compare');
+
+    // 6. The dossier: the plain-language brief on the selected step.
+    await page.getByRole('button', { name: 'Graph' }).first().click();
+    await pause(700);
+    await page.locator('.canvas-host canvas').click({ position: { x: 260, y: 450 }, force: true });
+    await pause(800);
+    await page
+      .getByRole('button', { name: /Dossier/ })
+      .first()
+      .click();
+    await pause(1400);
+    await shoot(page, '06-dossier');
 
     await browser.close();
     console.log('done.');
