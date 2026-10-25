@@ -124,7 +124,7 @@ body::before {
 
 .app {
   display: grid;
-  grid-template-rows: 52px 1fr 30px;
+  grid-template-rows: auto 1fr 30px;
   grid-template-columns: 268px 1fr 344px;
   grid-template-areas:
     'topbar topbar topbar'
@@ -137,12 +137,33 @@ body::before {
 .topbar {
   grid-area: topbar;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 14px;
-  padding: 0 14px;
+  gap: 6px 10px;
+  padding: 7px 14px;
+  min-height: 52px;
   background: linear-gradient(180deg, rgba(16, 21, 40, 0.96), rgba(8, 11, 20, 0.96));
   border-bottom: 1px solid var(--line);
   backdrop-filter: blur(8px);
+}
+
+/*
+ * The header is deliberately two rows: the left group acts on the open
+ * universe, the right group changes what you are looking at. Each group stays
+ * on one line so buttons never wrap out of the header and get clipped; on a
+ * narrow window the group itself wraps instead.
+ */
+.topbar .btn-row {
+  flex-wrap: nowrap;
+}
+.topbar-break {
+  flex-basis: 100%;
+  height: 0;
+}
+@media (max-width: 960px) {
+  .topbar .btn-row {
+    flex-wrap: wrap;
+  }
 }
 
 .brand {

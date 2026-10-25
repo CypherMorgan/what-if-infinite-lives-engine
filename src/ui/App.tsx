@@ -196,7 +196,7 @@ export function App({ store }: { store: Store }) {
           </button>
         </div>
 
-        <span style={{ width: 1, height: 22, background: 'var(--line)' }} />
+        <span className="topbar-break" />
 
         <div className="btn-row">
           <button

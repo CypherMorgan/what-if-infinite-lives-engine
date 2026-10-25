@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Deleting a universe left it in the library list.** The document was removed but its index entry was not, so the row could not be opened and still appeared in the comparison picker. Deletion now removes the document and the index entry together.
 - **The previous comparison stayed on screen after switching universe.** Creating, importing or opening a universe while the universe comparison was open left the old comparison in view, with a header naming a different document. Switching documents now returns to the graph and drops both comparison pairs; on launch, a remembered comparison view is only restored when the open universe is actually one side of it.
 - **Long decisions were cut mid-word.** A question longer than the title limit ended in a partial word; titles now cut at a word boundary and mark the cut with an ellipsis.
+- **The top bar clipped its own controls.** The header was locked to a 52px grid row while the buttons needed two lines at every supported window size, so the top of the first line and the whole second line were cut off. The header now sizes to its content and is deliberately two rows — actions on the open universe, then the view controls — with each group kept on one line. Measured at 1120, 1280, 1440 and 1920 pixels wide: nothing clipped, no horizontal overflow.
 
 ## [1.2.0] - 2026-10-21
 
