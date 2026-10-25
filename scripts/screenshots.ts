@@ -93,9 +93,8 @@ async function main(): Promise<void> {
     await ready(page);
     await shoot(page, '01-overview');
 
-    // 2. Select a node so the inspector shows detail, then capture.
-    const nodeCards = page.locator('.canvas-host canvas');
-    await nodeCards.click({ position: { x: 260, y: 450 }, force: true });
+    // 2. Select a real step so the inspector shows detail, then capture.
+    await page.getByRole('button', { name: /Take a steady job/ }).first().click();
     await pause(900);
     await shoot(page, '02-inspector');
 
@@ -129,7 +128,7 @@ async function main(): Promise<void> {
     // 6. The dossier: the plain-language brief on the selected step.
     await page.getByRole('button', { name: 'Graph' }).first().click();
     await pause(700);
-    await page.locator('.canvas-host canvas').click({ position: { x: 260, y: 450 }, force: true });
+    await page.getByRole('button', { name: /Take a steady job/ }).first().click();
     await pause(800);
     await page
       .getByRole('button', { name: /Dossier/ })
@@ -137,6 +136,33 @@ async function main(): Promise<void> {
       .click();
     await pause(1400);
     await shoot(page, '06-dossier');
+
+    // 7. Two universes compared: fork the open one, then compare the two.
+    await page.getByRole('button', { name: 'Graph' }).first().click();
+    await pause(700);
+    await page
+      .getByRole('button', { name: /Take a steady job/ })
+      .first()
+      .click();
+    await pause(700);
+    await page.getByRole('button', { name: 'What if…' }).first().click();
+    await pause(600);
+    // Move the assumption slider to its maximum so the fork is a real change.
+    await page.locator('.modal input[type=range]').first().focus();
+    await page.keyboard.press('End');
+    await pause(300);
+    await page.getByRole('button', { name: /Create counterfactual/ }).click();
+    await pause(1600);
+    await page.getByRole('button', { name: /Universes/ }).click();
+    await pause(700);
+    await page.getByRole('button', { name: /Compare →/ }).click();
+    await pause(1600);
+    await page.waitForSelector('main[aria-label="Comparing two universes"]', { timeout: 15_000 });
+    const universeHeading = await page.locator('main h2').innerText();
+    if (!universeHeading.includes('versus')) {
+      throw new Error(`universe comparison did not render: ${universeHeading}`);
+    }
+    await shoot(page, '07-universes');
 
     await browser.close();
     console.log('done.');

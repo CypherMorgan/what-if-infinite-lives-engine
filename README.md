@@ -40,6 +40,10 @@ A local-first Windows desktop app for mapping alternative life paths through int
 | ------------------------------------------------------------------- | ----------------------------------------------------------------- |
 | ![Two paths compared side by side](docs/screenshots/05-compare.png) | ![The future dossier for a step](docs/screenshots/06-dossier.png) |
 
+| Two universes compared                                                            |
+| --------------------------------------------------------------------------------- |
+| ![A universe and a fork compared side by side](docs/screenshots/07-universes.png) |
+
 > Screenshots are generated from the real app UI by `npm run screenshots` — they are not mockups.
 
 ## Features
