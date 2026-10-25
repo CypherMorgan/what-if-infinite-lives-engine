@@ -91,14 +91,21 @@ that was waiting to ship is in here.
   update channel, the variable registry, the dossier, the PDF report, the
   store and the accessibility contract.
 
+### v1.3.0 — depth (in progress)
+
+- **Comparable universes.** The open universe and a saved fork side by side:
+  the origin they share, the assumptions that differ, the paths they both have,
+  and the measurements that end up different at a common moment. Paths are
+  paired by name, not position, and the view says so when two universes answer
+  different questions or were run with different random draws rather than
+  blaming the difference on the assumption you changed.
+
 ---
 
 ## Being built
 
-### v1.3.0 — depth
+### v1.3.0 — depth (continued)
 
-- **Comparable universes.** Put two forks of the same decision side by side,
-  with the assumptions that differ between them called out.
 - **Scenario templates.** Starting points for the questions people actually
   ask — the job offer, the move, the child, the pivot.
 - **Session notes.** A written record of what you concluded, kept alongside

@@ -48,6 +48,7 @@ A local-first Windows desktop app for mapping alternative life paths through int
 - **Deterministic simulation** — Pure rule-engine model over a typed variable/state system. No fake probabilities or hardcoded guesses. "Model spread" is labelled engine variance, not a real-world forecast.
 - **Counterfactuals** — Change any assumption or choose a decision option to fork a new universe. Full lineage (parent/counterfactual metadata), snapshots, diffs, and stability analysis.
 - **Compare two paths side by side** — See exactly where they diverge and what ends up different, compared at a common moment. "Favours" is direction, not a recommendation.
+- **Compare two universes side by side** — Put a universe and a fork of it next to each other: the origin they share, the assumptions that differ, the paths they both have, and what ends up different. When the two answer different questions or were run with different random draws, it says so instead of blaming the difference on the assumption you changed.
 - **Future dossier** — A plain-language brief for any step: where it leads, what it buys/costs, risks, how the model got there, and how much it could wobble.
 - **Print or export as PDF** — Turn any path into a clean, self-contained **PDF report** (situation, universe map, dossier, step-by-step, assumptions) with everything escaped and nothing fetched. Also export as **Markdown** or save the graph as **PNG**.
 - **Timeline view** — Toggle between the graph and a chronological timeline sorted by elapsed time, with branch colours and per-node tradeoffs.
@@ -176,7 +177,7 @@ thewhatifs/
 │   │   └── theme.css
 │   ├── main.tsx
 │   └── ui/App.tsx
-└── tests/                    # 283 unit tests (engine, counterfactual, persistence, export format, AI, update, vars, dossier, branch diff, PDF report, store, accessibility)
+└── tests/                    # 303 unit tests (engine, counterfactual, persistence, export format, AI, update, vars, dossier, branch diff, universe diff, PDF report, store, accessibility)
 ```
 
 ## Usage
@@ -185,7 +186,7 @@ thewhatifs/
 2. **Navigate** — Click nodes to inspect. Use arrow keys to move along paths, `E` to expand, mouse to pan/zoom/drag.
 3. **Expand** — `Expand` generates the next plausible steps from a node using the rule catalogue.
 4. **Counterfactuals** — Tweak assumptions in the inspector or use "What if…" to fork a new universe. Choose decision options to explore alternatives.
-5. **Compare** — Compare any two nodes to see diffs, stability, and noise-sensitive variables.
+5. **Compare** — Compare any two paths inside a universe, or press `⧉ Universes` to put the open universe beside a saved fork and see which assumptions differ and what they moved.
 6. **Import/Export** — `Ctrl+S` / `Ctrl+O` to save/load `.whatif.json` files. Universes are also auto-saved to your library. Any single path can also be exported as a **Markdown report** or a **printable PDF** (`🖨 Export PDF` in the inspector, or from the dossier).
 7. **Settings** — Configure an OpenAI-compatible provider (base URL/model/keyless). Keys are stored encrypted via `safeStorage` in the app data folder.
 
@@ -207,7 +208,7 @@ thewhatifs/
 
 ## Testing
 
-All core logic is covered by unit tests (283 passing):
+All core logic is covered by unit tests (303 passing):
 
 - **engine.test.ts** — Determinism, expansion, layout, queries, forecast/spread, rule catalogue, derive clamping
 - **counterfactual.test.ts** — Assumption/decision counterfactuals, lineage, reroll, snapshots/diffs/stability
@@ -218,6 +219,7 @@ All core logic is covered by unit tests (283 passing):
 - **vars.test.ts** — Variable registry integrity (no duplicate keys)
 - **dossier.test.ts** — Dossier construction, determinism, ordering, honesty of the prose
 - **branchDiff.test.ts** — Comparing two paths: the common moment, the divergence point, and which way "favours" points
+- **universeDiff.test.ts** — Comparing two universes: lineage, one-sided assumptions, path pairing by name, and the cases where a difference must not be blamed on the changed assumption
 - **pdfReport.test.ts** — The printable report: it is complete, deterministic, and nothing the user typed can escape into the markup
 - **store.test.ts** — Selection, camera, expansion, undo/redo, branches, assumptions, import/export, settings
 - **accessibility.test.ts** — Colour contrast against the palette, and the markup that a screen reader depends on

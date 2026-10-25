@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Two universes, side by side.** A fork is only useful if you can see what it actually did. The new comparison view puts the open universe next to another saved one and reports, in this order: how the two documents are related (a direct fork, two forks of the same parent, or no shared origin this library can see), the assumptions whose values — or presence — differ, the paths the two universes both have, and the measurements that end up different. Paths are paired by name rather than by positional branch id, so a fork that commits to a different decision is reported as having no like-for-like counterpart instead of being paired with something that only looks similar. States are compared at one common moment, so a difference in timing is never reported as a difference in the path.
+- **Honest attribution.** The view distinguishes a changed assumption from a different question, a different random draw, and a differing setup. It only says an outcome difference can be traced to the changed assumption when the two universes share a question and a seed and nothing else in the setup differs. The fork's own recorded counterfactual is shown in the lineage, so a decision fork — which is not an assumption change — is not invisible.
+- **The comparison is reachable from three places.** A `⧉ Universes` button in the top bar reopens the remembered pair or asks for one; every library row has a `⇄ Compare` action; and the view's own empty state explains how to make the first fork.
+- **Fork lineage that survives the session.** Forking now saves and indexes the parent universe before switching to the child, so the universe a fork came from can still be reopened and compared afterwards instead of existing only in undo history.
+
+### Changed
+
+- The "what ends up different" table is now one shared component (`MetricTable`), used by both the path diff and the universe diff, so the two views cannot disagree about what counts as a difference, how large it is, or which side it favours.
+- 21 new unit tests: 14 over the universe comparison model and 6 over the store's comparison state, plus the accessibility guard extended to the shared table (303 passing).
+
 ## [1.2.0] - 2026-10-21
 
 The release that made the app usable by somebody who had never seen it, gave
