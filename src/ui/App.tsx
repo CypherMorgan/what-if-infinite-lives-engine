@@ -240,6 +240,13 @@ export function App({ store }: { store: Store }) {
           >
             ⧉ Universes
           </button>
+          <button
+            className="btn btn-ghost"
+            onClick={() => store.openModal({ kind: 'notes' })}
+            title="Write down what you concluded — kept with this universe and included in exports"
+          >
+            ✎ Notes
+          </button>
           <span style={{ width: 1, height: 22, background: 'var(--line)' }} />
           <button
             className="btn btn-ghost"

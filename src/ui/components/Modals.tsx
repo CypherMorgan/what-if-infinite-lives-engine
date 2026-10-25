@@ -131,6 +131,7 @@ export function ModalHost({ store }: { store: Store }) {
         {modal.kind === 'shortcuts' && <ShortcutsModal store={store} close={close} />}
         {modal.kind === 'compare' && <CompareModal store={store} close={close} />}
         {modal.kind === 'universes' && <UniverseCompareModal store={store} close={close} />}
+        {modal.kind === 'notes' && <NotesModal store={store} close={close} />}
       </div>
     </div>
   );
@@ -1224,6 +1225,70 @@ function UniverseCompareModal({ store, close }: { store: Store; close: () => voi
 /* ------------------------------------------------------------------ */
 /* About                                                               */
 /* ------------------------------------------------------------------ */
+
+function NotesModal({ store, close }: { store: Store; close: () => void }) {
+  const state = useAppState(store);
+  const saved = state.doc.sessionNotes;
+  const [draft, setDraft] = useState(saved);
+  const changed = draft !== saved;
+  const limit = IMPORT_LIMITS.maxStringLength;
+  const atLimit = draft.length >= limit;
+
+  const save = (): void => {
+    store.setSessionNotes(draft);
+    close();
+  };
+
+  return (
+    <>
+      <Head title="Session notes" close={close} hint="kept with this universe" />
+      <div className="modal-body">
+        <p className="hero-sub">
+          A place for what you concluded: what you ruled out, what you would need to believe, what
+          you want to check before deciding. The notes belong to this universe, stay on this
+          machine, and are included in PDF and Markdown exports.
+        </p>
+
+        <label className="field">
+          <span className="field-label">What you concluded</span>
+          <textarea
+            className="textarea notes-textarea"
+            value={draft}
+            autoFocus
+            spellCheck
+            maxLength={limit}
+            placeholder="The move only works if the rent is below 1100. I would want three months of savings first, and a visit before committing…"
+            onChange={(e) => setDraft(e.target.value)}
+            onKeyDown={(e) => {
+              if ((e.ctrlKey || e.metaKey) && e.key === 'Enter' && changed) {
+                e.preventDefault();
+                save();
+              }
+            }}
+          />
+          <span className="field-hint">
+            {draft.length.toLocaleString()} characters
+            {atLimit ? ' — the note is at the limit' : ''}. Markdown is not rendered here; line
+            breaks are kept exactly as you type them.
+          </span>
+        </label>
+
+        <div className="note">
+          Saving adds one undo step. Nothing is sent anywhere: notes are saved in the same local
+          document as the graph, and only leave if you export the universe or its report.
+        </div>
+      </div>
+      <div className="modal-foot">
+        <button className="btn btn-ghost" onClick={close}>
+          {changed ? 'Discard' : 'Close'}
+        </button>
+        <button className="btn btn-primary" disabled={!changed} onClick={save}>
+          Save notes
+        </button>
+      </div>
+    </>
+  );
+}
 
 function AboutModal({ store, close }: { store: Store; close: () => void }) {
   const state = useAppState(store);

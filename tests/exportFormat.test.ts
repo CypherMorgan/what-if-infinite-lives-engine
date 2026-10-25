@@ -65,7 +65,7 @@ describe('the documented envelope', () => {
     const envelope = exportDocument(doc);
     expect(envelope.schemaVersion).toBe(doc.schemaVersion);
     expect(envelope.schemaVersion).toBe(SCHEMA_VERSION);
-    expect(envelope.schemaVersion).toBe(3);
+    expect(envelope.schemaVersion).toBe(4);
   });
 
   it('reports the version of the app that wrote the file', () => {
@@ -109,6 +109,7 @@ describe('the documented document', () => {
       'vars',
       'assumptions',
       'collapsed',
+      'sessionNotes',
       'meta',
     ]) {
       expect(doc).toHaveProperty(key);

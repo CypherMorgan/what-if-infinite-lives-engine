@@ -375,6 +375,44 @@ describe('Store — import and export', () => {
   });
 });
 
+describe('Store — session notes', () => {
+  it('saves notes with the document, the library entry and the undo history', () => {
+    const store = makeStore();
+    store.setSessionNotes('Only if the rent is under 1100.\nVisit first.');
+
+    const doc = store.getState().doc;
+    expect(doc.sessionNotes).toBe('Only if the rent is under 1100.\nVisit first.');
+    expect(store.getState().canUndo).toBe(true);
+    expect(store.getState().undoLabel).toBe('Update session notes');
+    expect(store.getState().library.find((s) => s.id === doc.id)?.updatedAt).toBe(doc.updatedAt);
+
+    const persisted = JSON.parse(storage.getItem(`whatifs:doc:${doc.id}`) ?? '{}') as {
+      document?: { sessionNotes?: string };
+    };
+    expect(persisted.document?.sessionNotes).toBe(doc.sessionNotes);
+
+    store.undo();
+    expect(store.getState().doc.sessionNotes).toBe('');
+  });
+
+  it('records nothing when the notes are unchanged', () => {
+    const store = makeStore();
+    store.setSessionNotes('A conclusion.');
+    const updatedAt = store.getState().doc.updatedAt;
+    store.setSessionNotes('A conclusion.');
+    expect(store.getState().canUndo).toBe(true);
+    expect(store.getState().doc.updatedAt).toBe(updatedAt);
+    store.undo();
+    expect(store.getState().canUndo).toBe(false);
+  });
+
+  it('caps a pasted note at the length the importer accepts', () => {
+    const store = makeStore();
+    store.setSessionNotes('x'.repeat(20_005));
+    expect(store.getState().doc.sessionNotes.length).toBe(20_000);
+  });
+});
+
 describe('Store — settings and view', () => {
   it('merges settings', () => {
     const store = makeStore();

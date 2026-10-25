@@ -344,6 +344,7 @@ export function buildPdfReport(
   if (!options.skipMap) body.push(mapBlock(doc, path));
   if (dossier) body.push(brief(dossier));
   if (!options.skipTimeline) body.push(steps(doc, path));
+  body.push(sessionNotes(doc));
   body.push(restsOn(doc));
   body.push(colophon(doc));
 
@@ -603,6 +604,16 @@ ${rows}
   <ol class="steps">
 ${items.join('\n')}
   </ol>
+</section>`;
+}
+
+function sessionNotes(doc: SimulationDoc): string {
+  const notes = doc.sessionNotes.trim();
+  if (notes.length === 0) return '';
+  return `<section class="block">
+  <h2>Your notes</h2>
+  <p class="lede">Written by you in the app and kept with this universe. Line breaks are preserved exactly as typed.</p>
+  <div class="notes"><p>${escapeHtml(notes)}</p></div>
 </section>`;
 }
 

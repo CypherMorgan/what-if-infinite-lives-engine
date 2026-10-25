@@ -182,6 +182,23 @@ async function main(): Promise<void> {
     }
     await shoot(page, '08-templates');
 
+    // 9. Session notes: what the person concluded, kept with the universe.
+    // Close the new-universe dialog without creating another document, so the
+    // note belongs to the universe the rest of the screenshots show.
+    await page.getByRole('button', { name: 'Close' }).click();
+    await pause(500);
+    await page.getByRole('button', { name: /Notes/ }).click();
+    await pause(600);
+    await page
+      .locator('.modal textarea.notes-textarea')
+      .fill(
+        'The move only works if the rent stays under 1100 a month.\n\n' +
+          'I would want three months of savings in place first, and to visit for a week before committing.\n\n' +
+          'Next: ask about the notice period and whether the role can start in April.'
+      );
+    await pause(500);
+    await shoot(page, '09-notes');
+
     await browser.close();
     console.log('done.');
   } finally {

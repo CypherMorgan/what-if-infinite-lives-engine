@@ -128,6 +128,26 @@ describe('buildPdfReport', () => {
     expect(html).toContain('&lt;img src=x onerror=&quot;alert(1)&quot;&gt;');
   });
 
+  it('includes the session notes and keeps their line breaks', () => {
+    const doc = { ...makeDoc(), sessionNotes: 'Only if the rent is under 1100.\nVisit first.' };
+    const html = buildPdfReport(doc, aPathNode(doc), ALL_PACKS, { now: NOW });
+    expect(html).toContain('Your notes');
+    expect(html).toContain('Only if the rent is under 1100.\nVisit first.');
+  });
+
+  it('leaves the notes section out when nothing was written', () => {
+    const doc = makeDoc();
+    const html = buildPdfReport(doc, aPathNode(doc), ALL_PACKS, { now: NOW });
+    expect(html).not.toContain('Your notes');
+  });
+
+  it('escapes session notes as strictly as everything else', () => {
+    const doc = { ...makeDoc(), sessionNotes: '<script>alert(1)</script>' };
+    const html = buildPdfReport(doc, aPathNode(doc), ALL_PACKS, { now: NOW });
+    expect(html).not.toMatch(/<script/i);
+    expect(html).toContain('&lt;script&gt;alert(1)&lt;/script&gt;');
+  });
+
   it('says so plainly when the step is not in the universe', () => {
     const doc = makeDoc();
     const html = buildPdfReport(doc, 'no-such-node', ALL_PACKS, { now: NOW });

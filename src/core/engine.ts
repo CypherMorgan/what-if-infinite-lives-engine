@@ -901,6 +901,7 @@ export function createUniverse(config: EngineConfig, options: CreateOptions = {}
     vars: [...vars],
     assumptions,
     collapsed: [],
+    sessionNotes: '',
     meta: {
       generator: 'offline',
       providerLabel: 'Built-in rules engine',

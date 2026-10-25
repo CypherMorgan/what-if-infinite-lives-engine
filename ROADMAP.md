@@ -105,6 +105,11 @@ that was waiting to ship is in here.
   nothing else: it never invents your money, and whatever figures you do supply
   become editable assumptions. The form names the rule packs your words
   activated, so the engine's choice is visible.
+- **Session notes.** Your own written record of what you concluded, kept with
+  the universe: what you ruled out, what you would need to believe, what to
+  check before deciding. Saving adds one undo step, the note survives export,
+  import and re-opening, and it appears in both the Markdown export and the PDF
+  report. It is never interpreted by the model.
 
 ---
 
@@ -112,8 +117,6 @@ that was waiting to ship is in here.
 
 ### v1.3.0 — depth (continued)
 
-- **Session notes.** A written record of what you concluded, kept alongside
-  the universe.
 - **A rule-pack format people can write.** The engine's rules are the honest
   core of the app; making them authorable is the single biggest increase in
   what it can say.

@@ -1996,6 +1996,13 @@ kbd {
   color: var(--text-faint);
 }
 
+/* The session-notes editor is the main thing in its dialog, so it gets room. */
+.notes-textarea {
+  min-height: 220px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
 .progress-track {
   height: 3px;
   background: var(--line);

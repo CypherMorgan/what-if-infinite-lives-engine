@@ -418,6 +418,7 @@ export function validateDocument(input: unknown): ValidationResult {
     vars,
     assumptions,
     collapsed: strArray(input['collapsed'], 50),
+    sessionNotes: str(input['sessionNotes']),
     meta: {
       generator,
       providerLabel: str(rawMeta['providerLabel'], 'Unknown source'),

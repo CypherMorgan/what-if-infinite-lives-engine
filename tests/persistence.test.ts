@@ -130,6 +130,14 @@ describe('round trip', () => {
     }
   });
 
+  it('keeps session notes verbatim across a round trip', () => {
+    const doc = { ...makeDoc(), sessionNotes: 'Line one.\n\nLine three — with an em dash.' };
+    const result = importFromText(exportToText(doc));
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.doc.sessionNotes).toBe(doc.sessionNotes);
+  });
+
   it('a bare document (no envelope) still imports, with a warning', () => {
     const doc = makeDoc();
     const result = importFromText(serialize(doc));
@@ -271,7 +279,11 @@ describe('migrations', () => {
     const { doc, notes } = migrate(v1);
     expect(doc.schemaVersion).toBe(SCHEMA_VERSION);
     expect(notes).toEqual(
-      expect.arrayContaining([expect.stringContaining('1 -> 2'), expect.stringContaining('2 -> 3')])
+      expect.arrayContaining([
+        expect.stringContaining('1 -> 2'),
+        expect.stringContaining('2 -> 3'),
+        expect.stringContaining('3 -> 4'),
+      ])
     );
     expect(Array.isArray(doc.prompt.archetypes)).toBe(true);
     expect(doc.prompt.archetypes).toEqual(['career', 'learning']);
@@ -280,6 +292,8 @@ describe('migrations', () => {
     expect(Array.isArray(doc.collapsed)).toBe(true);
     expect(Array.isArray(doc.vars)).toBe(true);
     expect(doc.vars.length).toBeGreaterThan(0);
+    // v4 fields start empty rather than invented.
+    expect(doc.sessionNotes).toBe('');
     // Migration must not lose the graph itself.
     expect(Object.keys(doc.nodes).length).toBe(Object.keys(current.nodes).length);
     expect(validateGraph(doc).errors).toEqual([]);
@@ -291,6 +305,28 @@ describe('migrations', () => {
     // And the migrated document must pass full import validation.
     const check = validateDocument(doc);
     expect(check.ok).toBe(true);
+  });
+
+  it('walks a v3 document to v4 without touching the notes it already has', () => {
+    const current = makeDoc();
+    const v3 = JSON.parse(serialize(current)) as Record<string, unknown>;
+    v3['schemaVersion'] = 3;
+    v3['sessionNotes'] = 'Keep me.\nA second line.';
+
+    const { doc, notes } = migrate(v3);
+    expect(doc.schemaVersion).toBe(4);
+    expect(doc.sessionNotes).toBe('Keep me.\nA second line.');
+    expect(notes).toEqual(expect.arrayContaining([expect.stringContaining('3 -> 4')]));
+  });
+
+  it('gives a v3 document with no notes an empty note rather than inventing text', () => {
+    const v3 = JSON.parse(serialize(makeDoc())) as Record<string, unknown>;
+    v3['schemaVersion'] = 3;
+    delete v3['sessionNotes'];
+
+    const { doc } = migrate(v3);
+    expect(doc.schemaVersion).toBe(4);
+    expect(doc.sessionNotes).toBe('');
   });
 
   it('derives variable metadata from node state keys the v1 file never declared', () => {

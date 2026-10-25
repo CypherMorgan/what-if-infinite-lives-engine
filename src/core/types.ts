@@ -11,7 +11,7 @@ export type BranchId = string;
 export type SimId = string;
 
 /** Bumped when a persisted shape changes in a way that needs data migration. */
-export const SCHEMA_VERSION = 3;
+export const SCHEMA_VERSION = 4;
 
 // ---------------------------------------------------------------------------
 // Evidence classification — the honesty backbone of the app.
@@ -271,6 +271,13 @@ export interface SimulationDoc {
   assumptions: Assumption[];
   /** Collapsed branches, hidden from the canvas. */
   collapsed: BranchId[];
+  /**
+   * What the person concluded about this universe, in their own words.
+   *
+   * This is session-level, not per-node: it is the note you would otherwise
+   * keep on paper beside the app. Empty when nothing has been written.
+   */
+  sessionNotes: string;
   meta: SimulationMeta;
   /** Set when this document was derived from another by changing something. */
   parentId?: SimId;

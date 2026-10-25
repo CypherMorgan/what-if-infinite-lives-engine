@@ -93,12 +93,27 @@ function v2_to_v3(doc: AnyDoc): AnyDoc {
   return next;
 }
 
+/**
+ * v3 -> v4: introduce `sessionNotes`, the user's own record of what they concluded.
+ *
+ * Older documents have no notes, so the field is created empty rather than
+ * invented. Notes are free text and are kept verbatim; the import validator
+ * applies the length cap.
+ */
+function v3_to_v4(doc: AnyDoc): AnyDoc {
+  const next: AnyDoc = { ...doc };
+  if (typeof next['sessionNotes'] !== 'string') next['sessionNotes'] = '';
+  next['schemaVersion'] = 4;
+  return next;
+}
+
 type Migration = (doc: AnyDoc) => AnyDoc;
 
 /** Indexed by the version the step upgrades *from*. */
 const MIGRATIONS: Record<number, Migration> = {
   1: v1_to_v2,
   2: v2_to_v3,
+  3: v3_to_v4,
 };
 
 export interface MigrationResult {
@@ -149,4 +164,4 @@ export function migrate(input: unknown): MigrationResult {
 }
 
 /** The list of schema versions this build can read, for diagnostics. */
-export const SUPPORTED_SCHEMA_VERSIONS: readonly number[] = [1, 2, 3];
+export const SUPPORTED_SCHEMA_VERSIONS: readonly number[] = [1, 2, 3, 4];

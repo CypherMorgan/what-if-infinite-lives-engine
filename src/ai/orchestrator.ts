@@ -284,6 +284,7 @@ export function documentFromResponse(
     vars: [...ALL_VARS],
     assumptions,
     collapsed: [],
+    sessionNotes: '',
     meta,
   };
 

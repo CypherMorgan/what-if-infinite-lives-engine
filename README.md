@@ -9,7 +9,7 @@
 [![Electron](https://img.shields.io/badge/Electron-44-47848f?logo=electron&logoColor=white&style=flat-square)](https://www.electronjs.org/)
 [![React](https://img.shields.io/badge/React-19-61dafb?logo=react&logoColor=white&style=flat-square)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178c6?logo=typescript&logoColor=white&style=flat-square)](https://www.typescriptlang.org/)
-[![Tests](https://img.shields.io/badge/tests-283%20passing-b9f6a5.svg?style=flat-square)](#testing)
+[![Tests](https://img.shields.io/badge/tests-335%20passing-b9f6a5.svg?style=flat-square)](#testing)
 [![Local-first](https://img.shields.io/badge/local--first-offline%20by%20default-ffb74d.svg?style=flat-square)](#privacy--security)
 
 <p align="center">
@@ -48,6 +48,10 @@ A local-first Windows desktop app for mapping alternative life paths through int
 | ----------------------------------------------------------------------------------------------------------- |
 | ![The new universe form with scenario templates and a filled-in example](docs/screenshots/08-templates.png) |
 
+| Writing down what you concluded                                           |
+| ------------------------------------------------------------------------- |
+| ![Session notes kept alongside a universe](docs/screenshots/09-notes.png) |
+
 > Screenshots are generated from the real app UI by `npm run screenshots` — they are not mockups.
 
 ## Features
@@ -62,9 +66,10 @@ A local-first Windows desktop app for mapping alternative life paths through int
 - **Print or export as PDF** — Turn any path into a clean, self-contained **PDF report** (situation, universe map, dossier, step-by-step, assumptions) with everything escaped and nothing fetched. Also export as **Markdown** or save the graph as **PNG**.
 - **Timeline view** — Toggle between the graph and a chronological timeline sorted by elapsed time, with branch colours and per-node tradeoffs.
 - **Honest evidence model** — Every node carries evidence tags (`user-fact`, `research`, `assumption`, `speculation`) with provenance so you can tell stated facts from extrapolation.
-- **Local-first persistence** — Versioned JSON documents (`schemaVersion: 3`) with migrations, atomic writes, repair-on-import for recoverable issues (dangling edges/unreachable nodes are repaired with notes; structural failures are rejected), and a library index.
+- **Local-first persistence** — Versioned JSON documents (`schemaVersion: 4`) with migrations, atomic writes, repair-on-import for recoverable issues (dangling edges/unreachable nodes are repaired with notes; structural failures are rejected), and a library index.
 - **Import/Export** — Self-contained `.whatif.json` envelope (`format: whatif.universe`) with checksum/hash, schema version, and app version for forward-compatible migration.
 - **Node notes** — Attach your own markdown notes to any node; they persist with the universe and appear in path exports.
+- **Session notes** — Write down what you concluded about the whole universe: what you ruled out, what you would need to believe, what to check before deciding. Notes are saved with the universe, add one undo step, and appear in both the Markdown export and the PDF report. They are never interpreted by the model and never leave the machine.
 - **Accessible & keyboard-friendly** — Keyboard navigation, dialog focus management, ARIA landmarks, readable contrast, and works great without a mouse.
 - **Privacy by design** — No telemetry, analytics, crash reporting, or accounts. Network access only if you configure an HTTP provider. API keys go through Electron `safeStorage` (DPAPI on Windows), never written to renderer storage, logs, or exports.
 - **Windows-native** — Electron app with menus, shortcuts, file dialogs, DPI awareness, NSIS installer + portable build.
@@ -186,7 +191,7 @@ thewhatifs/
 │   │   └── theme.css
 │   ├── main.tsx
 │   └── ui/App.tsx
-└── tests/                    # 326 unit tests (engine, counterfactual, persistence, export format, AI, update, vars, dossier, branch diff, universe diff, templates, PDF report, store, accessibility)
+└── tests/                    # 335 unit tests (engine, counterfactual, persistence, export format, AI, update, vars, dossier, branch diff, universe diff, templates, PDF report, store, accessibility)
 ```
 
 ## Usage
@@ -196,8 +201,9 @@ thewhatifs/
 3. **Expand** — `Expand` generates the next plausible steps from a node using the rule catalogue.
 4. **Counterfactuals** — Tweak assumptions in the inspector or use "What if…" to fork a new universe. Choose decision options to explore alternatives.
 5. **Compare** — Compare any two paths inside a universe, or press `⧉ Universes` to put the open universe beside a saved fork and see which assumptions differ and what they moved.
-6. **Import/Export** — `Ctrl+S` / `Ctrl+O` to save/load `.whatif.json` files. Universes are also auto-saved to your library. Any single path can also be exported as a **Markdown report** or a **printable PDF** (`🖨 Export PDF` in the inspector, or from the dossier).
-7. **Settings** — Configure an OpenAI-compatible provider (base URL/model/keyless). Keys are stored encrypted via `safeStorage` in the app data folder.
+6. **Write it down** — `✎ Notes` records what you concluded about the whole universe: what you ruled out, what you would need to believe, what to check before deciding. It saves with the document and is included in exports.
+7. **Import/Export** — `Ctrl+S` / `Ctrl+O` to save/load `.whatif.json` files. Universes are also auto-saved to your library. Any single path can also be exported as a **Markdown report** or a **printable PDF** (`🖨 Export PDF` in the inspector, or from the dossier).
+8. **Settings** — Configure an OpenAI-compatible provider (base URL/model/keyless). Keys are stored encrypted via `safeStorage` in the app data folder.
 
 ## Keyboard Shortcuts
 
@@ -217,11 +223,11 @@ thewhatifs/
 
 ## Testing
 
-All core logic is covered by unit tests (326 passing):
+All core logic is covered by unit tests (335 passing):
 
 - **engine.test.ts** — Determinism, expansion, layout, queries, forecast/spread, rule catalogue, derive clamping
 - **counterfactual.test.ts** — Assumption/decision counterfactuals, lineage, reroll, snapshots/diffs/stability
-- **persistence.test.ts** — Export envelope round-trip, all typed import failures, v1→v3 migrations
+- **persistence.test.ts** — Export envelope round-trip, all typed import failures, v1→v4 migrations, and notes that survive a round trip
 - **exportFormat.test.ts** — The documented `.whatif.json` contract, and what a hand-written file may omit
 - **ai.test.ts** — JSON extraction/parse, HTTP provider (fallback/strict/redaction/cancellation), document coercion
 - **update.test.ts** — Release-channel parsing, version comparison, pre-release and draft exclusion
@@ -230,8 +236,8 @@ All core logic is covered by unit tests (326 passing):
 - **branchDiff.test.ts** — Comparing two paths: the common moment, the divergence point, and which way "favours" points
 - **universeDiff.test.ts** — Comparing two universes: lineage, one-sided assumptions, path pairing by name, and the cases where a difference must not be blamed on the changed assumption
 - **templates.test.ts** — Scenario templates: every card builds a real deterministic universe, activates the rule pack its words imply, and never puts invented money in the user's mouth
-- **pdfReport.test.ts** — The printable report: it is complete, deterministic, and nothing the user typed can escape into the markup
-- **store.test.ts** — Selection, camera, expansion, undo/redo, branches, assumptions, import/export, settings, template figures, and returning to the graph when the open universe changes
+- **pdfReport.test.ts** — The printable report: it is complete, deterministic, includes session notes when they exist, and nothing the user typed can escape into the markup
+- **store.test.ts** — Selection, camera, expansion, undo/redo, branches, assumptions, session notes, import/export, settings, template figures, and returning to the graph when the open universe changes
 - **accessibility.test.ts** — Colour contrast against the palette, and the markup that a screen reader depends on
 
 End-to-end smoke tests live in `e2e/` and run with Playwright:

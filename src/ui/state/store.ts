@@ -49,6 +49,7 @@ import { buildUniverseDiff, type UniverseDiff, type UniverseRef } from '../../co
 import { randomSeed } from '../../core/rng';
 import { detectArchetypes } from '../../core/archetypes';
 import { exportFileName, exportToText, importFromText, summarise } from '../../core/importExport';
+import { IMPORT_LIMITS } from '../../core/validate';
 import type { ProviderSettings } from '../../ai/provider';
 import { DEFAULT_SETTINGS } from '../../ai/provider';
 import { generateUniverse } from '../../ai/orchestrator';
@@ -210,7 +211,8 @@ export type ModalState =
   | { kind: 'library' }
   | { kind: 'shortcuts' }
   | { kind: 'compare' }
-  | { kind: 'universes' };
+  | { kind: 'universes' }
+  | { kind: 'notes' };
 
 export interface CompareState {
   a: BranchSnapshot;
@@ -780,6 +782,24 @@ export class Store {
         ...this.state.doc.nodes,
         [nodeId]: { ...node, userNotes },
       },
+      updatedAt: new Date().toISOString(),
+    });
+  }
+
+  /**
+   * Replace the universe-level notes.
+   *
+   * The dialog edits a draft and saves once, so a long note costs one history
+   * entry rather than one per keystroke. A no-op save (the text is unchanged)
+   * records nothing at all, and the note is capped at the same length the
+   * importer accepts so a pasted document cannot fill local storage.
+   */
+  setSessionNotes(sessionNotes: string): void {
+    const next = sessionNotes.slice(0, IMPORT_LIMITS.maxStringLength);
+    if (next === this.state.doc.sessionNotes) return;
+    this.run('Update session notes', {
+      ...this.state.doc,
+      sessionNotes: next,
       updatedAt: new Date().toISOString(),
     });
   }

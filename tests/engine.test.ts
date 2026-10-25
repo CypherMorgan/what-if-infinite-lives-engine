@@ -59,7 +59,7 @@ describe('createUniverse', () => {
     expect(nodeArray(doc).filter((n) => n.type === 'start')).toHaveLength(1);
     expect(Object.keys(doc.branches).length).toBeGreaterThanOrEqual(2);
     expect(Object.keys(doc.layout).length).toBe(Object.keys(doc.nodes).length);
-    expect(doc.schemaVersion).toBe(3);
+    expect(doc.schemaVersion).toBe(4);
     expect(doc.assumptions.length).toBeGreaterThan(0);
   });
 

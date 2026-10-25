@@ -23,7 +23,7 @@ and the migration chain is `src/core/migrations.ts`.
 {
   "format": "whatif.universe",
   "formatVersion": 1,
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "appVersion": "1.2.0",
   "exportedAt": "2026-10-21T09:14:02.118Z",
   "document": { "…": "the simulation document, see §2" },
@@ -35,7 +35,7 @@ and the migration chain is `src/core/migrations.ts`.
 | --------------- | ------ | ------------------------------------------------------------------------------------------------------ |
 | `format`        | string | Always `"whatif.universe"`. A file whose `format` is anything else is treated as a bare document (§5). |
 | `formatVersion` | number | The layout version of this envelope. Currently `1`.                                                    |
-| `schemaVersion` | number | The schema version of the embedded document. Currently `3`.                                            |
+| `schemaVersion` | number | The schema version of the embedded document. Currently `4`.                                            |
 | `appVersion`    | string | The version of the app that wrote the file, e.g. `"1.2.0"`.                                            |
 | `exportedAt`    | string | ISO-8601 timestamp of the export.                                                                      |
 | `document`      | object | The simulation document (§2).                                                                          |
@@ -56,7 +56,7 @@ The document is the simulation itself. Its fields:
 ```json
 {
   "id": "s_8f3a2c1b",
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "createdAt": "2026-10-21T09:02:44.901Z",
   "updatedAt": "2026-10-21T09:12:55.330Z",
   "title": "Bootcamp or self-study?",
@@ -69,6 +69,7 @@ The document is the simulation itself. Its fields:
   "vars": [ "…": "§2.6" ],
   "assumptions": [ "…": "§2.7" ],
   "collapsed": ["b2"],
+  "sessionNotes": "The move only works if the rent stays under 1100. I would want three months of savings first.",
   "meta": { "…": "§2.8" },
   "parentId": "s_1d4b7e90",
   "counterfactual": { "…": "§2.9" },
@@ -78,7 +79,8 @@ The document is the simulation itself. Its fields:
 ```
 
 `parentId`, `counterfactual`, `focusNode` and `camera` are optional and are
-absent on a universe that has never been forked or re-opened.
+absent on a universe that has never been forked or re-opened. `sessionNotes` is
+always present on a schema-4 document: it is `""` until something is written.
 
 ### 2.1 `prompt` — what the person asked
 
@@ -292,14 +294,35 @@ document points back at its origin.
 
 ---
 
+### 2.10 `sessionNotes` — what you concluded
+
+A plain string holding the person's own notes for the whole universe, not for a
+single step. It is free text: line breaks are preserved, it is never rendered
+as Markdown, and it is escaped wherever it is printed. It is included in the
+PDF report and the Markdown path export, under **Session notes**.
+
+```json
+{
+  "sessionNotes": "The move only works if the rent stays under 1100.\nI would want three months of savings first."
+}
+```
+
+The field is capped at 20,000 characters on save and on import, the same limit
+as every other user-authored string. A saved universe keeps its notes when it is
+exported, imported, re-opened or restored from an autosave; forks and rerolls
+start with empty notes because they are new documents.
+
+---
+
 ## 3. Schema versions and migrations
 
-`schemaVersion` describes the model. It is currently **3**.
+`schemaVersion` describes the model. It is currently **4**.
 
 | From | To  | What changed                                                                                                                                   |
 | ---- | --- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
 | 1    | 2   | Added `collapsed`, the `vars` registry, and the `primary` flag on variable definitions.                                                        |
 | 2    | 3   | Added `focusNode`, `camera` and per-node `ruleId`; normalised `prompt.archetypes`, which older builds sometimes left as a comma-joined string. |
+| 3    | 4   | Added `sessionNotes`, the person's own record of what they concluded. Older documents get an empty string rather than invented text.           |
 
 On import, a document is walked forward one step at a time by
 `src/core/migrations.ts`. Each step is a pure function of the previous shape
