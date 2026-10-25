@@ -13,7 +13,7 @@
 import { createUniverse, baseStateFor, derive } from '../core/engine';
 import { applyEffects } from '../core/rulePack';
 import { ALL_VARS } from '../core/packs/vars';
-import { ALL_PACKS } from '../core/packs';
+import { getActivePacks } from '../core/packs';
 import { runLayout } from '../core/layout';
 import { buildAssumptions, hashString } from '../core/engine';
 import { detectArchetypes } from '../core/archetypes';
@@ -384,5 +384,5 @@ export async function generateUniverse(options: GenerateOptions): Promise<Genera
 
 /** Convenience for tests: a fully offline universe built straight from the engine. */
 export function offlineUniverse(prompt: ScenarioPrompt, seed: number, id: string): SimulationDoc {
-  return createUniverse({ packs: ALL_PACKS, seed, prompt }, { id });
+  return createUniverse({ packs: getActivePacks(), seed, prompt }, { id });
 }

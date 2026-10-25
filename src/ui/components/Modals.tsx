@@ -15,6 +15,7 @@ import { UpdateSection } from './UpdateSection';
 import { startTour } from '../tour';
 import { SCENARIO_TEMPLATES, type ScenarioTemplate } from '../../core/templates';
 import { ARCHETYPES, detectArchetypes } from '../../core/archetypes';
+import { PACK_LIMITS } from '../../core/customPacks';
 
 /** Everything a keyboard can reach, in the order the eye would reach it. */
 const FOCUSABLE =
@@ -597,6 +598,8 @@ function SettingsModal({ store, close }: { store: Store; close: () => void }) {
   const [secret, setSecret] = useState('');
   const [secretState, setSecretState] = useState<'unknown' | 'set' | 'missing'>('unknown');
   const [saved, setSaved] = useState(false);
+  const [packErrors, setPackErrors] = useState<string[]>([]);
+  const packInput = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -625,6 +628,29 @@ function SettingsModal({ store, close }: { store: Store; close: () => void }) {
     store.setSettings({ provider: { ...draft, apiKey: undefined } });
     setSaved(true);
     window.setTimeout(close, 450);
+  };
+
+  const installPack = async (file: File | undefined): Promise<void> => {
+    if (!file) return;
+    if (file.size > PACK_LIMITS.maxFileBytes) {
+      setPackErrors([
+        `“${file.name}” is larger than ${Math.round(PACK_LIMITS.maxFileBytes / 1024)} KB.`,
+      ]);
+      if (packInput.current) packInput.current.value = '';
+      return;
+    }
+    let text: string;
+    try {
+      text = await file.text();
+    } catch {
+      setPackErrors([`“${file.name}” could not be read.`]);
+      if (packInput.current) packInput.current.value = '';
+      return;
+    }
+    const result = store.installCustomPack(text);
+    setPackErrors(result.ok ? [] : result.errors);
+    // Clearing the input lets the same file be chosen again after an edit.
+    if (packInput.current) packInput.current.value = '';
   };
 
   return (
@@ -768,6 +794,79 @@ function SettingsModal({ store, close }: { store: Store; close: () => void }) {
             checked={state.settings.showSpread}
             onChange={() => store.setSettings({ showSpread: !state.settings.showSpread })}
           />
+        </div>
+
+        <div className="section">
+          <h3 className="section-title">Rule packs</h3>
+          <p className="pack-intro">
+            Packs add your own events and decisions to the offline engine. They are plain data,
+            never code, and may only use the variables this app already models.
+          </p>
+
+          {state.customPacks.length === 0 ? (
+            <div className="pack-empty">
+              No packs installed. The built-in catalogue is always active.
+            </div>
+          ) : (
+            <div className="pack-list">
+              {state.customPacks.map((pack) => (
+                <div className="pack-row" key={pack.id}>
+                  <div className="pack-main">
+                    <div className="pack-name">{pack.name}</div>
+                    <div className="pack-meta">
+                      {pack.rules.length} rule{pack.rules.length === 1 ? '' : 's'} ·{' '}
+                      <code>{pack.id}</code>
+                    </div>
+                    <div className="pack-desc">{pack.description}</div>
+                  </div>
+                  <button
+                    className="btn btn-sm btn-ghost"
+                    onClick={() => {
+                      const removed = store.removeCustomPack(pack.id);
+                      setPackErrors(removed ? [] : ['That pack could not be removed.']);
+                    }}
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="pack-actions">
+            <button
+              className="btn btn-sm"
+              onClick={() => packInput.current?.click()}
+              disabled={state.customPacks.length >= PACK_LIMITS.maxPacks}
+              title={
+                state.customPacks.length >= PACK_LIMITS.maxPacks
+                  ? `Remove a pack before installing another (limit ${PACK_LIMITS.maxPacks}).`
+                  : 'Install a .whatif-pack.json file'
+              }
+            >
+              Install pack…
+            </button>
+            <input
+              ref={packInput}
+              type="file"
+              accept=".json,application/json"
+              hidden
+              aria-label="Install a rule pack"
+              onChange={(e) => void installPack(e.currentTarget.files?.[0])}
+            />
+            <span className="field-hint">
+              {state.customPacks.length} of {PACK_LIMITS.maxPacks} installed. Packs are checked
+              before they are accepted and can be removed at any time.
+            </span>
+          </div>
+
+          {[...state.packErrors, ...packErrors].length > 0 && (
+            <ul className="pack-errors">
+              {[...state.packErrors, ...packErrors].map((error, i) => (
+                <li key={i}>{error}</li>
+              ))}
+            </ul>
+          )}
         </div>
 
         <div className="section">

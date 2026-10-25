@@ -53,8 +53,9 @@ Object.defineProperty(globalThis, 'localStorage', {
 /* The imports are pulled in after the environment is in place, because the
    store reads `localStorage` while it is being constructed. */
 const { Store } = await import('../src/ui/state/store');
-const { ALL_PACKS } = await import('../src/core/packs');
+const { ALL_PACKS, getActivePacks, setCustomPacks } = await import('../src/core/packs');
 const { createUniverse } = await import('../src/core/engine');
+const { LS_PACKS } = await import('../src/ui/state/rulePacks');
 type SimulationDoc = import('../src/core/types').SimulationDoc;
 type ScenarioPrompt = import('../src/core/types').ScenarioPrompt;
 
@@ -92,8 +93,38 @@ function expandableNode(store: InstanceType<typeof Store>): string | null {
 
 beforeEach(() => {
   storage.clear();
+  setCustomPacks([]);
   vi.restoreAllMocks();
 });
+
+/** A minimal valid `.whatif-pack.json`, with one rule. */
+function packText(packId = 'custom.test', ruleId = `${packId}.a-step`): string {
+  return JSON.stringify({
+    format: 'whatif.rulepack',
+    formatVersion: 1,
+    pack: {
+      id: packId,
+      name: `The ${packId} pack`,
+      description: 'A pack used by the test suite.',
+      rules: [
+        {
+          id: ruleId,
+          label: 'A modelled step',
+          summary: 'Something plausible happens.',
+          type: 'event',
+          requires: ['career'],
+          when: {},
+          weight: 5,
+          monthsMin: 0,
+          monthsMax: 24,
+          durationMonths: 1,
+          effects: [{ key: 'money', op: 'add', value: -100, reason: 'a modelled cost' }],
+          evidence: [{ cls: 'assumption', text: 'A stated modelling choice.' }],
+        },
+      ],
+    },
+  });
+}
 
 /* ------------------------------------------------------------------ */
 
@@ -669,5 +700,168 @@ describe('Store — comparing two universes', () => {
     store.openUniverseDiff('missing-universe');
     expect(store.getState().universePair).toBeNull();
     expect(store.getState().toasts.some((x) => x.kind === 'error')).toBe(true);
+  });
+});
+
+describe('Store - rule packs', () => {
+  it('installs a validated pack, adds it to the catalogue and persists it', () => {
+    const store = makeStore();
+    const baseline = getActivePacks().length;
+
+    const result = store.installCustomPack(packText());
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    expect(store.getState().customPacks.map((p) => p.id)).toEqual(['custom.test']);
+    expect(getActivePacks()).toHaveLength(baseline + 1);
+    expect(getActivePacks().at(-1)?.id).toBe('custom.test');
+    const saved = JSON.parse(storage.getItem(LS_PACKS) ?? '[]') as { id: string }[];
+    expect(saved.map((p) => p.id)).toEqual(['custom.test']);
+  });
+
+  it('loads installed packs when the app reopens', () => {
+    const first = makeStore();
+    expect(first.installCustomPack(packText()).ok).toBe(true);
+
+    // A new store is what a fresh window constructs: it reads the storage and
+    // applies the pack before the UI is shown.
+    const reopened = new Store(makeDoc());
+    expect(reopened.getState().customPacks.map((p) => p.id)).toEqual(['custom.test']);
+    expect(getActivePacks().some((p) => p.id === 'custom.test')).toBe(true);
+  });
+
+  it('refuses an invalid pack and leaves the catalogue untouched', () => {
+    const store = makeStore();
+    const baseline = getActivePacks().length;
+    const text = packText().replace('"money"', '"luck"');
+
+    const result = store.installCustomPack(text);
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.errors.join(' ')).toContain('not a variable this app models');
+    expect(store.getState().customPacks).toEqual([]);
+    expect(getActivePacks()).toHaveLength(baseline);
+    expect(storage.getItem(LS_PACKS)).toBeNull();
+  });
+
+  it('refuses to install the same pack twice', () => {
+    const store = makeStore();
+    expect(store.installCustomPack(packText()).ok).toBe(true);
+    const second = store.installCustomPack(packText());
+    expect(second.ok).toBe(false);
+    if (second.ok) return;
+    expect(second.errors.join(' ')).toContain('already installed');
+    expect(store.getState().customPacks).toHaveLength(1);
+  });
+
+  it('removes a pack and persists the removal', () => {
+    const store = makeStore();
+    const baseline = getActivePacks().length;
+    expect(store.installCustomPack(packText()).ok).toBe(true);
+
+    expect(store.removeCustomPack('custom.test')).toBe(true);
+    expect(store.getState().customPacks).toEqual([]);
+    expect(getActivePacks()).toHaveLength(baseline);
+    expect(JSON.parse(storage.getItem(LS_PACKS) ?? '[]')).toEqual([]);
+    expect(store.removeCustomPack('custom.test')).toBe(false);
+  });
+
+  it('rolls back the catalogue when the pack cannot be saved', () => {
+    const store = makeStore();
+    expect(store.installCustomPack(packText()).ok).toBe(true);
+    const before = getActivePacks().length;
+
+    vi.spyOn(storage, 'setItem').mockImplementation(() => {
+      throw new Error('quota exceeded');
+    });
+    const result = store.installCustomPack(packText('custom.other', 'custom.other.a-step'));
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.errors.join(' ')).toContain('could not be saved');
+    expect(store.getState().customPacks.map((p) => p.id)).toEqual(['custom.test']);
+    expect(getActivePacks()).toHaveLength(before);
+    expect(getActivePacks().some((p) => p.id === 'custom.other')).toBe(false);
+  });
+
+  it('keeps a pack when a removal cannot be saved', () => {
+    const store = makeStore();
+    expect(store.installCustomPack(packText()).ok).toBe(true);
+
+    vi.spyOn(storage, 'setItem').mockImplementation(() => {
+      throw new Error('quota exceeded');
+    });
+    expect(store.removeCustomPack('custom.test')).toBe(false);
+    expect(store.getState().customPacks.map((p) => p.id)).toEqual(['custom.test']);
+    expect(getActivePacks().some((p) => p.id === 'custom.test')).toBe(true);
+  });
+
+  it('reports packs saved by an older version that no longer validate', () => {
+    storage.setItem(
+      LS_PACKS,
+      JSON.stringify([
+        {
+          id: 'custom.broken',
+          name: 'Broken',
+          description: 'A saved pack with a variable that no longer exists.',
+          vars: [],
+          rules: [
+            {
+              id: 'custom.broken.a-step',
+              label: 'A step',
+              summary: 'Something happens.',
+              type: 'event',
+              requires: ['career'],
+              when: { all: [{ key: 'notAThing', op: '>', value: 1 }] },
+              weight: 1,
+              monthsMin: 0,
+              monthsMax: 1,
+              durationMonths: 1,
+              effects: [{ key: 'money', op: 'add', value: -1, reason: 'cost' }],
+              evidence: [{ cls: 'assumption', text: 'assumption' }],
+            },
+          ],
+        },
+      ])
+    );
+
+    const store = new Store(makeDoc());
+    expect(store.getState().customPacks).toEqual([]);
+    expect(store.getState().packErrors.length).toBe(1);
+    expect(store.getState().packErrors[0]).toContain('Saved pack 1 was skipped');
+  });
+
+  it('stops at the installed-pack limit', () => {
+    const seeded = Array.from({ length: 10 }, (_, i) => ({
+      id: `custom.pack${i}`,
+      name: `Pack ${i}`,
+      description: 'A seeded pack.',
+      vars: [],
+      rules: [
+        {
+          id: `custom.pack${i}.a-step`,
+          label: 'A step',
+          summary: 'Something happens.',
+          type: 'event',
+          requires: ['career'],
+          when: {},
+          weight: 1,
+          monthsMin: 0,
+          monthsMax: 1,
+          durationMonths: 1,
+          effects: [{ key: 'money', op: 'add', value: -1, reason: 'cost' }],
+          evidence: [{ cls: 'assumption', text: 'assumption' }],
+        },
+      ],
+    }));
+    storage.setItem(LS_PACKS, JSON.stringify(seeded));
+
+    const store = makeStore();
+    expect(store.getState().customPacks).toHaveLength(10);
+    const result = store.installCustomPack(packText('custom.eleventh', 'custom.eleventh.a-step'));
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.errors.join(' ')).toContain('10 packs installed');
+    expect(store.getState().customPacks).toHaveLength(10);
   });
 });

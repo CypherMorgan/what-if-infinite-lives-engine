@@ -7,7 +7,7 @@
  * instead — which will save a PDF if that is what the person wants.
  */
 import type { SimulationDoc } from '../../core/types';
-import { ALL_PACKS } from '../../core/packs';
+import { getActivePacks } from '../../core/packs';
 import { buildPdfReport, pdfReportFileName } from '../../core/pdfReport';
 
 /** What happened. */
@@ -48,7 +48,7 @@ export async function exportPathAsPdf(
   let html: string;
   let defaultName: string;
   try {
-    html = buildPdfReport(doc, nodeId, ALL_PACKS);
+    html = buildPdfReport(doc, nodeId, getActivePacks());
     defaultName = pdfReportFileName(doc, nodeId);
   } catch (err) {
     console.error('Failed to build the path report:', err);

@@ -464,6 +464,13 @@ opens it in a new window and lets the browser's own print dialog save it.
 - **No network references.** A document is complete on its own. A universe
   written with an AI provider still opens on a machine with no network
   access, and the prose it contains is preserved verbatim.
+- **No installed rule packs.** A pack is a local extension of the catalogue,
+  not part of any one universe. Steps that a pack produced are in the file
+  with the rule id that made them, so the history stays readable; the pack
+  itself is not. Importing the universe on another machine and expanding it
+  there uses that machine's catalogue — the built-in rules, plus whichever
+  packs are installed. Hand over the `.whatif-pack.json` separately if the
+  next person needs the same rules.
 
 ---
 

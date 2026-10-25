@@ -5,7 +5,7 @@ import type { SimulationDoc } from '../../core/types';
 import { pathTo } from '../../core/engine';
 import { formatValue } from '../../core/vars';
 import { APP_VERSION } from '../../core/importExport';
-import { ALL_PACKS } from '../../core/packs';
+import { getActivePacks } from '../../core/packs';
 import { buildDossier } from '../../core/dossier';
 
 export function exportPathAsMarkdown(doc: SimulationDoc, nodeId: string): string {
@@ -20,7 +20,7 @@ export function exportPathAsMarkdown(doc: SimulationDoc, nodeId: string): string
   lines.push('');
 
   // The dossier is the readable summary; the timeline below it is the detail.
-  const dossier = buildDossier(doc, nodeId, ALL_PACKS, { samples: 24 });
+  const dossier = buildDossier(doc, nodeId, getActivePacks(), { samples: 24 });
   if (dossier) {
     lines.push('## The short version');
     lines.push('');

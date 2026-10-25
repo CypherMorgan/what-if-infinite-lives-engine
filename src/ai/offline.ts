@@ -9,7 +9,7 @@
  *
  * Because it is the fallback for every failed provider call, it must never fail.
  */
-import { ALL_PACKS } from '../core/packs';
+import { getActivePacks } from '../core/packs';
 import {
   activeRules,
   buildTextContext,
@@ -146,7 +146,7 @@ export function composeScenario(
     });
 
     // --- Events along this branch ----------------------------------------
-    const rules = activeRules(ALL_PACKS, archetypes);
+    const rules = activeRules(getActivePacks(), archetypes);
     const usage = { last: new Map<string, number>(), once: new Set<string>() };
     let t = 0;
     let parentRef = decisionRef;
@@ -324,7 +324,7 @@ export function catalogueStats(prompt: ScenarioPrompt): {
     prompt.archetypes.length > 0
       ? prompt.archetypes
       : detectArchetypes(`${prompt.situation} ${prompt.decision} ${prompt.goals.join(' ')}`);
-  const rules = activeRules(ALL_PACKS, archetypes);
+  const rules = activeRules(getActivePacks(), archetypes);
   const options = selectOptions(archetypes, Math.max(2, Math.min(prompt.branchCount, 6)));
   return { archetypes, ruleCount: rules.length, optionCount: options.length };
 }
@@ -386,7 +386,7 @@ function expansionFor(
   state: StateVector
 ): { nodes: AiNode[]; edges: AiEdge[] } {
   const rng = new Rng(hashSeed(`${prompt.decision}|${nodeTitle}`));
-  const rules = activeRules(ALL_PACKS, prompt.archetypes);
+  const rules = activeRules(getActivePacks(), prompt.archetypes);
   const usage = { last: new Map<string, number>(), once: new Set<string>() };
   const nodes: AiNode[] = [];
   const edges: AiEdge[] = [];
@@ -448,7 +448,7 @@ function expansionFor(
 
 /** Deterministic ordering helper so the composer's output is stable across runs. */
 export function scoreRules(prompt: ScenarioPrompt): { id: string; weight: number }[] {
-  const rules = activeRules(ALL_PACKS, prompt.archetypes);
+  const rules = activeRules(getActivePacks(), prompt.archetypes);
   return rules
     .map((r) => ({ id: r.id, weight: ruleWeight(r, prompt.imagination, 0) }))
     .sort((a, b) => b.weight - a.weight);

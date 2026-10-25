@@ -11,13 +11,18 @@ import { App } from './ui/App';
 import { Store } from './ui/state/store';
 import { detectArchetypes } from './core/archetypes';
 import { createUniverse } from './core/engine';
-import { ALL_PACKS } from './core/packs';
+import { getActivePacks } from './core/packs';
 import { randomSeed } from './core/rng';
 import { importFromText } from './core/importExport';
 import type { ScenarioPrompt, SimulationDoc } from './core/types';
 import { ErrorBoundary } from './ui/components/ErrorBoundary';
+import { bootstrapInstalledPacks } from './ui/state/rulePacks';
 
 const STORAGE_PREFIX = 'whatifs:doc:';
+
+// Installed packs are part of the catalogue, so they have to be active before
+// the first universe is generated rather than after the store exists.
+bootstrapInstalledPacks();
 
 function bootDocument(): SimulationDoc {
   // 1. last opened universe
@@ -60,7 +65,7 @@ function demoUniverse(): SimulationDoc {
     archetypes: archetypes.length > 0 ? archetypes : ['career', 'business'],
     title: 'The promotion question',
   };
-  return createUniverse({ packs: ALL_PACKS, seed: randomSeed(), prompt });
+  return createUniverse({ packs: getActivePacks(), seed: randomSeed(), prompt });
 }
 
 const store = new Store(bootDocument());

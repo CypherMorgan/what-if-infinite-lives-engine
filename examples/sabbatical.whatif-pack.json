@@ -1,0 +1,204 @@
+{
+  "format": "whatif.rulepack",
+  "formatVersion": 1,
+  "pack": {
+    "id": "custom.sabbatical",
+    "name": "The sabbatical",
+    "description": "Rules for taking a deliberate break from paid work, testing an idea before committing to it, and coming back to a market that moved. The figures are modelling assumptions, not predictions: one month of costs is set at 1,200 in the effect reasons, and every number is visible in the node the rule produces.",
+    "rules": [
+      {
+        "id": "custom.sabbatical.unpaid-trial",
+        "label": "A month of the real thing, unpaid",
+        "summary": "You take four weeks away from paid work to do the thing properly: the course, the prototype, the client work. Money goes out and nothing comes in, but the question stops being hypothetical.",
+        "detail": "The value is not the month itself. It is finding out whether the work is worth the sacrifice while the decision is still reversible.",
+        "type": "opportunity",
+        "requires": ["career"],
+        "when": { "all": [{ "key": "runway", "op": ">=", "value": 3 }] },
+        "weight": 7,
+        "monthsMin": 2,
+        "monthsMax": 18,
+        "durationMonths": 1,
+        "once": true,
+        "imagination": 0.2,
+        "effects": [
+          {
+            "key": "money",
+            "op": "add",
+            "value": -1200,
+            "reason": "one month of living costs with no income"
+          },
+          {
+            "key": "stress",
+            "op": "add",
+            "value": -5,
+            "reason": "a break from the current load"
+          },
+          {
+            "key": "wellbeing",
+            "op": "add",
+            "value": 4,
+            "reason": "sleep and attention return"
+          },
+          {
+            "key": "optionality",
+            "op": "add",
+            "value": 3,
+            "reason": "a tested alternative is a real one"
+          },
+          {
+            "key": "information",
+            "op": "add",
+            "value": 9,
+            "reason": "a month of evidence instead of speculation"
+          }
+        ],
+        "assumptions": [
+          "One month of costs is modelled at 1,200; the effect list shows that figure rather than hiding it in a total."
+        ],
+        "uncertainties": [
+          "A good month is not the same as a good year, and the novelty may be doing some of the work."
+        ],
+        "evidence": [
+          {
+            "cls": "assumption",
+            "text": "The costs and the information gained are stated modelling choices, not measured outcomes."
+          }
+        ],
+        "tradeoffs": {
+          "gains": [
+            "Evidence about the work before a permanent commitment.",
+            "A real rest, which is a result even if the idea fails."
+          ],
+          "costs": [
+            "One month of income and the security it bought.",
+            "A month is short enough to be misleading in either direction."
+          ]
+        },
+        "nextSteps": [
+          "Decide before the month starts what evidence would make you continue and what would make you stop."
+        ],
+        "failurePoints": [
+          "Treating the month as a holiday and calling the lack of evidence a verdict."
+        ]
+      },
+      {
+        "id": "custom.sabbatical.thin-buffer",
+        "label": "The break runs out of money before it runs out of plans",
+        "summary": "Three months was the plan. By the second month the buffer is doing the deciding: the cheap version of the project replaces the useful version, and the return date moves closer.",
+        "type": "setback",
+        "requires": ["career"],
+        "when": { "all": [{ "key": "runway", "op": "<", "value": 3 }] },
+        "weight": 8,
+        "monthsMin": 1,
+        "monthsMax": 12,
+        "durationMonths": 3,
+        "cooldown": 6,
+        "effects": [
+          {
+            "key": "stress",
+            "op": "add",
+            "value": 12,
+            "reason": "money decides the plan instead of you"
+          },
+          {
+            "key": "optionality",
+            "op": "add",
+            "value": -6,
+            "reason": "the return date is no longer yours to choose"
+          },
+          {
+            "key": "goalProgress",
+            "op": "add",
+            "value": -5,
+            "reason": "the useful version of the work was cut"
+          },
+          {
+            "key": "money",
+            "op": "add",
+            "value": -600,
+            "reason": "unplanned costs of ending early"
+          }
+        ],
+        "assumptions": ["A thin buffer forces cheaper choices before it forces a return to work."],
+        "uncertainties": [
+          "Whether the cheaper version is genuinely worse, or only feels that way under pressure."
+        ],
+        "evidence": [
+          {
+            "cls": "assumption",
+            "text": "Modelled as pressure changing the choice, not as a probability that the money runs out."
+          }
+        ],
+        "tradeoffs": {
+          "gains": ["The experiment still happens, at a smaller scale."],
+          "costs": ["The result is confounded by the shortage rather than by the idea."]
+        },
+        "nextSteps": [
+          "Write down the minimum viable version before the money makes the decision for you."
+        ],
+        "failurePoints": ["Borrowing to keep the original plan alive without changing the plan."]
+      },
+      {
+        "id": "custom.sabbatical.different-answer",
+        "label": "The time away changes the question",
+        "summary": "You come back with a different answer than the one you left with. That is not a failure of the plan; it is the plan working.",
+        "type": "milestone",
+        "requires": ["career"],
+        "when": { "all": [{ "key": "information", "op": ">=", "value": 35 }] },
+        "weight": 6,
+        "monthsMin": 4,
+        "monthsMax": 24,
+        "durationMonths": 2,
+        "once": true,
+        "effects": [
+          {
+            "key": "goalProgress",
+            "op": "add",
+            "value": 8,
+            "reason": "the goal is now chosen with evidence"
+          },
+          {
+            "key": "decisionConfidence",
+            "op": "add",
+            "value": 10,
+            "reason": "a tested preference"
+          },
+          {
+            "key": "optionality",
+            "op": "add",
+            "value": 4,
+            "reason": "a second route is now credible"
+          },
+          {
+            "key": "stress",
+            "op": "add",
+            "value": -4,
+            "reason": "the question is settled for now"
+          }
+        ],
+        "assumptions": [
+          "Enough evidence has accumulated that the preference survives contact with the work."
+        ],
+        "uncertainties": [
+          "A changed answer may reflect the break rather than the work; the two are hard to separate."
+        ],
+        "evidence": [
+          {
+            "cls": "assumption",
+            "text": "The rule only becomes available after information has accumulated; it does not claim the new answer is correct."
+          }
+        ],
+        "tradeoffs": {
+          "gains": ["A decision made from experience rather than projection."],
+          "costs": ["The old plan, and the time spent building it, is now a sunk cost."]
+        },
+        "nextSteps": [
+          "Write down what would have changed your mind, so the next decision is not a fresh guess."
+        ],
+        "failurePoints": [
+          "Treating a changed mind as wasted time and returning to the plan out of consistency."
+        ]
+      }
+    ]
+  }
+}

@@ -91,7 +91,7 @@ that was waiting to ship is in here.
   update channel, the variable registry, the dossier, the PDF report, the
   store and the accessibility contract.
 
-### v1.3.0 — depth (in progress)
+### v1.3.0 — depth
 
 - **Comparable universes.** The open universe and a saved fork side by side:
   the origin they share, the assumptions that differ, the paths they both have,
@@ -110,16 +110,21 @@ that was waiting to ship is in here.
   check before deciding. Saving adds one undo step, the note survives export,
   import and re-opening, and it appears in both the Markdown export and the PDF
   report. It is never interpreted by the model.
+- **A rule-pack format people can write.** The engine's rules are the honest
+  core of the app, so they are now authorable. A pack is plain JSON — events,
+  opportunities, setbacks and milestones over the variables the app already
+  models — with a required archetype, a required evidence tag on every rule and
+  a reason on every state change. Settings installs, lists and removes packs,
+  and reports each problem instead of silently accepting part of a file. A pack
+  cannot add a new variable or a decision yet: those fields are rejected rather
+  than accepted and ignored.
 
 ---
 
 ## Being built
 
-### v1.3.0 — depth (continued)
-
-- **A rule-pack format people can write.** The engine's rules are the honest
-  core of the app; making them authorable is the single biggest increase in
-  what it can say.
+Nothing yet. The next version will be chosen after 1.3.0 has been used, not
+before.
 
 ---
 

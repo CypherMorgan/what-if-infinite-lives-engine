@@ -26,7 +26,7 @@ import {
   type ScenarioProvider,
 } from './provider';
 import { composeScenario } from './offline';
-import { ALL_PACKS } from '../core/packs';
+import { getActivePacks } from '../core/packs';
 import { activeRules } from '../core/engine';
 import { detectArchetypes } from '../core/archetypes';
 
@@ -49,7 +49,7 @@ function userPrompt(request: GenerationRequest): string {
     prompt.archetypes.length > 0
       ? prompt.archetypes
       : detectArchetypes(`${prompt.situation} ${prompt.decision} ${prompt.goals.join(' ')}`);
-  const availableRules = activeRules(ALL_PACKS, archetypes)
+  const availableRules = activeRules(getActivePacks(), archetypes)
     .slice(0, 40)
     .map((r) => `- ${r.id}: ${r.label}`)
     .join('\n');

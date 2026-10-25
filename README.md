@@ -9,7 +9,7 @@
 [![Electron](https://img.shields.io/badge/Electron-44-47848f?logo=electron&logoColor=white&style=flat-square)](https://www.electronjs.org/)
 [![React](https://img.shields.io/badge/React-19-61dafb?logo=react&logoColor=white&style=flat-square)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178c6?logo=typescript&logoColor=white&style=flat-square)](https://www.typescriptlang.org/)
-[![Tests](https://img.shields.io/badge/tests-335%20passing-b9f6a5.svg?style=flat-square)](#testing)
+[![Tests](https://img.shields.io/badge/tests-374%20passing-b9f6a5.svg?style=flat-square)](#testing)
 [![Local-first](https://img.shields.io/badge/local--first-offline%20by%20default-ffb74d.svg?style=flat-square)](#privacy--security)
 
 <p align="center">
@@ -70,6 +70,7 @@ A local-first Windows desktop app for mapping alternative life paths through int
 - **Import/Export** — Self-contained `.whatif.json` envelope (`format: whatif.universe`) with checksum/hash, schema version, and app version for forward-compatible migration.
 - **Node notes** — Attach your own markdown notes to any node; they persist with the universe and appear in path exports.
 - **Session notes** — Write down what you concluded about the whole universe: what you ruled out, what you would need to believe, what to check before deciding. Notes are saved with the universe, add one undo step, and appear in both the Markdown export and the PDF report. They are never interpreted by the model and never leave the machine.
+- **Your own rule packs** — Author events, opportunities, setbacks and milestones as plain JSON, then install them from Settings. A pack can only use the variables the app already models, must name the archetypes it belongs to, and must state whether each claim is a user fact, a reference, an assumption or speculation. Validation is strict: a typo, an id collision or a condition on a variable that does not exist is reported, never silently accepted. See **[docs/RULE_PACKS.md](docs/RULE_PACKS.md)** and the [working example](examples/sabbatical.whatif-pack.json).
 - **Accessible & keyboard-friendly** — Keyboard navigation, dialog focus management, ARIA landmarks, readable contrast, and works great without a mouse.
 - **Privacy by design** — No telemetry, analytics, crash reporting, or accounts. Network access only if you configure an HTTP provider. API keys go through Electron `safeStorage` (DPAPI on Windows), never written to renderer storage, logs, or exports.
 - **Windows-native** — Electron app with menus, shortcuts, file dialogs, DPI awareness, NSIS installer + portable build.
@@ -173,8 +174,9 @@ Both artifacts are produced by a single `npm run dist`. Releases are published a
 thewhatifs/
 ├── .github/                  # CI, release workflow, issue/PR templates
 ├── build/                    # Icon source (icon.ico, icon-256.png)
-├── docs/                     # ARCHITECTURE.md, EXPORT_FORMAT.md, screenshots/
+├── docs/                     # ARCHITECTURE.md, EXPORT_FORMAT.md, RULE_PACKS.md, screenshots/
 ├── e2e/                      # Playwright smoke tests
+├── examples/                 # A complete, installable example rule pack
 ├── electron/                 # Main + preload (contextBridge API)
 │   ├── main.ts
 │   └── preload.ts
@@ -182,7 +184,8 @@ thewhatifs/
 ├── src/
 │   ├── ai/                   # Provider interface, offline/HTTP adapters, orchestrator, schema
 │   ├── core/                 # Engine, graph, layout, rules, counterfactuals, dossier, migration/import/export
-│   │   ├── packs/            # Rule packs + variables
+│   │   ├── packs/            # Built-in rule packs + variables
+│   │   ├── customPacks.ts    # The authorable pack format and its validator
 │   │   └── ...
 │   ├── ui/                   # React app, Canvas renderer, state store, theme
 │   │   ├── components/
@@ -191,7 +194,7 @@ thewhatifs/
 │   │   └── theme.css
 │   ├── main.tsx
 │   └── ui/App.tsx
-└── tests/                    # 335 unit tests (engine, counterfactual, persistence, export format, AI, update, vars, dossier, branch diff, universe diff, templates, PDF report, store, accessibility)
+└── tests/                    # 374 unit tests (engine, counterfactual, persistence, export format, AI, update, vars, dossier, branch diff, universe diff, templates, rule packs, PDF report, store, accessibility)
 ```
 
 ## Usage
@@ -203,7 +206,7 @@ thewhatifs/
 5. **Compare** — Compare any two paths inside a universe, or press `⧉ Universes` to put the open universe beside a saved fork and see which assumptions differ and what they moved.
 6. **Write it down** — `✎ Notes` records what you concluded about the whole universe: what you ruled out, what you would need to believe, what to check before deciding. It saves with the document and is included in exports.
 7. **Import/Export** — `Ctrl+S` / `Ctrl+O` to save/load `.whatif.json` files. Universes are also auto-saved to your library. Any single path can also be exported as a **Markdown report** or a **printable PDF** (`🖨 Export PDF` in the inspector, or from the dossier).
-8. **Settings** — Configure an OpenAI-compatible provider (base URL/model/keyless). Keys are stored encrypted via `safeStorage` in the app data folder.
+8. **Settings** — Configure an OpenAI-compatible provider (base URL/model/keyless) and install your own rule packs. Provider keys are stored encrypted via `safeStorage` in the app data folder; packs are plain local files and never leave the machine.
 
 ## Keyboard Shortcuts
 
@@ -223,7 +226,7 @@ thewhatifs/
 
 ## Testing
 
-All core logic is covered by unit tests (335 passing):
+All core logic is covered by unit tests (374 passing):
 
 - **engine.test.ts** — Determinism, expansion, layout, queries, forecast/spread, rule catalogue, derive clamping
 - **counterfactual.test.ts** — Assumption/decision counterfactuals, lineage, reroll, snapshots/diffs/stability
@@ -236,8 +239,9 @@ All core logic is covered by unit tests (335 passing):
 - **branchDiff.test.ts** — Comparing two paths: the common moment, the divergence point, and which way "favours" points
 - **universeDiff.test.ts** — Comparing two universes: lineage, one-sided assumptions, path pairing by name, and the cases where a difference must not be blamed on the changed assumption
 - **templates.test.ts** — Scenario templates: every card builds a real deterministic universe, activates the rule pack its words imply, and never puts invented money in the user's mouth
+- **rulePacks.test.ts** — The authorable pack format: the bundled example parses and is genuinely selected by the engine, and every deliberate limit (new variables, decisions, collisions, evidence, size, totals) is enforced with a readable error
 - **pdfReport.test.ts** — The printable report: it is complete, deterministic, includes session notes when they exist, and nothing the user typed can escape into the markup
-- **store.test.ts** — Selection, camera, expansion, undo/redo, branches, assumptions, session notes, import/export, settings, template figures, and returning to the graph when the open universe changes
+- **store.test.ts** — Selection, camera, expansion, undo/redo, branches, assumptions, session notes, rule-pack install/remove and rollback, import/export, settings, template figures, and returning to the graph when the open universe changes
 - **accessibility.test.ts** — Colour contrast against the palette, and the markup that a screen reader depends on
 
 End-to-end smoke tests live in `e2e/` and run with Playwright:
@@ -282,6 +286,7 @@ the following are implemented and covered by `tests/accessibility.test.ts`:
 ## Documentation
 
 - **[docs/EXPORT_FORMAT.md](docs/EXPORT_FORMAT.md)** — the `.whatif.json` format, in full: the envelope, every field of the document, the migration chain, the validation and repair rules, the limits, and what the PDF path report contains.
+- **[docs/RULE_PACKS.md](docs/RULE_PACKS.md)** — how to write a rule pack: the file format, every rule field, conditions and effects, the variable keys you can use, the limits, and what a pack deliberately cannot do.
 - **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** — how the engine, the renderer, the persistence layer and the AI bridge fit together.
 - **[ROADMAP.md](ROADMAP.md)** — what has shipped, what is being built, and what is deliberately not planned.
 - **[CHANGELOG.md](CHANGELOG.md)** — every release, with the reasoning behind the notable fixes.

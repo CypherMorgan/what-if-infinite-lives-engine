@@ -17,6 +17,7 @@ import type {
   SimulationSummary,
   StateVector,
 } from '../../core/types';
+import type { RulePack } from '../../core/rulePack';
 import {
   createUniverse,
   expandNode,
@@ -26,7 +27,9 @@ import {
   updateAssumptions,
 } from '../../core/engine';
 import { runLayout } from '../../core/layout';
-import { ALL_PACKS } from '../../core/packs';
+import { getActivePacks, setCustomPacks } from '../../core/packs';
+import { PACK_LIMITS, parsePackFile } from '../../core/customPacks';
+import { loadInstalledPacks, saveInstalledPacks } from './rulePacks';
 import {
   applyAssumptionChange,
   applyDecisionChange,
@@ -199,6 +202,10 @@ export interface AppState {
   diffBranches: { a: string; b: string } | null;
   /** The two universes being compared, by document id. */
   universePair: { a: SimId; b: SimId } | null;
+  /** Data-only rule packs installed on this machine. */
+  customPacks: RulePack[];
+  /** Saved packs that failed validation when the app started. */
+  packErrors: string[];
 }
 
 export type ModalState =
@@ -245,6 +252,23 @@ export class Store {
     // selected starting point with an empty path behind it.
     const selected = doc.focusNode ?? firstNodeId(doc);
     const universePair = loadUniversePair();
+
+    // Installed packs are validated against the same rules as an imported file.
+    // A pack that no longer validates is skipped and reported, not silently
+    // repaired: the person should know which rules are actually running.
+    const installed = loadInstalledPacks();
+    let customPacks = installed.packs;
+    const packErrors = [...installed.errors];
+    try {
+      setCustomPacks(customPacks);
+    } catch (error) {
+      packErrors.push(
+        `Saved packs were not loaded: ${error instanceof Error ? error.message : 'invalid pack'}.`
+      );
+      customPacks = [];
+      setCustomPacks([]);
+    }
+
     this.state = {
       doc,
       selected,
@@ -265,6 +289,8 @@ export class Store {
       library: loadIndex(),
       diffBranches: loadDiffPair(),
       universePair,
+      customPacks,
+      packErrors,
       viewMode: ((): ViewMode => {
         try {
           const saved = localStorage.getItem('whatifs:view');
@@ -354,7 +380,7 @@ export class Store {
     // Score assumption influence on every committed document. The score is derived
     // from the document, so recomputing it here keeps it correct no matter which
     // path produced the change (create, expand, assumption edit, undo, redo).
-    const scored = withSensitivity(doc, ALL_PACKS);
+    const scored = withSensitivity(doc, getActivePacks());
     const selected =
       this.state.selected && scored.nodes[this.state.selected]
         ? this.state.selected
@@ -439,6 +465,93 @@ export class Store {
     saveUi(settings);
   }
 
+  /* ---------------- rule packs ---------------- */
+
+  /**
+   * Install a data-only pack from the text of a `.whatif-pack.json` file.
+   *
+   * The file is user input, so every failure is returned as text rather than
+   * thrown. The pack is written to local storage before it is announced as
+   * installed: a pack that cannot be saved would otherwise work until the app
+   * was restarted and then silently vanish. If saving fails, the runtime
+   * catalogue is put back exactly as it was.
+   */
+  installCustomPack(text: string): { ok: true; pack: RulePack } | { ok: false; errors: string[] } {
+    if (this.state.customPacks.length >= PACK_LIMITS.maxPacks) {
+      return {
+        ok: false,
+        errors: [
+          `You already have ${PACK_LIMITS.maxPacks} packs installed. Remove one before adding another.`,
+        ],
+      };
+    }
+
+    const existingRuleIds = this.state.customPacks.flatMap((p) => p.rules.map((r) => r.id));
+    const result = parsePackFile(text, {
+      existingPackIds: this.state.customPacks.map((p) => p.id),
+      existingRuleIds,
+    });
+    if (!result.ok) return result;
+
+    const previous = this.state.customPacks;
+    const next = [...previous, result.pack];
+    try {
+      setCustomPacks(next);
+    } catch (error) {
+      return {
+        ok: false,
+        errors: [error instanceof Error ? error.message : 'That pack could not be activated.'],
+      };
+    }
+
+    if (!saveInstalledPacks(next)) {
+      setCustomPacks(previous);
+      return {
+        ok: false,
+        errors: ['The pack could not be saved to this machine, so it was not installed.'],
+      };
+    }
+
+    // Anything computed from the catalogue is stale now. Universes that already
+    // exist keep the steps they were given; the next expansion can use the new
+    // rules.
+    this.dossierCache.clear();
+    this.diffCache.clear();
+    this.universeCache.clear();
+
+    this.set({ customPacks: next, packErrors: [] });
+    this.toast(
+      `Installed “${result.pack.name}” — ${result.pack.rules.length} rule${
+        result.pack.rules.length === 1 ? '' : 's'
+      } added to the catalogue.`,
+      'success'
+    );
+    return { ok: true, pack: result.pack };
+  }
+
+  /** Remove an installed pack. Built-in packs are not in `customPacks` and cannot be removed. */
+  removeCustomPack(packId: string): boolean {
+    const previous = this.state.customPacks;
+    const pack = previous.find((p) => p.id === packId);
+    if (!pack) return false;
+
+    const next = previous.filter((p) => p.id !== packId);
+    setCustomPacks(next);
+    if (!saveInstalledPacks(next)) {
+      setCustomPacks(previous);
+      this.toast('The change could not be saved, so the pack was kept.', 'error');
+      return false;
+    }
+
+    this.dossierCache.clear();
+    this.diffCache.clear();
+    this.universeCache.clear();
+
+    this.set({ customPacks: next });
+    this.toast(`Removed “${pack.name}”.`, 'success');
+    return true;
+  }
+
   setCompare(c: CompareState | null): void {
     this.set({ compare: c });
   }
@@ -502,7 +615,7 @@ export class Store {
   diffFor(a: string, b: string): BranchDiff | null {
     const key = `${a}|${b}`;
     if (this.diffCache.has(key)) return this.diffCache.get(key) ?? null;
-    const built = buildBranchDiff(this.state.doc, a, b, ALL_PACKS);
+    const built = buildBranchDiff(this.state.doc, a, b, getActivePacks());
     this.diffCache.set(key, built);
     return built;
   }
@@ -579,7 +692,7 @@ export class Store {
       this.universeCache.set(key, null);
       return null;
     }
-    const built = buildUniverseDiff(aDoc, bDoc, ALL_PACKS, { refs: this.universeRefs() });
+    const built = buildUniverseDiff(aDoc, bDoc, getActivePacks(), { refs: this.universeRefs() });
     this.universeCache.set(key, built);
     return built;
   }
@@ -639,7 +752,7 @@ export class Store {
       title: titleFromDecision(input.decision) || 'New universe',
     };
     const seed = randomSeed();
-    const doc = createUniverse({ packs: ALL_PACKS, seed, prompt });
+    const doc = createUniverse({ packs: getActivePacks(), seed, prompt });
     this.past = [];
     this.future = [];
     this.commit(doc, `Created “${doc.title}”`);
@@ -653,7 +766,7 @@ export class Store {
 
   /** Regenerate the whole universe with a fresh seed, keeping the prompt. */
   rerollUniverse(): void {
-    const doc = reroll(this.state.doc, ALL_PACKS, randomSeed());
+    const doc = reroll(this.state.doc, getActivePacks(), randomSeed());
     this.run('Reroll universe', doc);
     this.toast('Rerolled with a new seed.', 'success');
   }
@@ -716,7 +829,7 @@ export class Store {
       );
       return;
     }
-    const result = expandNode(before, nodeId, ALL_PACKS);
+    const result = expandNode(before, nodeId, getActivePacks());
     if (result.added.length === 0) {
       this.toast('The rule catalogue has no further steps for this state.', 'info');
       return;
@@ -837,7 +950,13 @@ export class Store {
 
   /** Create a real counterfactual universe from an assumption change. */
   makeCounterfactual(assumptionId: string, value: number, note: string): SimulationDoc | null {
-    const outcome = applyAssumptionChange(this.state.doc, assumptionId, value, ALL_PACKS, note);
+    const outcome = applyAssumptionChange(
+      this.state.doc,
+      assumptionId,
+      value,
+      getActivePacks(),
+      note
+    );
     if ('error' in outcome) {
       this.toast(outcome.error, 'error');
       return null;
@@ -853,7 +972,7 @@ export class Store {
 
   /** Choose a decision option, producing a counterfactual universe. */
   chooseOption(optionId: string): void {
-    const outcome = applyDecisionChange(this.state.doc, optionId, ALL_PACKS);
+    const outcome = applyDecisionChange(this.state.doc, optionId, getActivePacks());
     if ('error' in outcome) {
       this.toast(outcome.error, 'error');
       return;
@@ -888,7 +1007,7 @@ export class Store {
       a,
       b,
       diffs: diffSnapshots(a, b),
-      stability: stabilityBetween(a, b, noisyKeys(ALL_PACKS)),
+      stability: stabilityBetween(a, b, noisyKeys(getActivePacks())),
     });
     this.setStatus(`Comparing ${a.title} → ${b.title}`);
   }
@@ -986,19 +1105,19 @@ export class Store {
   }
 
   spreadFor(nodeId: NodeId, metricKey: string) {
-    return outcomeSpread(this.state.doc, nodeId, ALL_PACKS, metricKey, 16);
+    return outcomeSpread(this.state.doc, nodeId, getActivePacks(), metricKey, 16);
   }
 
   /** The plain-language brief for a path. Cached until the document changes. */
   dossierFor(nodeId: NodeId): Dossier | null {
     if (this.dossierCache.has(nodeId)) return this.dossierCache.get(nodeId) ?? null;
-    const built = buildDossier(this.state.doc, nodeId, ALL_PACKS, { samples: 24 });
+    const built = buildDossier(this.state.doc, nodeId, getActivePacks(), { samples: 24 });
     this.dossierCache.set(nodeId, built);
     return built;
   }
 
   forecastFor(nodeId: NodeId, months: number): StateVector | null {
-    return forecastFrom(this.state.doc, nodeId, ALL_PACKS, months);
+    return forecastFrom(this.state.doc, nodeId, getActivePacks(), months);
   }
 
   diffAgainstParent(): DiffEntry[] {
