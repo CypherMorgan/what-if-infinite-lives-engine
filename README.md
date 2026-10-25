@@ -181,7 +181,7 @@ thewhatifs/
 │   │   └── theme.css
 │   ├── main.tsx
 │   └── ui/App.tsx
-└── tests/                    # 303 unit tests (engine, counterfactual, persistence, export format, AI, update, vars, dossier, branch diff, universe diff, PDF report, store, accessibility)
+└── tests/                    # 304 unit tests (engine, counterfactual, persistence, export format, AI, update, vars, dossier, branch diff, universe diff, PDF report, store, accessibility)
 ```
 
 ## Usage
@@ -212,7 +212,7 @@ thewhatifs/
 
 ## Testing
 
-All core logic is covered by unit tests (303 passing):
+All core logic is covered by unit tests (304 passing):
 
 - **engine.test.ts** — Determinism, expansion, layout, queries, forecast/spread, rule catalogue, derive clamping
 - **counterfactual.test.ts** — Assumption/decision counterfactuals, lineage, reroll, snapshots/diffs/stability

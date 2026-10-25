@@ -466,6 +466,18 @@ describe('Store — comparing two universes', () => {
     }
   });
 
+  it('removes a deleted universe from the library and the comparison picker', () => {
+    const store = makeStore();
+    const parent = store.getState().doc;
+    store.makeCounterfactual('a.funds', 25_000, 'A test fork');
+    expect(store.comparableUniverses().some((x) => x.id === parent.id)).toBe(true);
+
+    store.deleteFromLibrary(parent.id);
+    expect(store.getState().library.some((x) => x.id === parent.id)).toBe(false);
+    expect(store.comparableUniverses().some((x) => x.id === parent.id)).toBe(false);
+    expect(store.loadDoc(parent.id)).toBeNull();
+  });
+
   it('opens a universe diff against the open universe', () => {
     const store = makeStore();
     const parent = store.getState().doc;

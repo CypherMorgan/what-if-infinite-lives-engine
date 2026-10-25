@@ -17,7 +17,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - The "what ends up different" table is now one shared component (`MetricTable`), used by both the path diff and the universe diff, so the two views cannot disagree about what counts as a difference, how large it is, or which side it favours.
-- 21 new unit tests: 14 over the universe comparison model and 6 over the store's comparison state, plus the accessibility guard extended to the shared table (303 passing).
+- 22 new unit tests: 14 over the universe comparison model and 7 over the store's comparison state and library cleanup, plus the accessibility guard extended to the shared table (304 passing).
+
+### Fixed
+
+- **Deleting a universe left it in the library list.** The document was removed but its index entry was not, so the row could not be opened and still appeared in the comparison picker. Deletion now removes the document and the index entry together.
 
 ## [1.2.0] - 2026-10-21
 

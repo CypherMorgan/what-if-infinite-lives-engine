@@ -985,6 +985,10 @@ export class Store {
   deleteFromLibrary(id: string): void {
     try {
       localStorage.removeItem(`whatifs:doc:${id}`);
+      // The index is the list the library and the comparison picker read, so
+      // removing only the document would leave a row that can never be opened.
+      const items = loadIndex().filter((s) => s.id !== id);
+      localStorage.setItem(LS_INDEX, JSON.stringify(items));
     } catch {
       /* ignore */
     }
