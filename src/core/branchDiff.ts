@@ -16,12 +16,11 @@
  * scoring, no ranking and no recommendation — the diff reports what the model
  * produced and which side each difference favours, and stops there.
  */
-import type { NodeId, SimulationDoc, StateVector, VarUnit } from './types';
+import type { NodeId, SimulationDoc, StateVector } from './types';
 import type { RulePack } from './rulePack';
 import { forecastFrom, pathTo } from './engine';
-import { ALL_VARS } from './packs/vars';
 import { NODE_TYPE_GUIDE, describeHorizon } from './graphLegend';
-import { formatValue, getState, isBetter, noiseFloor } from './vars';
+import { compareStates, largestGaps, type StateDiffMetric } from './compareMetrics';
 
 /** One step on a path, reduced to what the diff needs to show it. */
 export interface BranchDiffStep {
@@ -52,22 +51,7 @@ export interface BranchDiffSide {
 }
 
 /** A number that ends up different between the two paths. */
-export interface BranchDiffMetric {
-  key: string;
-  label: string;
-  unit: VarUnit;
-  /** The value on the first path. */
-  a: number;
-  /** The value on the second path. */
-  b: number;
-  aText: string;
-  bText: string;
-  /** "b − a", formatted. */
-  deltaText: string;
-  delta: number;
-  /** Which path this difference favours. 'same' when neither is better. */
-  favours: 'a' | 'b' | 'same';
-}
+export type BranchDiffMetric = StateDiffMetric;
 
 export interface BranchDiff {
   a: BranchDiffSide;
@@ -128,44 +112,7 @@ export function buildBranchDiff(
   const compareMonth = Math.max(doc.prompt.horizon, endMonth(doc, a), endMonth(doc, b));
   const stateA = a.projected ?? {};
   const stateB = b.projected ?? {};
-
-  const tracked = new Set<string>();
-  for (const key of Object.keys(stateA)) tracked.add(key);
-  for (const key of Object.keys(stateB)) tracked.add(key);
-
-  const metrics: BranchDiffMetric[] = [];
-  let sameCount = 0;
-  for (const key of tracked) {
-    const def = ALL_VARS.find((v) => v.key === key);
-    if (!def) continue;
-    const from = getState(stateA, key);
-    const to = getState(stateB, key);
-    const delta = to - from;
-    const floor = noiseFloor(def.unit, def.key);
-    if (Math.abs(delta) < floor) {
-      sameCount += 1;
-      continue;
-    }
-    let favours: BranchDiffMetric['favours'] = 'same';
-    if (isBetter(delta, def)) favours = 'b';
-    else if (isBetter(-delta, def)) favours = 'a';
-    metrics.push({
-      key,
-      label: def.label,
-      unit: def.unit,
-      a: from,
-      b: to,
-      aText: formatValue(from, def.unit),
-      bText: formatValue(to, def.unit),
-      deltaText: signedText(delta, def.unit),
-      delta,
-      favours,
-    });
-  }
-
-  // The largest differences lead, so the consequential ones are what a person
-  // reads first.
-  metrics.sort((x, y) => magnitude(y) - magnitude(x));
+  const { metrics, sameCount } = compareStates(stateA, stateB);
 
   /* ---------------- the wording ---------------- */
 
@@ -174,9 +121,7 @@ export function buildBranchDiff(
   const headline =
     metrics.length === 0
       ? `By ${when}, ${a.name} and ${b.name} end up in the same place as far as the model can tell.`
-      : `By ${when}, the two paths differ on ${metrics.length} thing${metrics.length === 1 ? '' : 's'}. The largest gaps are ${top
-          .map((m) => `${m.label} (${amountText(Math.abs(m.delta), m.unit)})`)
-          .join(', ')}.`;
+      : `By ${when}, the two paths differ on ${metrics.length} thing${metrics.length === 1 ? '' : 's'}. The largest gaps are ${largestGaps(top)}.`;
 
   const aWins = metrics.filter((m) => m.favours === 'a').length;
   const bWins = metrics.filter((m) => m.favours === 'b').length;
@@ -239,12 +184,7 @@ function sideFor(
 
   // The end of a path is the step furthest in time. When two steps share a
   // time, the one that does not lead anywhere else is the end.
-  const end = nodes.reduce<(typeof nodes)[number] | null>((best, n) => {
-    if (!best) return n;
-    if (n.t > best.t) return n;
-    if (n.t === best.t && best.children.length > 0 && n.children.length === 0) return n;
-    return best;
-  }, null);
+  const end = branchEndNode(doc, branchId);
 
   return {
     branchId,
@@ -259,51 +199,18 @@ function sideFor(
   };
 }
 
+/** The step a path ends on: furthest in time, preferring a leaf at that time. */
+export function branchEndNode(doc: SimulationDoc, branchId: string) {
+  const nodes = Object.values(doc.nodes).filter((n) => n.branch === branchId);
+  return nodes.reduce<(typeof nodes)[number] | null>((best, n) => {
+    if (!best) return n;
+    if (n.t > best.t) return n;
+    if (n.t === best.t && best.children.length > 0 && n.children.length === 0) return n;
+    return best;
+  }, null);
+}
+
 function endMonth(doc: SimulationDoc, side: BranchDiffSide): number {
   const end = side.endNodeId ? doc.nodes[side.endNodeId] : undefined;
   return end?.t ?? 0;
-}
-
-/** How big a difference is, relative to its unit. */
-function magnitude(metric: BranchDiffMetric): number {
-  const scale =
-    metric.unit === 'currency'
-      ? 1000
-      : metric.unit === 'months'
-        ? 6
-        : metric.unit === 'percent' || metric.unit === 'level'
-          ? 20
-          : 10;
-  return Math.abs(metric.delta) / scale;
-}
-
-/** A magnitude with a unit a person can read. */
-function amountText(value: number, unit: VarUnit): string {
-  const abs = Math.abs(value);
-  switch (unit) {
-    case 'level':
-      return `${Math.round(abs)} points`;
-    case 'months':
-      return `${Math.round(abs * 10) / 10} months`;
-    case 'percent':
-      return `${Math.round(abs)}%`;
-    case 'currency':
-      return formatValue(abs, 'currency');
-    case 'count':
-      return `${Math.round(abs * 10) / 10}`;
-    default:
-      return `${Math.round(abs * 10) / 10}`;
-  }
-}
-
-/**
- * A difference with its sign spelled out.
- *
- * "+$71k" and "−28 points" read as a direction at a glance; "$71k" and
- * "−28 points" do not, because the first one is unsigned.
- */
-function signedText(delta: number, unit: VarUnit): string {
-  if (Math.abs(delta) < 1e-9) return 'no change';
-  const sign = delta > 0 ? '+' : '−';
-  return `${sign}${amountText(delta, unit)}`;
 }
