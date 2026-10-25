@@ -107,6 +107,21 @@ describe('Store — initial state', () => {
     expect(state.path).toEqual([start!.id]);
   });
 
+  it('does not restore a universe comparison that excludes the open universe', () => {
+    storage.setItem('whatifs:view', 'universes');
+    storage.setItem('whatifs:universes', JSON.stringify({ a: 'sim_other_a', b: 'sim_other_b' }));
+    const store = new Store(makeDoc());
+    expect(store.getState().viewMode).toBe('graph');
+  });
+
+  it('restores the universe view when the open universe is one side of it', () => {
+    const doc = makeDoc();
+    storage.setItem('whatifs:view', 'universes');
+    storage.setItem('whatifs:universes', JSON.stringify({ a: doc.id, b: 'sim_other' }));
+    const store = new Store(doc);
+    expect(store.getState().viewMode).toBe('universes');
+  });
+
   it('starts with nothing to undo or redo', () => {
     const store = makeStore();
     expect(store.getState().canUndo).toBe(false);
@@ -385,6 +400,87 @@ describe('Store — settings and view', () => {
   });
 });
 
+describe('Store — a new universe from the form', () => {
+  it('reads the figures and constraints the person supplied', () => {
+    const store = makeStore();
+    store.newUniverse({
+      situation: 'I am considering moving abroad for work and have savings put aside.',
+      decision: 'Should I move abroad?',
+      goals: 'stability, family',
+      constraints: 'visa, family commitments',
+      resources: 'savings 21000, income 3400, rent 1500',
+      horizon: 36,
+      imagination: 0.4,
+      branchCount: 3,
+    });
+
+    const doc = store.getState().doc;
+    expect(doc.prompt.resources).toEqual(['savings 21000', 'income 3400', 'rent 1500']);
+    expect(doc.prompt.constraints).toEqual(['visa', 'family commitments']);
+    const value = (key: string): number | undefined =>
+      doc.assumptions.find((a) => a.varKey === key)?.value;
+    expect(value('money')).toBe(21_000);
+    expect(value('income')).toBe(3_400);
+    expect(value('expenses')).toBe(1_500);
+    expect(doc.prompt.archetypes).toContain('relocation');
+  });
+
+  it('marks unsupplied figures as defaults rather than pretending they were given', () => {
+    const store = makeStore();
+    store.newUniverse({
+      situation: 'I am deciding whether to go back to university for a degree.',
+      decision: 'Should I study full time?',
+      goals: 'a better career',
+      horizon: 60,
+      imagination: 0.35,
+      branchCount: 3,
+    });
+    const funds = store.getState().doc.assumptions.find((a) => a.id === 'a.funds');
+    expect(funds?.rationale).toMatch(/Not stated/);
+  });
+
+  it('shortens a long decision at a word boundary, not mid-word', () => {
+    const store = makeStore();
+    store.newUniverse({
+      situation: 'I am deciding what to do about study and work over the next few years.',
+      decision:
+        'Should I study full time, study part time, or build the skills without a course at all?',
+      goals: 'a better career',
+      horizon: 60,
+      imagination: 0.35,
+      branchCount: 3,
+    });
+    const title = store.getState().doc.title;
+    expect(title.length).toBeLessThanOrEqual(73);
+    expect(title.endsWith('…')).toBe(true);
+    // Nothing after the final space may be a partial word.
+    const head = title.slice(0, -1);
+    expect(head.endsWith(' ')).toBe(false);
+    expect(head.split(' ').at(-1)).toMatch(/^[a-z]+$/);
+  });
+
+  it('returns to the graph when a new universe replaces the open one', () => {
+    const store = makeStore();
+    const parent = store.getState().doc;
+    store.makeCounterfactual('a.funds', 25_000, 'A test fork');
+    store.openUniverseDiff(parent.id);
+    expect(store.getState().viewMode).toBe('universes');
+
+    store.newUniverse({
+      situation: 'I am deciding whether to move abroad for a job.',
+      decision: 'Should I move?',
+      goals: 'stability',
+      horizon: 36,
+      imagination: 0.4,
+      branchCount: 3,
+    });
+
+    expect(store.getState().viewMode).toBe('graph');
+    expect(store.getState().universePair).toBeNull();
+    expect(storage.getItem('whatifs:view')).toBe('graph');
+  });
+});
+
 describe('Store — comparing two paths', () => {
   it('leaves the starting point out of the paths that can be compared', () => {
     const store = makeStore();
@@ -513,6 +609,14 @@ describe('Store — comparing two universes', () => {
 
   it('asks for a pair when there is no usable comparison', () => {
     const store = makeStore();
+    store.showUniverseDiff();
+    expect(store.getState().viewMode).toBe('graph');
+    expect(store.getState().modal?.kind).toBe('universes');
+  });
+
+  it('does not show a remembered comparison between two other universes', () => {
+    const store = makeStore();
+    store.setUniversePair({ a: 'sim_other_a', b: 'sim_other_b' });
     store.showUniverseDiff();
     expect(store.getState().viewMode).toBe('graph');
     expect(store.getState().modal?.kind).toBe('universes');

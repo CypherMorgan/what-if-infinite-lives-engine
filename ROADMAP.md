@@ -99,6 +99,12 @@ that was waiting to ship is in here.
   paired by name, not position, and the view says so when two universes answer
   different questions or were run with different random draws rather than
   blaming the difference on the assumption you changed.
+- **Scenario templates.** Starting points for the questions people actually
+  ask — the job offer, the move, the child, the pivot, back to study, buy or
+  rent. A template fills in the question and the shape of the exploration and
+  nothing else: it never invents your money, and whatever figures you do supply
+  become editable assumptions. The form names the rule packs your words
+  activated, so the engine's choice is visible.
 
 ---
 
@@ -106,8 +112,6 @@ that was waiting to ship is in here.
 
 ### v1.3.0 — depth (continued)
 
-- **Scenario templates.** Starting points for the questions people actually
-  ask — the job offer, the move, the child, the pivot.
 - **Session notes.** A written record of what you concluded, kept alongside
   the universe.
 - **A rule-pack format people can write.** The engine's rules are the honest

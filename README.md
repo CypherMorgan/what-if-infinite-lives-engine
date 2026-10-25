@@ -44,6 +44,10 @@ A local-first Windows desktop app for mapping alternative life paths through int
 | --------------------------------------------------------------------------------- |
 | ![A universe and a fork compared side by side](docs/screenshots/07-universes.png) |
 
+| Starting from a scenario template                                                                           |
+| ----------------------------------------------------------------------------------------------------------- |
+| ![The new universe form with scenario templates and a filled-in example](docs/screenshots/08-templates.png) |
+
 > Screenshots are generated from the real app UI by `npm run screenshots` — they are not mockups.
 
 ## Features
@@ -53,6 +57,7 @@ A local-first Windows desktop app for mapping alternative life paths through int
 - **Counterfactuals** — Change any assumption or choose a decision option to fork a new universe. Full lineage (parent/counterfactual metadata), snapshots, diffs, and stability analysis.
 - **Compare two paths side by side** — See exactly where they diverge and what ends up different, compared at a common moment. "Favours" is direction, not a recommendation.
 - **Compare two universes side by side** — Put a universe and a fork of it next to each other: the origin they share, the assumptions that differ, the paths they both have, and what ends up different. When the two answer different questions or were run with different random draws, it says so instead of blaming the difference on the assumption you changed.
+- **Scenario templates** — Six starting points for the questions people actually ask: the job offer, the move, the child, the pivot, back to study, buy or rent. A template fills in the question and the shape of the exploration; it never invents your money. Add your own figures under "What you have" and the starting assumptions are built from them — leave it blank and they are labelled as defaults.
 - **Future dossier** — A plain-language brief for any step: where it leads, what it buys/costs, risks, how the model got there, and how much it could wobble.
 - **Print or export as PDF** — Turn any path into a clean, self-contained **PDF report** (situation, universe map, dossier, step-by-step, assumptions) with everything escaped and nothing fetched. Also export as **Markdown** or save the graph as **PNG**.
 - **Timeline view** — Toggle between the graph and a chronological timeline sorted by elapsed time, with branch colours and per-node tradeoffs.
@@ -181,12 +186,12 @@ thewhatifs/
 │   │   └── theme.css
 │   ├── main.tsx
 │   └── ui/App.tsx
-└── tests/                    # 304 unit tests (engine, counterfactual, persistence, export format, AI, update, vars, dossier, branch diff, universe diff, PDF report, store, accessibility)
+└── tests/                    # 326 unit tests (engine, counterfactual, persistence, export format, AI, update, vars, dossier, branch diff, universe diff, templates, PDF report, store, accessibility)
 ```
 
 ## Usage
 
-1. **Create a universe** (`Ctrl+N`) — Describe your situation and the decision in front of you. The offline engine generates a branching simulation deterministically.
+1. **Create a universe** (`Ctrl+N`) — Start from a scenario template or describe your own situation and the decision in front of you. Add what you have (`savings 14000, income 3200`) and the engine reads those figures into the assumptions; the form also shows which rule packs your words activated. The offline engine then generates a branching simulation deterministically.
 2. **Navigate** — Click nodes to inspect. Use arrow keys to move along paths, `E` to expand, mouse to pan/zoom/drag.
 3. **Expand** — `Expand` generates the next plausible steps from a node using the rule catalogue.
 4. **Counterfactuals** — Tweak assumptions in the inspector or use "What if…" to fork a new universe. Choose decision options to explore alternatives.
@@ -212,7 +217,7 @@ thewhatifs/
 
 ## Testing
 
-All core logic is covered by unit tests (304 passing):
+All core logic is covered by unit tests (326 passing):
 
 - **engine.test.ts** — Determinism, expansion, layout, queries, forecast/spread, rule catalogue, derive clamping
 - **counterfactual.test.ts** — Assumption/decision counterfactuals, lineage, reroll, snapshots/diffs/stability
@@ -224,8 +229,9 @@ All core logic is covered by unit tests (304 passing):
 - **dossier.test.ts** — Dossier construction, determinism, ordering, honesty of the prose
 - **branchDiff.test.ts** — Comparing two paths: the common moment, the divergence point, and which way "favours" points
 - **universeDiff.test.ts** — Comparing two universes: lineage, one-sided assumptions, path pairing by name, and the cases where a difference must not be blamed on the changed assumption
+- **templates.test.ts** — Scenario templates: every card builds a real deterministic universe, activates the rule pack its words imply, and never puts invented money in the user's mouth
 - **pdfReport.test.ts** — The printable report: it is complete, deterministic, and nothing the user typed can escape into the markup
-- **store.test.ts** — Selection, camera, expansion, undo/redo, branches, assumptions, import/export, settings
+- **store.test.ts** — Selection, camera, expansion, undo/redo, branches, assumptions, import/export, settings, template figures, and returning to the graph when the open universe changes
 - **accessibility.test.ts** — Colour contrast against the palette, and the markup that a screen reader depends on
 
 End-to-end smoke tests live in `e2e/` and run with Playwright:

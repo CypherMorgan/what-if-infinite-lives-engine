@@ -242,6 +242,7 @@ export class Store {
     // here too. Leaving it empty meant a freshly opened universe showed a
     // selected starting point with an empty path behind it.
     const selected = doc.focusNode ?? firstNodeId(doc);
+    const universePair = loadUniversePair();
     this.state = {
       doc,
       selected,
@@ -261,10 +262,16 @@ export class Store {
       compare: null,
       library: loadIndex(),
       diffBranches: loadDiffPair(),
-      universePair: loadUniversePair(),
+      universePair,
       viewMode: ((): ViewMode => {
         try {
           const saved = localStorage.getItem('whatifs:view');
+          // A universe comparison is only meaningful when the open universe is
+          // one side of it. Restoring a pair between two other documents would
+          // put a comparison on screen that the header's title contradicts.
+          const pairInvolvesDoc =
+            universePair !== null && (universePair.a === doc.id || universePair.b === doc.id);
+          if (saved === 'universes' && !pairInvolvesDoc) return 'graph';
           if (
             saved === 'timeline' ||
             saved === 'dossier' ||
@@ -365,6 +372,19 @@ export class Store {
     });
     this.saveLibraryEntry(scored);
     this.persistDoc(scored);
+  }
+
+  /**
+   * Returns to the graph after the open document is replaced.
+   *
+   * A path comparison or a universe comparison belongs to the document that
+   * was open when it was made. Left on screen after switching, it would
+   * describe universes the person is no longer looking at, so both pairs are
+   * dropped and the graph is shown instead.
+   */
+  private showGraphForNewDoc(): void {
+    this.set({ universePair: null, diffBranches: null });
+    this.setViewMode('graph');
   }
 
   undo(): void {
@@ -530,7 +550,12 @@ export class Store {
   /** Reopens the remembered universe comparison, or asks for a pair. */
   showUniverseDiff(): void {
     const pair = this.state.universePair;
-    if (pair && pair.a !== pair.b && this.universeDiffFor(pair)) {
+    // The open universe is always one side of a comparison. A remembered pair
+    // between two other documents is not this comparison, so it is treated as
+    // missing rather than shown with the wrong universe in the header.
+    const involvesOpenDoc =
+      pair !== null && (pair.a === this.state.doc.id || pair.b === this.state.doc.id);
+    if (pair && involvesOpenDoc && pair.a !== pair.b && this.universeDiffFor(pair)) {
       this.setViewMode('universes');
       return;
     }
@@ -591,6 +616,8 @@ export class Store {
     situation: string;
     decision: string;
     goals: string;
+    constraints?: string;
+    resources?: string;
     horizon: number;
     imagination: number;
     branchCount: number;
@@ -601,19 +628,20 @@ export class Store {
       situation: input.situation.trim(),
       decision: input.decision.trim(),
       goals: splitLines(input.goals),
-      constraints: [],
+      constraints: splitLines(input.constraints ?? ''),
       horizon: input.horizon,
       branchCount: input.branchCount,
       imagination: input.imagination,
-      resources: [],
+      resources: splitLines(input.resources ?? ''),
       archetypes: archetypes.length > 0 ? archetypes : ['uncertainty'],
-      title: input.decision.trim().slice(0, 72) || 'New universe',
+      title: titleFromDecision(input.decision) || 'New universe',
     };
     const seed = randomSeed();
     const doc = createUniverse({ packs: ALL_PACKS, seed, prompt });
     this.past = [];
     this.future = [];
     this.commit(doc, `Created “${doc.title}”`);
+    this.showGraphForNewDoc();
     this.select(firstNodeId(doc));
     this.toast(
       `Universe created — ${Object.keys(doc.nodes).length} nodes, ${Object.keys(doc.branches).length} branches.`,
@@ -873,6 +901,7 @@ export class Store {
     this.past = [];
     this.future = [];
     this.commit(doc, `Imported “${doc.title}”`);
+    this.showGraphForNewDoc();
     this.select(doc.focusNode ?? firstNodeId(doc));
     for (const n of notes) this.toast(n, 'info');
     for (const w of warnings) this.toast(w, 'error');
@@ -979,6 +1008,7 @@ export class Store {
     this.past = [];
     this.future = [];
     this.commit(doc, `Opened “${doc.title}”`);
+    this.showGraphForNewDoc();
     this.select(doc.focusNode ?? firstNodeId(doc));
   }
 
@@ -1027,6 +1057,22 @@ function splitLines(text: string): string[] {
     .map((s) => s.trim())
     .filter((s) => s.length > 0)
     .slice(0, 5);
+}
+
+/**
+ * A universe title taken from the decision, cut at a word boundary.
+ *
+ * Templates ask real questions, and a real question is usually longer than a
+ * title should be. A hard 72-character cut leaves the header ending mid-word
+ * ("…build the skills without a"), which reads like a bug.
+ */
+function titleFromDecision(decision: string): string {
+  const clean = decision.trim().replace(/\s+/g, ' ');
+  if (clean.length <= 72) return clean;
+  const cut = clean.slice(0, 72);
+  const lastSpace = cut.lastIndexOf(' ');
+  const head = (lastSpace > 40 ? cut.slice(0, lastSpace) : cut).replace(/[.,;:]+$/, '');
+  return `${head}…`;
 }
 
 function loadIndex(): SimulationSummary[] {

@@ -94,7 +94,10 @@ async function main(): Promise<void> {
     await shoot(page, '01-overview');
 
     // 2. Select a real step so the inspector shows detail, then capture.
-    await page.getByRole('button', { name: /Take a steady job/ }).first().click();
+    await page
+      .getByRole('button', { name: /Take a steady job/ })
+      .first()
+      .click();
     await pause(900);
     await shoot(page, '02-inspector');
 
@@ -128,7 +131,10 @@ async function main(): Promise<void> {
     // 6. The dossier: the plain-language brief on the selected step.
     await page.getByRole('button', { name: 'Graph' }).first().click();
     await pause(700);
-    await page.getByRole('button', { name: /Take a steady job/ }).first().click();
+    await page
+      .getByRole('button', { name: /Take a steady job/ })
+      .first()
+      .click();
     await pause(800);
     await page
       .getByRole('button', { name: /Dossier/ })
@@ -163,6 +169,18 @@ async function main(): Promise<void> {
       throw new Error(`universe comparison did not render: ${universeHeading}`);
     }
     await shoot(page, '07-universes');
+
+    // 8. Starting a new universe from a template.
+    await page.getByRole('button', { name: '✦ New' }).click();
+    await pause(700);
+    await page.locator('.template-card', { hasText: 'The pivot' }).click();
+    await pause(600);
+    const activeTemplate = page.locator('.template-card.is-active .template-title');
+    await activeTemplate.waitFor({ timeout: 10_000 });
+    if ((await activeTemplate.innerText()) !== 'The pivot') {
+      throw new Error('the template picker did not mark the chosen template');
+    }
+    await shoot(page, '08-templates');
 
     await browser.close();
     console.log('done.');

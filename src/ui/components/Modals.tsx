@@ -2,7 +2,7 @@
  * Modal layer: new universe, import, export, provider settings, library,
  * counterfactual creation and about.
  */
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
 import type { Store } from '../state/store';
 import { useAppState } from '../state/store';
@@ -13,6 +13,8 @@ import { formatValue } from '../../core/vars';
 import { ShortcutsModal } from './ShortcutsModal';
 import { UpdateSection } from './UpdateSection';
 import { startTour } from '../tour';
+import { SCENARIO_TEMPLATES, type ScenarioTemplate } from '../../core/templates';
+import { ARCHETYPES, detectArchetypes } from '../../core/archetypes';
 
 /** Everything a keyboard can reach, in the order the eye would reach it. */
 const FOCUSABLE =
@@ -181,27 +183,66 @@ function Switch({
 /* New universe                                                        */
 /* ------------------------------------------------------------------ */
 
-const SUGGESTIONS = [
-  'I got an offer to move abroad for a job I am not sure I want.',
-  'Should I quit my job to build my own product for a year?',
-  'I am 34 and thinking about going back to university.',
-  'We are deciding whether to buy a flat or keep renting.',
-  'Should I end a stable relationship to travel for a year?',
-];
+/** Human names for the rule packs a situation will activate. */
+function archetypeNames(ids: readonly string[]): string[] {
+  return ids
+    .map((id) => ARCHETYPES.find((a) => a.id === id)?.name)
+    .filter((name): name is string => typeof name === 'string');
+}
 
 function NewUniverse({ store, close }: { store: Store; close: () => void }) {
+  const [templateId, setTemplateId] = useState<string | null>(null);
   const [situation, setSituation] = useState('');
   const [decision, setDecision] = useState('');
   const [goals, setGoals] = useState('');
+  const [constraints, setConstraints] = useState('');
+  const [resources, setResources] = useState('');
   const [horizon, setHorizon] = useState(36);
   const [imagination, setImagination] = useState(0.45);
   const [branchCount, setBranchCount] = useState(3);
 
+  const chosen = SCENARIO_TEMPLATES.find((t) => t.id === templateId) ?? null;
   const valid = situation.trim().length >= 8 && decision.trim().length >= 4;
+
+  // The engine picks its rule packs from the words; showing which ones it
+  // found makes that choice visible instead of looking like magic. Money and
+  // time are always active, so they are reported separately rather than
+  // passed off as a detection.
+  const detected = useMemo(
+    () =>
+      archetypeNames(
+        detectArchetypes(`${situation} ${decision} ${goals}`).filter(
+          (id) => id !== 'time' && id !== 'finance'
+        )
+      ),
+    [situation, decision, goals]
+  );
+
+  /** Fills the form from a template. Anything can then be edited. */
+  const useTemplate = (t: ScenarioTemplate): void => {
+    setTemplateId(t.id);
+    setSituation(t.situation);
+    setDecision(t.decision);
+    setGoals(t.goals.join(', '));
+    setConstraints(t.constraints.join(', '));
+    setResources('');
+    setHorizon(t.horizon);
+    setBranchCount(t.branchCount);
+    setImagination(t.imagination);
+  };
 
   const submit = (): void => {
     if (!valid) return;
-    store.newUniverse({ situation, decision, goals, horizon, imagination, branchCount });
+    store.newUniverse({
+      situation,
+      decision,
+      goals,
+      constraints,
+      resources,
+      horizon,
+      imagination,
+      branchCount,
+    });
     close();
   };
 
@@ -212,9 +253,32 @@ function NewUniverse({ store, close }: { store: Store; close: () => void }) {
         <div className="hero">
           <div className="hero-title">What is the fork in the road?</div>
           <div className="hero-sub">
-            Describe where you are and the decision in front of you. The built-in rules engine
-            builds a deterministic branching simulation — no network, no account, no invented
-            probabilities. You can hand it to an AI provider later if you want richer prose.
+            Start from a template or describe the fork yourself. The built-in rules engine builds a
+            deterministic branching simulation — no network, no account, no invented probabilities.
+            You can hand it to an AI provider later if you want richer prose.
+          </div>
+
+          <div className="field">
+            <span className="field-label">Start from a template — or write your own below</span>
+            <div className="template-row" role="group" aria-label="Scenario templates">
+              {SCENARIO_TEMPLATES.map((t) => (
+                <button
+                  key={t.id}
+                  className={`template-card${templateId === t.id ? ' is-active' : ''}`}
+                  aria-pressed={templateId === t.id}
+                  onClick={() => useTemplate(t)}
+                  title={t.blurb}
+                >
+                  <span className="template-title">{t.title}</span>
+                  <span className="template-blurb">{t.blurb}</span>
+                </button>
+              ))}
+            </div>
+            <span className="field-hint">
+              A template fills in the question and the shape of the exploration. It never invents
+              your numbers: add those under “What you have”, or leave them out and the assumptions
+              will say they are defaults.
+            </span>
           </div>
 
           <label className="field">
@@ -224,25 +288,23 @@ function NewUniverse({ store, close }: { store: Store; close: () => void }) {
               value={situation}
               autoFocus
               placeholder="I have been working in ops for six years, have 14k saved, and live in a city where my rent keeps rising…"
-              onChange={(e) => setSituation(e.target.value)}
+              onChange={(e) => {
+                setTemplateId(null);
+                setSituation(e.target.value);
+              }}
             />
           </label>
 
-          <div className="suggest-row">
-            {SUGGESTIONS.map((s) => (
-              <button key={s} className="suggest" onClick={() => setSituation(s)}>
-                {s.slice(0, 52)}…
-              </button>
-            ))}
-          </div>
-
-          <label className="field" style={{ marginTop: 12 }}>
+          <label className="field">
             <span className="field-label">The decision</span>
             <input
               className="input"
               value={decision}
               placeholder="Should I take the overseas offer?"
-              onChange={(e) => setDecision(e.target.value)}
+              onChange={(e) => {
+                setTemplateId(null);
+                setDecision(e.target.value);
+              }}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && valid) submit();
               }}
@@ -256,6 +318,30 @@ function NewUniverse({ store, close }: { store: Store; close: () => void }) {
               value={goals}
               placeholder="financial stability, mastery, time outdoors"
               onChange={(e) => setGoals(e.target.value)}
+            />
+          </label>
+
+          <label className="field">
+            <span className="field-label">What you have (optional)</span>
+            <input
+              className="input"
+              value={resources}
+              placeholder={chosen?.resourcesHint ?? 'savings 14000, income 3200, rent 1200'}
+              onChange={(e) => setResources(e.target.value)}
+            />
+            <span className="field-hint">
+              Written as “savings 14000, income 3200, rent 1200”. The engine reads these into the
+              starting assumptions, where you can check and change every figure.
+            </span>
+          </label>
+
+          <label className="field">
+            <span className="field-label">Constraints (optional)</span>
+            <input
+              className="input"
+              value={constraints}
+              placeholder="notice period, who depends on me, hours available"
+              onChange={(e) => setConstraints(e.target.value)}
             />
           </label>
 
@@ -306,6 +392,19 @@ function NewUniverse({ store, close }: { store: Store; close: () => void }) {
             </label>
           </div>
         </div>
+
+        {situation.trim().length >= 8 && (
+          <div className="note" style={{ marginTop: 12 }}>
+            {detected.length > 0 ? (
+              <>
+                Rule packs from your words: <strong>{detected.join(', ')}</strong>.
+              </>
+            ) : (
+              <>No specific rule pack matched yet.</>
+            )}{' '}
+            Money and time are always in play.
+          </div>
+        )}
 
         {!valid && (
           <div className="note" style={{ marginTop: 12 }}>

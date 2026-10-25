@@ -13,15 +13,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Honest attribution.** The view distinguishes a changed assumption from a different question, a different random draw, and a differing setup. It only says an outcome difference can be traced to the changed assumption when the two universes share a question and a seed and nothing else in the setup differs. The fork's own recorded counterfactual is shown in the lineage, so a decision fork — which is not an assumption change — is not invisible.
 - **The comparison is reachable from three places.** A `⧉ Universes` button in the top bar reopens the remembered pair or asks for one; every library row has a `⇄ Compare` action; and the view's own empty state explains how to make the first fork.
 - **Fork lineage that survives the session.** Forking now saves and indexes the parent universe before switching to the child, so the universe a fork came from can still be reopened and compared afterwards instead of existing only in undo history.
+- **Six starting points.** The new-universe form now offers the decisions people actually bring: the job offer, the move, the child, the pivot, back to study, and buy or rent. Choosing one fills in the question, goals, constraints and horizon, using ordinary first-person prose that the archetype detector and the rule packs can read. Nothing is locked: every field stays editable, and editing the prose drops the "came from a template" highlight so the card never claims credit for what you changed.
+- **Your own figures, read honestly.** The form now accepts "What you have" (`savings 14000, income 3200, rent 1200`) and "Constraints". Supplied figures seed the starting assumptions, which remain editable. A blank field produces assumptions explicitly labelled as mid-range defaults rather than numbers presented as if they came from you, and a template never contains invented figures — only the placeholder text shows an example. The form also names the rule packs your words activated, so the engine's choice is visible instead of looking like magic.
 
 ### Changed
 
 - The "what ends up different" table is now one shared component (`MetricTable`), used by both the path diff and the universe diff, so the two views cannot disagree about what counts as a difference, how large it is, or which side it favours.
-- 22 new unit tests: 14 over the universe comparison model and 7 over the store's comparison state and library cleanup, plus the accessibility guard extended to the shared table (304 passing).
+- 43 new unit tests: 14 over the universe comparison model, 7 over the store's comparison state and library cleanup, 15 over the scenario templates, and 7 over the new-universe form, its figures, title shortening and view reset (326 passing).
 
 ### Fixed
 
 - **Deleting a universe left it in the library list.** The document was removed but its index entry was not, so the row could not be opened and still appeared in the comparison picker. Deletion now removes the document and the index entry together.
+- **The previous comparison stayed on screen after switching universe.** Creating, importing or opening a universe while the universe comparison was open left the old comparison in view, with a header naming a different document. Switching documents now returns to the graph and drops both comparison pairs; on launch, a remembered comparison view is only restored when the open universe is actually one side of it.
+- **Long decisions were cut mid-word.** A question longer than the title limit ended in a partial word; titles now cut at a word boundary and mark the cut with an ellipsis.
 
 ## [1.2.0] - 2026-10-21
 
