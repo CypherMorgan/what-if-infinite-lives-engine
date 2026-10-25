@@ -11,7 +11,8 @@
  */
 import type { Store } from '../state/store';
 import { useAppState } from '../state/store';
-import type { BranchDiff, BranchDiffMetric, BranchDiffSide } from '../../core/branchDiff';
+import type { BranchDiff, BranchDiffSide } from '../../core/branchDiff';
+import { MetricTable } from './MetricTable';
 
 export function BranchDiffView({ store }: { store: Store }) {
   const state = useAppState(store);
@@ -112,31 +113,13 @@ function DiffBody({ store, diff }: { store: Store; diff: BranchDiff }) {
               still be different journeys — it just cannot tell them apart in the numbers it tracks.
             </p>
           ) : (
-            <table className="dossier-table">
-              <caption className="sr-only">
-                What differs between {diff.a.name} and {diff.b.name} at {diff.compareLabel}
-              </caption>
-              <thead>
-                <tr>
-                  <th scope="col">What</th>
-                  <th scope="col" className="num">
-                    {diff.a.name}
-                  </th>
-                  <th scope="col" className="num">
-                    {diff.b.name}
-                  </th>
-                  <th scope="col" className="num">
-                    Difference
-                  </th>
-                  <th scope="col">Favours</th>
-                </tr>
-              </thead>
-              <tbody>
-                {diff.metrics.map((m) => (
-                  <MetricRow key={m.key} metric={m} a={diff.a} b={diff.b} />
-                ))}
-              </tbody>
-            </table>
+            <MetricTable
+              metrics={diff.metrics}
+              aName={diff.a.name}
+              bName={diff.b.name}
+              caption={`What differs between ${diff.a.name} and ${diff.b.name} at ${diff.compareLabel}`}
+              empty=""
+            />
           )}
           {diff.sameCount > 0 && (
             <p className="dossier-muted" style={{ marginTop: 10 }}>
@@ -212,35 +195,5 @@ function PathColumn({
         );
       })}
     </div>
-  );
-}
-
-function MetricRow({
-  metric,
-  a,
-  b,
-}: {
-  metric: BranchDiffMetric;
-  a: BranchDiffSide;
-  b: BranchDiffSide;
-}) {
-  const tone = metric.favours === 'a' ? 'good-a' : metric.favours === 'b' ? 'good-b' : 'flat';
-  return (
-    <tr>
-      <td>{metric.label}</td>
-      <td className="num">{metric.aText}</td>
-      <td className="num">{metric.bText}</td>
-      <td className="num">{metric.deltaText}</td>
-      <td>
-        {metric.favours === 'a' ? (
-          <span className="diff-favours diff-favours-a">{a.name}</span>
-        ) : metric.favours === 'b' ? (
-          <span className="diff-favours diff-favours-b">{b.name}</span>
-        ) : (
-          <span className="dossier-tone-flat">neither</span>
-        )}
-        <span className={`diff-tone-dot diff-tone-${tone}`} aria-hidden="true" />
-      </td>
-    </tr>
   );
 }

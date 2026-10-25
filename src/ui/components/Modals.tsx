@@ -128,6 +128,7 @@ export function ModalHost({ store }: { store: Store }) {
         {modal.kind === 'about' && <AboutModal store={store} close={close} />}
         {modal.kind === 'shortcuts' && <ShortcutsModal store={store} close={close} />}
         {modal.kind === 'compare' && <CompareModal store={store} close={close} />}
+        {modal.kind === 'universes' && <UniverseCompareModal store={store} close={close} />}
       </div>
     </div>
   );
@@ -734,6 +735,21 @@ function LibraryModal({ store, close }: { store: Store; close: () => void }) {
                   {s.generator === 'ai' ? 'ai' : 'offline'}
                 </span>
                 <button
+                  className="btn btn-sm btn-ghost"
+                  onClick={() => {
+                    store.openUniverseDiff(s.id);
+                    if (store.getState().viewMode === 'universes') close();
+                  }}
+                  disabled={s.id === state.doc.id}
+                  title={
+                    s.id === state.doc.id
+                      ? 'This is the universe that is already open'
+                      : `Compare “${s.title}” with the open universe`
+                  }
+                >
+                  ⇄ Compare
+                </button>
+                <button
                   className="btn btn-sm btn-primary"
                   onClick={() => {
                     store.openFromLibrary(s.id);
@@ -983,6 +999,115 @@ function CompareModal({ store, close }: { store: Store; close: () => void }) {
         <div className="note" style={{ marginTop: 12 }}>
           Both paths are projected to the end of the horizon before they are compared, so the
           difference you see is a difference in the path and not in the timing.
+        </div>
+      </div>
+      <div className="modal-foot">
+        <button className="btn btn-ghost" onClick={close}>
+          Cancel
+        </button>
+        <button className="btn btn-primary" disabled={!valid} onClick={compare}>
+          Compare →
+        </button>
+      </div>
+    </>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Compare two universes                                               */
+/* ------------------------------------------------------------------ */
+
+function UniverseCompareModal({ store, close }: { store: Store; close: () => void }) {
+  const state = useAppState(store);
+  const others = store.comparableUniverses();
+  const remembered = state.universePair;
+
+  // The open universe is always the first side, so only the other side is
+  // chosen here. If a comparison was open before, prefer that counterpart.
+  const rememberedOther =
+    remembered === null
+      ? ''
+      : remembered.a === state.doc.id
+        ? remembered.b
+        : remembered.b === state.doc.id
+          ? remembered.a
+          : '';
+  const [b, setB] = useState(
+    others.some((x) => x.id === rememberedOther) ? rememberedOther : (others[0]?.id ?? '')
+  );
+
+  if (others.length === 0) {
+    return (
+      <>
+        <Head title="Compare two universes" close={close} />
+        <div className="modal-body">
+          <div className="empty">
+            <div className="empty-title">Nothing to compare with yet</div>A comparison needs two
+            saved universes. Fork the one you are looking at — change an assumption or choose a
+            different decision — and the original and the fork will both appear here.
+          </div>
+        </div>
+        <div className="modal-foot">
+          <button className="btn btn-ghost" onClick={close}>
+            Close
+          </button>
+        </div>
+      </>
+    );
+  }
+
+  const chosen = others.find((x) => x.id === b) ?? null;
+  const valid = b !== '' && b !== state.doc.id;
+
+  const compare = (): void => {
+    if (!valid) return;
+    store.openUniverseDiff(b);
+    close();
+  };
+
+  return (
+    <>
+      <Head title="Compare two universes" close={close} hint={`${others.length} other saved`} />
+      <div className="modal-body">
+        <div className="hero" style={{ marginBottom: 14 }}>
+          <div className="hero-title">What did changing it actually do?</div>
+          <div className="hero-sub">
+            The open universe is compared with another saved one. The result lists the assumptions
+            that differ, the paths both universes share, and what ends up different — at one common
+            moment, so a difference in timing is never mistaken for a difference in the path.
+          </div>
+        </div>
+
+        <div className="variant-card" style={{ marginBottom: 12 }}>
+          <div className="variant-title">{state.doc.title}</div>
+          <div className="variant-sub">
+            The universe that is open now · first side of the comparison
+          </div>
+        </div>
+
+        <label className="field">
+          <span className="field-label">Compare with</span>
+          <select className="select" value={b} onChange={(e) => setB(e.target.value)}>
+            {others.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.title}
+                {s.isCounterfactual ? ' — counterfactual' : ''}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        {chosen && (
+          <div className="note" style={{ marginTop: 12 }}>
+            <strong>{chosen.title}</strong> — {chosen.nodeCount} steps, {chosen.branchCount}{' '}
+            branches, last saved {new Date(chosen.updatedAt).toLocaleString()}.
+          </div>
+        )}
+
+        <div className="note" style={{ marginTop: 12 }}>
+          Nothing is modified by comparing. If the two universes answer different questions or were
+          run with different random draws, the comparison says so instead of blaming the difference
+          on a changed assumption.
         </div>
       </div>
       <div className="modal-foot">

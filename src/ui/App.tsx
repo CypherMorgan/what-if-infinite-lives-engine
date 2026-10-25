@@ -10,6 +10,7 @@ import { ModalHost } from './components/Modals';
 import { TimelineView } from './components/TimelineView';
 import { DossierView } from './components/DossierView';
 import { BranchDiffView } from './components/BranchDiffView';
+import { UniverseDiffView } from './components/UniverseDiffView';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { pathCount } from '../core/graph';
 
@@ -232,6 +233,13 @@ export function App({ store }: { store: Store }) {
           >
             ⇄ Compare
           </button>
+          <button
+            className={`btn ${state.viewMode === 'universes' ? 'btn-primary' : 'btn-ghost'}`}
+            onClick={() => store.showUniverseDiff()}
+            title="Compare the open universe with another saved one"
+          >
+            ⧉ Universes
+          </button>
           <span style={{ width: 1, height: 22, background: 'var(--line)' }} />
           <button
             className="btn btn-ghost"
@@ -287,6 +295,8 @@ export function App({ store }: { store: Store }) {
           <DossierView store={store} />
         ) : state.viewMode === 'diff' ? (
           <BranchDiffView store={store} />
+        ) : state.viewMode === 'universes' ? (
+          <UniverseDiffView store={store} />
         ) : (
           <Stage store={store} />
         )}

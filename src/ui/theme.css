@@ -1473,6 +1473,33 @@ body::before {
   color: var(--text);
 }
 
+/* =================================================================
+   Comparing two universes
+   ================================================================= */
+
+.universe-name {
+  color: var(--text);
+}
+
+/* Choose which shared path to inspect. */
+.uni-path-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 14px;
+}
+
+/* How many measurements differ on a shared path. */
+.uni-path-count {
+  margin-left: 6px;
+  padding: 0 4px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-faint);
+}
+
 .dossier-paths {
   margin-bottom: 14px;
 }

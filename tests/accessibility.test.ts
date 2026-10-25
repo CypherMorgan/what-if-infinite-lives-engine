@@ -216,9 +216,13 @@ describe('Accessibility — markup', () => {
   });
 
   it('labels the table that lists the differences', () => {
-    const src = sourceOf(join(UI_DIR, 'components', 'BranchDiffView.tsx'));
-    expect(src).toMatch(/<table[^>]*className="dossier-table"/);
-    expect(src).toMatch(/<caption/);
+    // Both comparisons render the same shared table, so it is labelled once.
+    const table = sourceOf(join(UI_DIR, 'components', 'MetricTable.tsx'));
+    expect(table).toMatch(/<table[^>]*className="dossier-table"/);
+    expect(table).toMatch(/<caption/);
+    for (const view of ['BranchDiffView.tsx', 'UniverseDiffView.tsx']) {
+      expect(sourceOf(join(UI_DIR, 'components', view))).toMatch(/<MetricTable/);
+    }
   });
 });
 

@@ -439,3 +439,81 @@ describe('Store — comparing two paths', () => {
     expect(ids).toContain(pair.b);
   });
 });
+
+describe('Store — comparing two universes', () => {
+  it('saves the parent before switching to a counterfactual', () => {
+    const store = makeStore();
+    const parent = store.getState().doc;
+    const child = store.makeCounterfactual('a.funds', 25_000, 'A test fork');
+    expect(child).not.toBeNull();
+    if (!child) return;
+
+    // The parent is now a real library entry, not just an undo step.
+    expect(storage.getItem(`whatifs:doc:${parent.id}`)).not.toBeNull();
+    expect(store.getState().library.some((x) => x.id === parent.id)).toBe(true);
+    expect(store.getState().doc.id).toBe(child.id);
+  });
+
+  it('lists the other saved universes, newest first', () => {
+    const store = makeStore();
+    const parent = store.getState().doc;
+    store.makeCounterfactual('a.funds', 25_000, 'A test fork');
+    const other = store.comparableUniverses();
+    expect(other.some((x) => x.id === parent.id)).toBe(true);
+    expect(other.some((x) => x.id === store.getState().doc.id)).toBe(false);
+    for (let i = 1; i < other.length; i += 1) {
+      expect(other[i - 1]!.updatedAt >= other[i]!.updatedAt).toBe(true);
+    }
+  });
+
+  it('opens a universe diff against the open universe', () => {
+    const store = makeStore();
+    const parent = store.getState().doc;
+    const child = store.makeCounterfactual('a.funds', 25_000, 'A test fork');
+    if (!child) return;
+
+    store.openUniverseDiff(parent.id);
+    const pair = store.getState().universePair;
+    expect(pair).toEqual({ a: child.id, b: parent.id });
+    expect(store.getState().viewMode).toBe('universes');
+    expect(storage.getItem('whatifs:universes')).toContain(parent.id);
+
+    const diff = store.universeDiffFor();
+    expect(diff).not.toBeNull();
+    expect(diff?.relationship.kind).toBe('a-from-b');
+    expect(diff?.changedAssumptions.map((x) => x.key)).toContain('a.funds');
+    // Cached until the document changes.
+    expect(store.universeDiffFor()).toBe(diff);
+  });
+
+  it('reopens the remembered comparison without asking again', () => {
+    const store = makeStore();
+    const parent = store.getState().doc;
+    store.makeCounterfactual('a.funds', 25_000, 'A test fork');
+    store.openUniverseDiff(parent.id);
+    store.setViewMode('graph');
+    store.openModal({ kind: 'library' });
+
+    store.showUniverseDiff();
+    expect(store.getState().viewMode).toBe('universes');
+    expect(store.getState().modal?.kind).toBe('library');
+  });
+
+  it('asks for a pair when there is no usable comparison', () => {
+    const store = makeStore();
+    store.showUniverseDiff();
+    expect(store.getState().viewMode).toBe('graph');
+    expect(store.getState().modal?.kind).toBe('universes');
+  });
+
+  it('refuses to compare a universe with itself or with a missing one', () => {
+    const store = makeStore();
+    store.openUniverseDiff(store.getState().doc.id);
+    expect(store.getState().universePair).toBeNull();
+    expect(store.getState().viewMode).toBe('graph');
+
+    store.openUniverseDiff('missing-universe');
+    expect(store.getState().universePair).toBeNull();
+    expect(store.getState().toasts.some((x) => x.kind === 'error')).toBe(true);
+  });
+});

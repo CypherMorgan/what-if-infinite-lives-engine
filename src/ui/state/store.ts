@@ -12,6 +12,7 @@ import type {
   BranchId,
   NodeId,
   ScenarioPrompt,
+  SimId,
   SimulationDoc,
   SimulationSummary,
   StateVector,
@@ -44,6 +45,7 @@ import {
 import { visibleNodes } from '../../core/graph';
 import { buildDossier, type Dossier } from '../../core/dossier';
 import { buildBranchDiff, type BranchDiff } from '../../core/branchDiff';
+import { buildUniverseDiff, type UniverseDiff, type UniverseRef } from '../../core/universeDiff';
 import { randomSeed } from '../../core/rng';
 import { detectArchetypes } from '../../core/archetypes';
 import { exportFileName, exportToText, importFromText, summarise } from '../../core/importExport';
@@ -78,6 +80,28 @@ const DEFAULT_UI: UiSettings = {
 const LS_UI = 'whatifs:ui';
 const LS_INDEX = 'whatifs:index';
 const LS_DIFF = 'whatifs:diff';
+const LS_UNIVERSE_PAIR = 'whatifs:universes';
+
+/**
+ * The pair of universes last compared.
+ *
+ * Kept beside the branch pair so reopening the app does not lose either
+ * comparison. It is read defensively: a stale id simply means the pair is
+ * offered again rather than crashing.
+ */
+function loadUniversePair(): { a: SimId; b: SimId } | null {
+  try {
+    const raw = localStorage.getItem(LS_UNIVERSE_PAIR);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as { a?: unknown; b?: unknown };
+    if (typeof parsed.a === 'string' && typeof parsed.b === 'string') {
+      return { a: parsed.a, b: parsed.b };
+    }
+  } catch {
+    /* corrupted pair falls back to none */
+  }
+  return null;
+}
 
 /**
  * The pair of paths last compared.
@@ -148,6 +172,8 @@ export interface Toast {
   text: string;
 }
 
+export type ViewMode = 'graph' | 'timeline' | 'dossier' | 'diff' | 'universes';
+
 export interface AppState {
   doc: SimulationDoc;
   selected: NodeId | null;
@@ -167,9 +193,11 @@ export interface AppState {
   modal: ModalState | null;
   compare: CompareState | null;
   library: SimulationSummary[];
-  viewMode: 'graph' | 'timeline' | 'dossier' | 'diff';
+  viewMode: ViewMode;
   /** The two branches being compared in the diff view. */
   diffBranches: { a: string; b: string } | null;
+  /** The two universes being compared, by document id. */
+  universePair: { a: SimId; b: SimId } | null;
 }
 
 export type ModalState =
@@ -181,7 +209,8 @@ export type ModalState =
   | { kind: 'counterfactual'; assumptionId: string }
   | { kind: 'library' }
   | { kind: 'shortcuts' }
-  | { kind: 'compare' };
+  | { kind: 'compare' }
+  | { kind: 'universes' };
 
 export interface CompareState {
   a: BranchSnapshot;
@@ -205,6 +234,8 @@ export class Store {
   private dossierCache = new Map<NodeId, Dossier | null>();
   /** Diffs are cached per pair of branches, on the same terms as dossiers. */
   private diffCache = new Map<string, BranchDiff | null>();
+  /** Universe diffs are cached per pair of documents, on the same terms. */
+  private universeCache = new Map<string, UniverseDiff | null>();
 
   constructor(doc: SimulationDoc) {
     // The path is derived from the selected node, so it has to be filled in
@@ -230,10 +261,18 @@ export class Store {
       compare: null,
       library: loadIndex(),
       diffBranches: loadDiffPair(),
-      viewMode: ((): 'graph' | 'timeline' | 'dossier' | 'diff' => {
+      universePair: loadUniversePair(),
+      viewMode: ((): ViewMode => {
         try {
           const saved = localStorage.getItem('whatifs:view');
-          if (saved === 'timeline' || saved === 'dossier' || saved === 'diff') return saved;
+          if (
+            saved === 'timeline' ||
+            saved === 'dossier' ||
+            saved === 'diff' ||
+            saved === 'universes'
+          ) {
+            return saved;
+          }
           return 'graph';
         } catch {
           return 'graph';
@@ -313,6 +352,7 @@ export class Store {
         : firstNodeId(scored);
     this.dossierCache.clear();
     this.diffCache.clear();
+    this.universeCache.clear();
     this.set({
       doc: scored,
       selected,
@@ -381,7 +421,7 @@ export class Store {
     this.set({ compare: c });
   }
 
-  setViewMode(mode: 'graph' | 'timeline' | 'dossier' | 'diff'): void {
+  setViewMode(mode: ViewMode): void {
     this.set({ viewMode: mode });
     try {
       localStorage.setItem('whatifs:view', mode);
@@ -443,6 +483,102 @@ export class Store {
     const built = buildBranchDiff(this.state.doc, a, b, ALL_PACKS);
     this.diffCache.set(key, built);
     return built;
+  }
+
+  /* ---------------- universe comparison ---------------- */
+
+  /** Saved universes other than the one currently open, newest first. */
+  comparableUniverses(): SimulationSummary[] {
+    const seen = new Set<SimId>([this.state.doc.id]);
+    const out: SimulationSummary[] = [];
+    for (const item of this.state.library) {
+      if (seen.has(item.id)) continue;
+      seen.add(item.id);
+      out.push(item);
+    }
+    return out.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+  }
+
+  /**
+   * Compares the open universe with another saved one.
+   *
+   * The open document is always the first side, because the question being
+   * asked is "what did changing this do to the universe I am looking at?".
+   */
+  openUniverseDiff(bId: SimId): void {
+    if (bId === this.state.doc.id) {
+      this.toast('Pick a different universe to compare with.', 'info');
+      return;
+    }
+    if (!this.loadDoc(bId)) {
+      this.toast('That universe could not be loaded.', 'error');
+      return;
+    }
+    this.setUniversePair({ a: this.state.doc.id, b: bId });
+    this.setViewMode('universes');
+  }
+
+  setUniversePair(pair: { a: SimId; b: SimId }): void {
+    this.set({ universePair: pair });
+    try {
+      localStorage.setItem(LS_UNIVERSE_PAIR, JSON.stringify(pair));
+    } catch {
+      // ignore
+    }
+  }
+
+  /** Reopens the remembered universe comparison, or asks for a pair. */
+  showUniverseDiff(): void {
+    const pair = this.state.universePair;
+    if (pair && pair.a !== pair.b && this.universeDiffFor(pair)) {
+      this.setViewMode('universes');
+      return;
+    }
+    this.openModal({ kind: 'universes' });
+  }
+
+  /** The diff for the remembered universe pair, or an explicit one. */
+  universeDiffFor(
+    pair: { a: SimId; b: SimId } | null = this.state.universePair
+  ): UniverseDiff | null {
+    if (!pair) return null;
+    if (pair.a === pair.b) return null;
+    const key = `${pair.a}|${pair.b}`;
+    if (this.universeCache.has(key)) return this.universeCache.get(key) ?? null;
+
+    const aDoc = this.docFor(pair.a);
+    const bDoc = this.docFor(pair.b);
+    if (!aDoc || !bDoc) {
+      this.universeCache.set(key, null);
+      return null;
+    }
+    const built = buildUniverseDiff(aDoc, bDoc, ALL_PACKS, { refs: this.universeRefs() });
+    this.universeCache.set(key, built);
+    return built;
+  }
+
+  /** The document as it is now for the open universe, as stored for the rest. */
+  private docFor(id: SimId): SimulationDoc | null {
+    return id === this.state.doc.id ? this.state.doc : this.loadDoc(id);
+  }
+
+  /**
+   * Lineage refs cheap enough to build from the library index.
+   *
+   * The open document is included so a universe created in this session can be
+   * placed in the family tree before it has been reopened from storage.
+   */
+  private universeRefs(): UniverseRef[] {
+    const refs: UniverseRef[] = [];
+    const seen = new Set<SimId>();
+    const add = (ref: UniverseRef): void => {
+      if (seen.has(ref.id)) return;
+      seen.add(ref.id);
+      refs.push(ref);
+    };
+    for (const item of this.state.library) add(refOfSummary(item));
+    add(refOfDoc(this.state.doc));
+    return refs;
   }
 
   visible(): Set<NodeId> {
@@ -658,6 +794,10 @@ export class Store {
       this.toast(outcome.error, 'error');
       return null;
     }
+    // Remember the parent *before* switching to the fork. Otherwise a universe
+    // made this session would exist only in undo history, and the comparison it
+    // was forked from could not be reopened afterwards.
+    this.rememberDoc(this.state.doc);
     this.run(`What if: ${outcome.counterfactual.target}`, outcome.doc);
     this.toast('Counterfactual universe created — it now lives in your library.', 'success');
     return outcome.doc;
@@ -670,8 +810,15 @@ export class Store {
       this.toast(outcome.error, 'error');
       return;
     }
+    this.rememberDoc(this.state.doc);
     this.run(`Choose: ${outcome.counterfactual.target}`, outcome.doc);
     this.toast('Alternative chosen — a new universe was derived.', 'success');
+  }
+
+  /** Save a document to the library without making it the open document. */
+  private rememberDoc(doc: SimulationDoc): void {
+    this.saveLibraryEntry(doc);
+    this.persistDoc(doc);
   }
 
   /* ---------------- comparison ---------------- */
@@ -736,6 +883,7 @@ export class Store {
   /* ---------------- library ---------------- */
 
   refreshLibrary(): void {
+    this.universeCache.clear();
     this.set({ library: loadIndex() });
   }
 
@@ -851,6 +999,22 @@ export class Store {
 function firstNodeId(doc: SimulationDoc): NodeId | null {
   const start = Object.values(doc.nodes).find((n) => n.type === 'start');
   return start?.id ?? Object.keys(doc.nodes)[0] ?? null;
+}
+
+function refOfDoc(doc: SimulationDoc): UniverseRef {
+  return {
+    id: doc.id,
+    title: doc.title,
+    ...(doc.parentId ? { parentId: doc.parentId } : {}),
+  };
+}
+
+function refOfSummary(item: SimulationSummary): UniverseRef {
+  return {
+    id: item.id,
+    title: item.title,
+    ...(item.parentId ? { parentId: item.parentId } : {}),
+  };
 }
 
 function splitLines(text: string): string[] {
