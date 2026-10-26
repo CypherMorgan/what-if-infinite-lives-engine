@@ -9,7 +9,7 @@
 [![Electron](https://img.shields.io/badge/Electron-44-47848f?logo=electron&logoColor=white&style=flat-square)](https://www.electronjs.org/)
 [![React](https://img.shields.io/badge/React-19-61dafb?logo=react&logoColor=white&style=flat-square)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178c6?logo=typescript&logoColor=white&style=flat-square)](https://www.typescriptlang.org/)
-[![Tests](https://img.shields.io/badge/tests-374%20passing-b9f6a5.svg?style=flat-square)](#testing)
+[![Tests](https://img.shields.io/badge/tests-381%20passing-b9f6a5.svg?style=flat-square)](#testing)
 [![Local-first](https://img.shields.io/badge/local--first-offline%20by%20default-ffb74d.svg?style=flat-square)](#privacy--security)
 
 <p align="center">
@@ -194,7 +194,7 @@ thewhatifs/
 │   │   └── theme.css
 │   ├── main.tsx
 │   └── ui/App.tsx
-└── tests/                    # 374 unit tests (engine, counterfactual, persistence, export format, AI, update, vars, dossier, branch diff, universe diff, templates, rule packs, PDF report, store, accessibility)
+└── tests/                    # 381 unit tests (engine, counterfactual, persistence, export format, AI, update, vars, dossier, branch diff, universe diff, templates, rule packs, PDF report, store, accessibility)
 ```
 
 ## Usage
@@ -226,7 +226,7 @@ thewhatifs/
 
 ## Testing
 
-All core logic is covered by unit tests (374 passing):
+All core logic is covered by unit tests (381 passing):
 
 - **engine.test.ts** — Determinism, expansion, layout, queries, forecast/spread, rule catalogue, derive clamping
 - **counterfactual.test.ts** — Assumption/decision counterfactuals, lineage, reroll, snapshots/diffs/stability
@@ -239,6 +239,7 @@ All core logic is covered by unit tests (374 passing):
 - **branchDiff.test.ts** — Comparing two paths: the common moment, the divergence point, and which way "favours" points
 - **universeDiff.test.ts** — Comparing two universes: lineage, one-sided assumptions, path pairing by name, and the cases where a difference must not be blamed on the changed assumption
 - **templates.test.ts** — Scenario templates: every card builds a real deterministic universe, activates the rule pack its words imply, and never puts invented money in the user's mouth
+- **demo.test.ts** — The first-run universe: a real document, a question its three branches actually answer, the packs its words describe, and sample figures that stay editable instead of becoming defaults
 - **rulePacks.test.ts** — The authorable pack format: the bundled example parses and is genuinely selected by the engine, and every deliberate limit (new variables, decisions, collisions, evidence, size, totals) is enforced with a readable error
 - **pdfReport.test.ts** — The printable report: it is complete, deterministic, includes session notes when they exist, and nothing the user typed can escape into the markup
 - **store.test.ts** — Selection, camera, expansion, undo/redo, branches, assumptions, session notes, rule-pack install/remove and rollback, import/export, settings, template figures, and returning to the graph when the open universe changes

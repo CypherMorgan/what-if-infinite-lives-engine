@@ -9,12 +9,9 @@ import { createRoot } from 'react-dom/client';
 import './ui/theme.css';
 import { App } from './ui/App';
 import { Store } from './ui/state/store';
-import { detectArchetypes } from './core/archetypes';
-import { createUniverse } from './core/engine';
-import { getActivePacks } from './core/packs';
-import { randomSeed } from './core/rng';
+import { demoUniverse } from './core/demo';
 import { importFromText } from './core/importExport';
-import type { ScenarioPrompt, SimulationDoc } from './core/types';
+import type { SimulationDoc } from './core/types';
 import { ErrorBoundary } from './ui/components/ErrorBoundary';
 import { bootstrapInstalledPacks } from './ui/state/rulePacks';
 
@@ -43,29 +40,6 @@ function bootDocument(): SimulationDoc {
 
   // 2. a first-run universe so the window is never empty
   return demoUniverse();
-}
-
-function demoUniverse(): SimulationDoc {
-  const situation =
-    'I have been in the same operations role for six years, have some savings put aside, and I keep ' +
-    'getting asked to take on more responsibility without a change in title or pay.';
-  const decision =
-    'Should I push for the promotion, move to a different employer, or build something of my own?';
-  const text = `${situation} ${decision} career job promotion business savings`;
-  const archetypes = detectArchetypes(text);
-  const prompt: ScenarioPrompt = {
-    situation,
-    decision,
-    goals: ['financial stability', 'mastery', 'more control over my time'],
-    constraints: ['current savings', 'current rent'],
-    horizon: 36,
-    branchCount: 3,
-    imagination: 0.45,
-    resources: ['savings 14000', 'income 3200'],
-    archetypes: archetypes.length > 0 ? archetypes : ['career', 'business'],
-    title: 'The promotion question',
-  };
-  return createUniverse({ packs: getActivePacks(), seed: randomSeed(), prompt });
 }
 
 const store = new Store(bootDocument());

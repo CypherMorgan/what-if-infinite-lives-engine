@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- **A better first universe.** A new install no longer opens on a grievance about a promotion. The sample universe is now a three-way life fork — take the job abroad, stay where you are, or cut your costs and buy a year to decide — and it is written around the three branches the engine actually produces for those words, so the first graph answers the question on the card instead of wandering into "Move abroad" by accident. It activates career, relocation, finance and relationships, and its figures are sample figures shown as editable assumptions. The demo prompt now lives in `src/core/demo.ts` and is covered by seven tests, including one that pins the branches to the question.
+
 ## [1.3.0] - 2026-10-25
 
 The release that turned the app from something you read into something you can
